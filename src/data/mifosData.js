@@ -1,0 +1,1941 @@
+// Dữ liệu mô phỏng Mifos X Core Banking - Takashimaya Bank (TKB) Sandbox
+// Được trích xuất trực tiếp 100% từ file SQL thực tế: mifos_full_backup_15102026_Final_Edu.sql
+
+export const INITIAL_BANK_INFO = {
+  bankName: "Takashimaya Bank (TKB)",
+  code: "TKB",
+  headOfficeId: "1",
+  currency: "VND",
+  timezone: "Asia/Ho_Chi_Minh"
+};
+
+export const INITIAL_OFFICES = [
+  {
+    "id": "1",
+    "name": "Takashimaya Bank (TKB) - HO",
+    "externalId": "TKB - HO - 001",
+    "parentId": null,
+    "parentName": null,
+    "openingDate": "2026-08-01",
+    "hierarchy": "."
+  },
+  {
+    "id": "31",
+    "name": "Long Xuyen Transaction Office",
+    "externalId": "TKB-TO-AGI-01",
+    "parentId": "16",
+    "parentName": "Angiang Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.16.31."
+  },
+  {
+    "id": "5",
+    "name": "Hanoi Branch",
+    "externalId": "TKB - BR - HAN",
+    "parentId": "2",
+    "parentName": "TKB - Nothern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".2.5."
+  },
+  {
+    "id": "6",
+    "name": "Hue Branch",
+    "externalId": "TKB - BR - HUE",
+    "parentId": "4",
+    "parentName": "TKB - Central Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".4.6."
+  },
+  {
+    "id": "7",
+    "name": "Thuan Hoa Transaction Office",
+    "externalId": "TKB - TO - HUE - 01",
+    "parentId": "6",
+    "parentName": "Hue Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".4.6.7."
+  },
+  {
+    "id": "8",
+    "name": "Haiphong Branch",
+    "externalId": "TKB - BR - HPH",
+    "parentId": "2",
+    "parentName": "TKB - Nothern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".2.8."
+  },
+  {
+    "id": "32",
+    "name": "Cao Lanh Transaction Office",
+    "externalId": "TKB-TO-DTH-01",
+    "parentId": "17",
+    "parentName": "Dongthap Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.17.32."
+  },
+  {
+    "id": "10",
+    "name": "Danang Branch",
+    "externalId": "TKB-BR-DNG",
+    "parentId": "4",
+    "parentName": "TKB - Central Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".4.10."
+  },
+  {
+    "id": "26",
+    "name": "Thu Duc Transaction Office",
+    "externalId": "TKB-TO-HCM-02",
+    "parentId": "12",
+    "parentName": "Hochiminh Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.12.26."
+  },
+  {
+    "id": "11",
+    "name": "Khanhhoa Branch",
+    "externalId": "TKB-BR-KHA",
+    "parentId": "4",
+    "parentName": "TKB - Central Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".4.11."
+  },
+  {
+    "id": "12",
+    "name": "Hochiminh Branch",
+    "externalId": "TKB-BR-HCM",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.12."
+  },
+  {
+    "id": "13",
+    "name": "Dongnai Branch",
+    "externalId": "TKB-BR-DNI",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.13."
+  },
+  {
+    "id": "14",
+    "name": "Tayninh Branch",
+    "externalId": "TKB-BR-TNI",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.14."
+  },
+  {
+    "id": "15",
+    "name": "Cantho Branch",
+    "externalId": "TKB-BR-CTO",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.15."
+  },
+  {
+    "id": "16",
+    "name": "Angiang Branch",
+    "externalId": "TKB-BR-AGI",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.16."
+  },
+  {
+    "id": "17",
+    "name": "Dongthap Branch",
+    "externalId": "TKB-BR-DTH",
+    "parentId": "3",
+    "parentName": "TKB - Southern Region Office",
+    "openingDate": "2026-08-03",
+    "hierarchy": ".3.17."
+  },
+  {
+    "id": "2",
+    "name": "TKB - Nothern Region Office",
+    "externalId": "TKB - REG - NOR",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".2."
+  },
+  {
+    "id": "3",
+    "name": "TKB - Southern Region Office",
+    "externalId": "TKB - REG - SOU",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".3."
+  },
+  {
+    "id": "4",
+    "name": "TKB - Central Region Office",
+    "externalId": "TKB - REG - CEN",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".4."
+  },
+  {
+    "id": "18",
+    "name": "Quangninh Branch",
+    "externalId": "TKB-BR-QNI",
+    "parentId": "2",
+    "parentName": "TKB - Nothern Region Office",
+    "openingDate": "2026-09-03",
+    "hierarchy": ".2.18."
+  },
+  {
+    "id": "9",
+    "name": "Hong Bang Transaction Office",
+    "externalId": "TKB - TO  - HPH - 01",
+    "parentId": "8",
+    "parentName": "Haiphong Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".2.8.9."
+  },
+  {
+    "id": "19",
+    "name": "Hoan Kiem Transaction Office",
+    "externalId": "TKB-TO-HAN-01",
+    "parentId": "5",
+    "parentName": "Hanoi Branch",
+    "openingDate": "2026-10-04",
+    "hierarchy": ".2.5.19."
+  },
+  {
+    "id": "20",
+    "name": "Cau Giay Transaction Office",
+    "externalId": "TKB-TO-HAN-02",
+    "parentId": "5",
+    "parentName": "Hanoi Branch",
+    "openingDate": "2026-10-04",
+    "hierarchy": ".2.5.20."
+  },
+  {
+    "id": "21",
+    "name": "Ha Long Transaction Office",
+    "externalId": "TKB-TO-QNI-01",
+    "parentId": "18",
+    "parentName": "Quangninh Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".2.18.21."
+  },
+  {
+    "id": "22",
+    "name": "Hai Chau Transaction Office",
+    "externalId": "TKB-TO-DNG-01",
+    "parentId": "10",
+    "parentName": "Danang Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".4.10.22."
+  },
+  {
+    "id": "25",
+    "name": "Nha Trang Transaction Office",
+    "externalId": "TKB-TO-KHA-01",
+    "parentId": "11",
+    "parentName": "Khanhhoa Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".4.11.25."
+  },
+  {
+    "id": "27",
+    "name": "Bien Hoa Transaction Office",
+    "externalId": "TKB-TO-DNI-01",
+    "parentId": "13",
+    "parentName": "Dongnai Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.13.27."
+  },
+  {
+    "id": "28",
+    "name": "Trang Bang Transaction Office",
+    "externalId": "TKB-TO-TNI-01",
+    "parentId": "14",
+    "parentName": "Tayninh Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.14.28."
+  },
+  {
+    "id": "29",
+    "name": "Ninh Kieu Transaction Office",
+    "externalId": "TKB-TO-CTO-01",
+    "parentId": "15",
+    "parentName": "Cantho Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.15.29."
+  },
+  {
+    "id": "30",
+    "name": "Cai Rang Transaction Office",
+    "externalId": "TKB-TO-CTO-02",
+    "parentId": "15",
+    "parentName": "Cantho Branch",
+    "openingDate": "2026-08-04",
+    "hierarchy": ".3.15.30."
+  }
+];
+
+export const DEFAULT_SYSTEM_ROLES = [
+  {
+    "id": "1",
+    "name": "Super user",
+    "description": "This role provides all application permissions.",
+    "disabled": false
+  },
+  {
+    "id": "2",
+    "name": "Self Service User",
+    "description": "self service user role",
+    "disabled": true
+  }
+];
+
+export const INITIAL_ROLES = [...DEFAULT_SYSTEM_ROLES];
+
+export const FULL_BACKUP_ROLES = [
+  {
+    "id": "1",
+    "name": "Super user",
+    "description": "This role provides all application permissions.",
+    "disabled": false
+  },
+  {
+    "id": "2",
+    "name": "Self Service User",
+    "description": "self service user role",
+    "disabled": true
+  },
+  {
+    "id": "4",
+    "name": "TKB_ACCOUNTING_MAKER",
+    "description": "Responsible for initiating accounting transactions and journal entries, subject to approval by authorized accounting checkers.",
+    "disabled": false
+  },
+  {
+    "id": "5",
+    "name": "TKB_ACCOUNTING_CHECKER",
+    "description": "Responsible for reviewing, approving, or rejecting accounting transactions initiated by authorized makers, ensuring accuracy and compliance with internal accounting controls.",
+    "disabled": false
+  },
+  {
+    "id": "7",
+    "name": "TKB_ACCOUNTING_MANAGER",
+    "description": "Responsible for overseeing accounting operations, managing authorized accounting configurations, monitoring financial transactions, and ensuring compliance with internal financial controls.",
+    "disabled": false
+  },
+  {
+    "id": "8",
+    "name": "TKB_SAVINGS_OFFICER",
+    "description": "Responsible for initiating and maintaining authorized customer savings operations.",
+    "disabled": false
+  },
+  {
+    "id": "9",
+    "name": "TKB_SAVINGS_SUPERVISOR",
+    "description": "Responsible for reviewing and supervising customer deposit operations.",
+    "disabled": false
+  },
+  {
+    "id": "10",
+    "name": "TKB_LOAN_OFFICER",
+    "description": "Responsible for initiating loan applications and maintaining assigned loan portfolios.",
+    "disabled": false
+  },
+  {
+    "id": "11",
+    "name": "TKB_LOAN_APPROVER",
+    "description": "Responsible for reviewing and approving eligible loan applications within assigned authority.",
+    "disabled": false
+  },
+  {
+    "id": "12",
+    "name": "TKB_TELLER_CASHIER",
+    "description": "Responsible for authorized cash transactions and teller operations.",
+    "disabled": false
+  },
+  {
+    "id": "13",
+    "name": "TKB_CASH_SUPERVISOR",
+    "description": "Responsible for supervising teller cash management and cash allocation activities.",
+    "disabled": false
+  },
+  {
+    "id": "14",
+    "name": "TKB_CUSTOMER_SERVICE",
+    "description": "Responsible for creating and maintaining customer information within assigned authority.",
+    "disabled": false
+  },
+  {
+    "id": "15",
+    "name": "TKB_RISK_VIEWER",
+    "description": "Responsible for reviewing financial and portfolio information for risk monitoring purposes.",
+    "disabled": false
+  },
+  {
+    "id": "16",
+    "name": "TKB_IT_SUPPORT",
+    "description": "Responsible for viewing system information and supporting authorized operational activities.",
+    "disabled": false
+  },
+  {
+    "id": "17",
+    "name": "TKB_USER_ADMIN",
+    "description": "Responsible for creating and maintaining application users and assigning authorized roles.",
+    "disabled": false
+  },
+  {
+    "id": "18",
+    "name": "TKB_AUDITOR_READONLY",
+    "description": "Responsible for independently reviewing accounting and operational records without modification rights.",
+    "disabled": false
+  }
+];
+
+export const SYSTEM_ADMIN = {
+  id: "1",
+  username: "mifos",
+  firstname: "bank",
+  lastname: "Administrator",
+  email: "admin@tkb.org",
+  officeId: "1",
+  officeName: "Takashimaya Bank (TKB) - HO",
+  roles: ["Super user"],
+  enabled: true
+};
+
+export const DEFAULT_SYSTEM_USERS = [
+  {
+    "id": "1",
+    "username": "mifos",
+    "firstname": "bank",
+    "lastname": "Administrator",
+    "email": "admin@tkb.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "Super user"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "2",
+    "username": "system",
+    "firstname": "system",
+    "lastname": "system",
+    "email": "demomfi@mifos.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "Viewer"
+    ],
+    "enabled": true
+  }
+];
+
+export const INITIAL_USERS = [...DEFAULT_SYSTEM_USERS];
+
+export const isDefaultSystemUser = (u) => {
+  if (!u) return false;
+  return u.username === 'mifos' || u.username === 'system' || u.id === '1' || u.id === '2';
+};
+
+export const isDefaultSystemRole = (r) => {
+  if (!r) return false;
+  return r.name === 'Super user' || r.name === 'Self Service User' || r.id === '1' || r.id === '2';
+};
+
+export const FULL_BACKUP_USERS = [
+  {
+    "id": "2",
+    "username": "system",
+    "firstname": "system",
+    "lastname": "system",
+    "email": "demomfi@mifos.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "Viewer"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "3",
+    "username": "3_DELETED_Đỗ Như Quỳnh",
+    "firstname": "Do Nhu",
+    "lastname": "Quynh",
+    "email": "030240240119@st.buh.edu.vn",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "Viewer"
+    ],
+    "enabled": false
+  },
+  {
+    "id": "1",
+    "username": "mifos",
+    "firstname": "bank",
+    "lastname": "Administrator",
+    "email": "admin@tkb.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "Super user"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "4",
+    "username": "tkb.acc.maker01",
+    "firstname": "An",
+    "lastname": "Nguyen",
+    "email": "annguyen.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_ACCOUNTING_MAKER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "5",
+    "username": "tkb.acc.checker01",
+    "firstname": "Binh",
+    "lastname": "Tran",
+    "email": "binhtran.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_ACCOUNTING_CHECKER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "6",
+    "username": "tkb.acc.manager01",
+    "firstname": "Chi",
+    "lastname": "Le",
+    "email": "chile.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_ACCOUNTING_MANAGER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "9",
+    "username": "tkb.sav.manager01",
+    "firstname": "Linh",
+    "lastname": "Do",
+    "email": "linhdo.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_SAVINGS_SUPERVISOR"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "11",
+    "username": "tkb.loan.approver01",
+    "firstname": "Nam",
+    "lastname": "Bui",
+    "email": "nambui.tkb@HCM.org",
+    "officeId": "12",
+    "officeName": "Hochiminh Branch",
+    "roles": [
+      "TKB_LOAN_APPROVER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "10",
+    "username": "tkb.loan.officer01",
+    "firstname": "Minh",
+    "lastname": "Ho",
+    "email": "minhho.tkb@HCM.org",
+    "officeId": "12",
+    "officeName": "Hochiminh Branch",
+    "roles": [
+      "TKB_LOAN_OFFICER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "7",
+    "username": "tkb.sav.officer01",
+    "firstname": "Duy",
+    "lastname": "Pham",
+    "email": "duypham.tkb@HN.org",
+    "officeId": "5",
+    "officeName": "Hanoi Branch",
+    "roles": [
+      "TKB_SAVINGS_OFFICER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "8",
+    "username": "tkb.sav.checker01",
+    "firstname": "Ha",
+    "lastname": "Vo",
+    "email": "havo.tkb@HN.org",
+    "officeId": "5",
+    "officeName": "Hanoi Branch",
+    "roles": [
+      "TKB_SAVINGS_SUPERVISOR"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "13",
+    "username": "tkb.tre.teller01",
+    "firstname": "Quan",
+    "lastname": "Dang",
+    "email": "quandang.tkb@TDTO.org",
+    "officeId": "26",
+    "officeName": "Thu Duc Transaction Office",
+    "roles": [
+      "TKB_TELLER_CASHIER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "14",
+    "username": "tkb.tre.vault01",
+    "firstname": "Son",
+    "lastname": "Mai",
+    "email": "sonmai.tkb@TDTO.org",
+    "officeId": "26",
+    "officeName": "Thu Duc Transaction Office",
+    "roles": [
+      "TKB_CASH_SUPERVISOR"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "15",
+    "username": "tkb.tre.manager01",
+    "firstname": "Thao",
+    "lastname": "Cao",
+    "email": "thaocao.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_CASH_SUPERVISOR"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "16",
+    "username": "tkb.cus.officer01",
+    "firstname": "Uyen",
+    "lastname": "Nguyen",
+    "email": "uyennguyen.tkb@HKTO.org",
+    "officeId": "19",
+    "officeName": "Hoan Kiem Transaction Office",
+    "roles": [
+      "TKB_CUSTOMER_SERVICE"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "17",
+    "username": "tkb.cus.officer02",
+    "firstname": "Viet",
+    "lastname": "Le",
+    "email": "vietle.tkb@HN.org",
+    "officeId": "5",
+    "officeName": "Hanoi Branch",
+    "roles": [
+      "TKB_CUSTOMER_SERVICE"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "18",
+    "username": "tkb.cus.manager01",
+    "firstname": "Yen",
+    "lastname": "Tran",
+    "email": "yentran.tkb@HCM.org",
+    "officeId": "12",
+    "officeName": "Hochiminh Branch",
+    "roles": [
+      "TKB_CUSTOMER_SERVICE"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "19",
+    "username": "tkb.risk.analyst01",
+    "firstname": "Bao",
+    "lastname": "Phan",
+    "email": "baophan.tkb@DN.org",
+    "officeId": "10",
+    "officeName": "Danang Branch",
+    "roles": [
+      "TKB_RISK_VIEWER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "20",
+    "username": "tkb.risk.compliance01",
+    "firstname": "Gia",
+    "lastname": "Nguyen",
+    "email": "gianguyen.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_RISK_VIEWER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "21",
+    "username": "tkb.risk.manager01",
+    "firstname": "Huy",
+    "lastname": "Lam",
+    "email": "huylam.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_RISK_VIEWER"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "22",
+    "username": "tkb.it.support01",
+    "firstname": "Khanh",
+    "lastname": "Vu",
+    "email": "khanhvu.tkb@DN.org",
+    "officeId": "10",
+    "officeName": "Danang Branch",
+    "roles": [
+      "TKB_IT_SUPPORT"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "23",
+    "username": "tkb.it.admin01",
+    "firstname": "Long",
+    "lastname": "Ngo",
+    "email": "longngo.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_USER_ADMIN"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "24",
+    "username": "tkb.it.manager01",
+    "firstname": "Mai",
+    "lastname": "Duong",
+    "email": "maiduong.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_IT_SUPPORT"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "25",
+    "username": "tkb.audit.junior01",
+    "firstname": "Nhi",
+    "lastname": "Ly",
+    "email": "nhily.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_AUDITOR_READONLY"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "26",
+    "username": "tkb.audit.senior01",
+    "firstname": "Oanh",
+    "lastname": "Pham",
+    "email": "oanhpham.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_AUDITOR_READONLY"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "27",
+    "username": "tkb.audit.manager01",
+    "firstname": "Tuan",
+    "lastname": "Dao",
+    "email": "tuandao.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_AUDITOR_READONLY"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "12",
+    "username": "tkb.loan.manager01",
+    "firstname": "Phuc",
+    "lastname": "Truong",
+    "email": "phuctruoc.tkb@HO.org",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "roles": [
+      "TKB_LOAN_APPROVER"
+    ],
+    "enabled": true
+  }
+];
+
+export const INITIAL_GL_ACCOUNTS = [
+  {
+    "id": "22",
+    "glCode": "120101",
+    "name": "Retail Loan Principal",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "3",
+    "glCode": "300000",
+    "name": "TOTAL EQUITY",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": null,
+    "description": "Root account for shareholders' equity, retained earings, and accumulated financial results of Takashimaya Bank"
+  },
+  {
+    "id": "1",
+    "glCode": "100000",
+    "name": "TOTAL ASSETS",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": null,
+    "description": "Root account for all assets of Takashimaya Bank\\n"
+  },
+  {
+    "id": "4",
+    "glCode": "400000",
+    "name": "TOTAL INCOME",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": null,
+    "description": "Root account for all interest  income,  fee income, and other operating revenus generated by Takashimaya Bank"
+  },
+  {
+    "id": "6",
+    "glCode": "110000",
+    "name": "CASH AND BANK BALANCES",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "1",
+    "description": "Groups cash holdings, vault and teller balances, and funds maintained with banks and settlement institutions.\\n\\n"
+  },
+  {
+    "id": "7",
+    "glCode": "120000",
+    "name": "LOAN ASSETS",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "1",
+    "description": "Groups outstanding loan principal, accrued loan receivables, and related valuation allowances.\\n\\n"
+  },
+  {
+    "id": "8",
+    "glCode": "130000",
+    "name": "OTHER ASSETS",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "1",
+    "description": "Groups clearing receivables, interbranch receivables, and other financial or operating assets.\\n\\n"
+  },
+  {
+    "id": "23",
+    "glCode": "120102",
+    "name": "Corporate Loan Principal",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "10",
+    "glCode": "220000",
+    "name": "FUNDING AND CLEARING",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "2",
+    "description": "Groups interbank funding liabilities, clearing payables, and other settlement obligations.\\n\\n"
+  },
+  {
+    "id": "11",
+    "glCode": "310000",
+    "name": "CAPITAL AND RESERVES",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "3",
+    "description": "Groups contributed capital, retained earnings, reserves, and accumulated financial results.\\n\\n"
+  },
+  {
+    "id": "12",
+    "glCode": "410000",
+    "name": "INTEREST INCOME",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "4",
+    "description": "Groups interest income earned from lending, interbank placements, and other interest-bearing assets.\\n\\n"
+  },
+  {
+    "id": "15",
+    "glCode": "520000",
+    "name": "CREDIT LOSS EXPENSES",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "5",
+    "description": "Groups credit impairment charges, credit loss expenses, and related adjustments.\\n\\n"
+  },
+  {
+    "id": "16",
+    "glCode": "530000",
+    "name": "OPERATING EXPENSES",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "5",
+    "description": "Groups personnel, administrative, technology, and other operating expenses.\\n\\n"
+  },
+  {
+    "id": "9",
+    "glCode": "210000",
+    "name": "CUSTOMER DEPOSITS",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "2",
+    "description": "Groups customer savings, current and term deposits, and related interest payable obligations.\\n\\n"
+  },
+  {
+    "id": "18",
+    "glCode": "110102",
+    "name": "Cash at Teller",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "6",
+    "description": ""
+  },
+  {
+    "id": "20",
+    "glCode": "110202",
+    "name": "Central Bank Balance",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "6",
+    "description": ""
+  },
+  {
+    "id": "21",
+    "glCode": "110301",
+    "name": "Interbank Placements",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "6",
+    "description": ""
+  },
+  {
+    "id": "24",
+    "glCode": "120201",
+    "name": "Loan Interest Receivable",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "25",
+    "glCode": "120202",
+    "name": "Loan Fee Receivable",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "26",
+    "glCode": "120203",
+    "name": "Loan Penalty Receivable",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "27",
+    "glCode": "120301",
+    "name": "Allowance for Credit Losses",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "7",
+    "description": ""
+  },
+  {
+    "id": "28",
+    "glCode": "130101",
+    "name": "Clearing Receivable",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "8",
+    "description": ""
+  },
+  {
+    "id": "29",
+    "glCode": "130102",
+    "name": "Interbranch Receivable",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "8",
+    "description": ""
+  },
+  {
+    "id": "30",
+    "glCode": "130103",
+    "name": "Loan Transfer Suspense",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "8",
+    "description": ""
+  },
+  {
+    "id": "31",
+    "glCode": "210101",
+    "name": "Savings Deposits",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "32",
+    "glCode": "210102",
+    "name": "Current Account Deposits",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "33",
+    "glCode": "210103",
+    "name": "Fixed Deposits",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "34",
+    "glCode": "210104",
+    "name": "Recurring Deposits",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "35",
+    "glCode": "210201",
+    "name": "Savings Interest Payable",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "36",
+    "glCode": "210202",
+    "name": "Fixed Deposit Interest Payable",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "9",
+    "description": ""
+  },
+  {
+    "id": "37",
+    "glCode": "220101",
+    "name": "Interbank Borrowings",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "38",
+    "glCode": "220201",
+    "name": "Clearing Payable",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "40",
+    "glCode": "220203",
+    "name": "Unapplied Customer Funds",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "41",
+    "glCode": "220204",
+    "name": "Loan Overpayment Liability",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "43",
+    "glCode": "310102",
+    "name": "Retained Earnings",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "11",
+    "description": ""
+  },
+  {
+    "id": "44",
+    "glCode": "310103",
+    "name": "Current Year Result",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "11",
+    "description": ""
+  },
+  {
+    "id": "46",
+    "glCode": "410101",
+    "name": "Loan Interest Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "12",
+    "description": ""
+  },
+  {
+    "id": "47",
+    "glCode": "410102",
+    "name": "Interbank Interest Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "12",
+    "description": ""
+  },
+  {
+    "id": "48",
+    "glCode": "420101",
+    "name": "Loan Processing Fee Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "49",
+    "glCode": "420102",
+    "name": "Savings Service Fee Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "50",
+    "glCode": "420103",
+    "name": "Loan Penalty Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "52",
+    "glCode": "420105",
+    "name": "Loan Recovery Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "53",
+    "glCode": "510101",
+    "name": "Savings Interest Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "14",
+    "description": ""
+  },
+  {
+    "id": "56",
+    "glCode": "510103",
+    "name": "Interbank Funding Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "14",
+    "description": ""
+  },
+  {
+    "id": "59",
+    "glCode": "520102",
+    "name": "Credit Impairment Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "15",
+    "description": ""
+  },
+  {
+    "id": "19",
+    "glCode": "110201",
+    "name": "Settlement Bank Account",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "6",
+    "description": ""
+  },
+  {
+    "id": "14",
+    "glCode": "510000",
+    "name": "INTEREST EXPENSES",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "5",
+    "description": "Groups interest expenses incurred on customer deposits and other funding sources.\\n\\n"
+  },
+  {
+    "id": "57",
+    "glCode": "510102",
+    "name": "Fixed Deposit Interest Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "14",
+    "description": ""
+  },
+  {
+    "id": "45",
+    "glCode": "310199",
+    "name": "Opening Balance Contra",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "11",
+    "description": ""
+  },
+  {
+    "id": "13",
+    "glCode": "420000",
+    "name": "FEE AND OTHER INCOME",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": "4",
+    "description": "Groups service fees, loan processing fees, penalties, and other non-interest income.\\n\\n"
+  },
+  {
+    "id": "17",
+    "glCode": "110101",
+    "name": "Cash at Vault",
+    "typeId": "1",
+    "typeName": "Asset",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "6",
+    "description": ""
+  },
+  {
+    "id": "42",
+    "glCode": "310101",
+    "name": "Contributed Capital",
+    "typeId": "3",
+    "typeName": "Equity",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "11",
+    "description": ""
+  },
+  {
+    "id": "60",
+    "glCode": "530101",
+    "name": "Operating Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "16",
+    "description": ""
+  },
+  {
+    "id": "2",
+    "glCode": "200000",
+    "name": "TOTAL LIABILITIES",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": null,
+    "description": "Root account for all financial liabilities and obligations of Takashimaya Bank"
+  },
+  {
+    "id": "5",
+    "glCode": "500000",
+    "name": "TOTAL EXPENSES",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Header",
+    "manualEntriesAllowed": false,
+    "parentId": null,
+    "description": "Root account for all  interest , operating costs, impairment  losses , and other expense incurred  by Takashimaya Bank"
+  },
+  {
+    "id": "58",
+    "glCode": "520101",
+    "name": "Loan Write-off Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "15",
+    "description": ""
+  },
+  {
+    "id": "51",
+    "glCode": "420104",
+    "name": "Payment Service Fee Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "62",
+    "glCode": "530103",
+    "name": "Bank Charges Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "16",
+    "description": ""
+  },
+  {
+    "id": "61",
+    "glCode": "530102",
+    "name": "Salary Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "16",
+    "description": ""
+  },
+  {
+    "id": "65",
+    "glCode": "220301",
+    "name": "Accrued Operating Expenses Payable",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "10",
+    "description": "Records operating expenses incurred but not yet paid to suppliers or service providers."
+  },
+  {
+    "id": "66",
+    "glCode": "420107",
+    "name": "Fixed Deposit Penalty Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "13",
+    "description": "Records penalty income arising from applicable fixed deposit transactions, according to the bank's deposit policies."
+  },
+  {
+    "id": "39",
+    "glCode": "220202",
+    "name": "Loan Overpayment Liability",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "67",
+    "glCode": "420108",
+    "name": "Recurring Deposit Penalty Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "13",
+    "description": "Records penalty income arising from recurring deposit transactions."
+  },
+  {
+    "id": "69",
+    "glCode": "420110",
+    "name": "Loan Recovery Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "68",
+    "glCode": "420109",
+    "name": "Loan Fee Income",
+    "typeId": "4",
+    "typeName": "Income",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "13",
+    "description": ""
+  },
+  {
+    "id": "70",
+    "glCode": "520104",
+    "name": "Loan Goodwill Credit Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "15",
+    "description": ""
+  },
+  {
+    "id": "71",
+    "glCode": "520105",
+    "name": "Loan Charge-off Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": false,
+    "parentId": "15",
+    "description": ""
+  },
+  {
+    "id": "72",
+    "glCode": "520106",
+    "name": "Loan Fraud Charge-off Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "15",
+    "description": ""
+  },
+  {
+    "id": "77",
+    "glCode": "220401",
+    "name": "Interbank Borrowings",
+    "typeId": "2",
+    "typeName": "Liability",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "10",
+    "description": ""
+  },
+  {
+    "id": "78",
+    "glCode": "510201",
+    "name": "Interbank Interest Expense",
+    "typeId": "5",
+    "typeName": "Expense",
+    "usage": "Detail",
+    "manualEntriesAllowed": true,
+    "parentId": "14",
+    "description": ""
+  }
+];
+
+export const INITIAL_LOAN_PRODUCTS = [
+  {
+    "id": "1",
+    "name": "TKB Personal Loan",
+    "shortName": "TKPL",
+    "description": "Personal installment loan with monthly repayments and declining balance interest calculation.",
+    "currencyCode": "VND",
+    "currencyName": "Dong",
+    "principal": 10000000.0,
+    "minPrincipal": 1000000.0,
+    "maxPrincipal": 50000000.0,
+    "numberOfRepayments": 12,
+    "repaymentFrequency": "Tháng (Months)",
+    "interestRatePerPeriod": 12.0,
+    "annualInterestRate": 12.0,
+    "interestType": "Flat",
+    "accountingRule": "Accrual (Periodic)",
+    "status": "Active"
+  }
+];
+
+export const INITIAL_SAVINGS_PRODUCTS = [
+  {
+    "id": "1",
+    "name": "TKB Current Account",
+    "shortName": "TKCA",
+    "description": "Basic VND CASA Product · Demo",
+    "currencyCode": "VND",
+    "depositType": "Savings (Tiền gửi thanh toán)",
+    "depositTypeId": "100",
+    "nominalAnnualInterestRate": 0.0,
+    "minBalanceForInterest": 0.0,
+    "accountingRule": "Cash Based"
+  },
+  {
+    "id": "2",
+    "name": "TKB Fixed Deposit",
+    "shortName": "TKFD",
+    "description": "A VND fixed-term deposit product offered by Takashimaya Bank, supporting 3, 6, and 12-month deposit terms with tiered annual interest rates. Designed for secure savings, interest accrual, and maturity-based withdrawals.",
+    "currencyCode": "VND",
+    "depositType": "Fixed Deposit (Tiết kiệm có kỳ hạn)",
+    "depositTypeId": "200",
+    "nominalAnnualInterestRate": 0.0,
+    "minBalanceForInterest": 0.0,
+    "accountingRule": "Cash Based"
+  },
+  {
+    "id": "3",
+    "name": "TKB Goal Savings",
+    "shortName": "TKGS",
+    "description": "A recurring deposit product designed to help customers achieve savings goals through regular monthly contributions.",
+    "currencyCode": "VND",
+    "depositType": "Recurring Deposit (Tiết kiệm gửi góp)",
+    "depositTypeId": "300",
+    "nominalAnnualInterestRate": 0.0,
+    "minBalanceForInterest": 0.0,
+    "accountingRule": "Cash Based"
+  }
+];
+
+export const INITIAL_CLIENTS = [
+  {
+    "id": "1",
+    "accountNo": "000000001",
+    "externalId": "TKB-CUS-001",
+    "displayName": "Minh Nguyen",
+    "firstname": "Minh",
+    "lastname": "Nguyen",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "2",
+    "accountNo": "000000002",
+    "externalId": "TKB-CUS-002",
+    "displayName": "Lan Tran",
+    "firstname": "Lan",
+    "lastname": "Tran",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "3",
+    "accountNo": "000000003",
+    "externalId": "TKB-CUS-003",
+    "displayName": "Anh Le",
+    "firstname": "Anh",
+    "lastname": "Le",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "4",
+    "accountNo": "000000004",
+    "externalId": "TKB-CUS-004",
+    "displayName": "Hoa Pham",
+    "firstname": "Hoa",
+    "lastname": "Pham",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "5",
+    "accountNo": "000000005",
+    "externalId": "TKB-CUS-005",
+    "displayName": "Tuan Vo",
+    "firstname": "Tuan",
+    "lastname": "Vo",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "6",
+    "accountNo": "000000006",
+    "externalId": "TKB-CUS-006",
+    "displayName": "Linh Dang",
+    "firstname": "Linh",
+    "lastname": "Dang",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "7",
+    "accountNo": "000000007",
+    "externalId": "TKB-CUS-007",
+    "displayName": "Nam Bui",
+    "firstname": "Nam",
+    "lastname": "Bui",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "8",
+    "accountNo": "000000008",
+    "externalId": "TKB-CUS-008",
+    "displayName": "Mai Hoang",
+    "firstname": "Mai",
+    "lastname": "Hoang",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "9",
+    "accountNo": "000000009",
+    "externalId": "TKB-CUS-009",
+    "displayName": "Khang Do",
+    "firstname": "Khang",
+    "lastname": "Do",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "10",
+    "accountNo": "000000010",
+    "externalId": "TKB-CUS-0010",
+    "displayName": "Thao Phan",
+    "firstname": "Thao",
+    "lastname": "Phan",
+    "officeId": "1",
+    "officeName": "Takashimaya Bank (TKB) - HO",
+    "status": "Pending Approval",
+    "activationDate": null,
+    "mobileNo": null
+  },
+  {
+    "id": "11",
+    "accountNo": "000000011",
+    "externalId": "TKB-CIF-TDU-001",
+    "displayName": "Minh Quang Tran",
+    "firstname": "Minh",
+    "lastname": "Tran",
+    "officeId": "26",
+    "officeName": "Thu Duc Transaction Office",
+    "status": "Active",
+    "activationDate": "2026-10-13",
+    "mobileNo": "955738216"
+  },
+  {
+    "id": "12",
+    "accountNo": "000000012",
+    "externalId": "TKB-CIF-TDU-002",
+    "displayName": "Lan Ngoc Pham",
+    "firstname": "Lan",
+    "lastname": "Pham",
+    "officeId": "26",
+    "officeName": "Thu Duc Transaction Office",
+    "status": "Active",
+    "activationDate": "2026-10-13",
+    "mobileNo": "94462817"
+  }
+];
+
+export const INITIAL_TELLERS = [
+  {
+    id: "1",
+    name: "Thu Duc Teller 01",
+    officeId: "26",
+    officeName: "Thu Duc Transaction Office",
+    validFrom: "2026-08-05",
+    validTo: null,
+    state: "Active (Mở quầy)",
+    cashierName: "Staff #1 (Nguyễn Văn Thu Ngân)",
+    startDate: "2026-08-05",
+    endDate: "2026-11-05",
+    currentCashBalance: 50000000
+  }
+];
+
+export const INITIAL_FINANCIAL_ACTIVITIES = [
+  { id: "1", activityName: "Opening Balances Contra", glCode: "310001", glName: "Retained Earnings", type: "300" },
+  { id: "2", activityName: "Asset Transfer", glCode: "110201", glName: "Branch Cash in Transit", type: "101" },
+  { id: "3", activityName: "Liability Transfer", glCode: "110202", glName: "Clearing Clearing Transit", type: "102" },
+  { id: "4", activityName: "Cash at Main Vault", glCode: "110101", glName: "Main Vault Cash", type: "103" },
+  { id: "5", activityName: "Cash at Teller", glCode: "110102", glName: "Cash at Teller", type: "100" },
+  { id: "6", activityName: "Customer Deposits Suspense", glCode: "210101", glName: "Suspense Account", type: "200" }
+];
+
+export const INITIAL_ACCOUNTING_RULES = [
+  {
+    id: "1",
+    name: "Operating Expense Accrual",
+    officeId: "1",
+    officeName: "Takashimaya Bank (TKB) - HO",
+    debitAccount: "530101 - General Administrative Expenses",
+    creditAccount: "220101 - Accounts Payable Accrual",
+    description: "Records operating expenses incurred but not yet paid, ensuring consistent accrual accounting entries."
+  }
+];
+
+export const INITIAL_GL_CLOSURES = [
+  {
+    id: "1",
+    officeName: "Takashimaya Bank (TKB) - HO",
+    closingDate: "2026-08-31",
+    comments: "Month-end accounting closure for August 2026. Closing date established for testing posting restrictions.",
+    closedBy: "mifos (Super user)"
+  }
+];
+
+export const INITIAL_LOANS = [
+  {
+    id: "1",
+    accountNo: "000000001",
+    externalId: "TKB-LN-0001",
+    clientId: "11",
+    clientName: "Minh Quang Tran",
+    productId: "1",
+    productName: "TKB Personal Loan",
+    principal: 10000000,
+    annualInterestRate: 12.0,
+    termMonths: 12,
+    status: "Active (Đã giải ngân)",
+    disbursementDate: "2026-08-15",
+    totalRepaid: 2500000,
+    outstandingBalance: 7500000,
+    schedule: [
+      { installment: 1, dueDate: "2026-09-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
+      { installment: 2, dueDate: "2026-10-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
+      { installment: 3, dueDate: "2026-11-15", principal: 833333, interest: 100000, total: 933333, status: "Pending" },
+      { installment: 4, dueDate: "2026-12-15", principal: 833333, interest: 100000, total: 933333, status: "Pending" }
+    ]
+  }
+];
+
+export const INITIAL_SAVINGS_ACCOUNTS = [
+  {
+    id: "1",
+    accountNo: "000000001",
+    clientId: "11",
+    clientName: "Minh Quang Tran",
+    productId: "1",
+    productName: "TKB Current Account",
+    accountType: "Savings (Thanh toán)",
+    balance: 15400000,
+    status: "Active",
+    openedDate: "2026-08-10"
+  },
+  {
+    id: "2",
+    accountNo: "000000002",
+    clientId: "12",
+    clientName: "Lan Ngoc Pham",
+    productId: "1",
+    productName: "TKB Current Account",
+    accountType: "Savings (Thanh toán)",
+    balance: 8200000,
+    status: "Active",
+    openedDate: "2026-08-12"
+  },
+  {
+    id: "3",
+    accountNo: "000000003",
+    clientId: "11",
+    clientName: "Minh Quang Tran",
+    productId: "2",
+    productName: "TKB Fixed Deposit",
+    accountType: "Fixed Deposit (Có kỳ hạn)",
+    balance: 50000000,
+    status: "Active",
+    termMonths: 6,
+    interestRate: 6.5,
+    openedDate: "2026-08-15"
+  },
+  {
+    id: "4",
+    accountNo: "000000004",
+    clientId: "12",
+    clientName: "Lan Ngoc Pham",
+    productId: "3",
+    productName: "TKB Goal Savings",
+    accountType: "Recurring Deposit (Gửi góp)",
+    balance: 12000000,
+    status: "Active",
+    monthlyDeposit: 2000000,
+    openedDate: "2026-08-20"
+  }
+];
+
+// Danh sách bài học / Sổ tay hướng dẫn giáo dục từng phân hệ (Edu Walkthrough)
+export const EDU_MODULES = [
+  {
+    id: "mod-1",
+    number: "01",
+    title: "User & Access Management (Quản Trị Người Dùng & Phân Quyền)",
+    icon: "ShieldCheck",
+    objective: "Thiết lập tài khoản người dùng cho cán bộ nhân viên ngân hàng và cấu hình các vai trò (Roles & Permissions) nhằm đảm bảo nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker).",
+    targetMenu: "admin-users",
+    subPath: "users",
+    dataSummary: [],
+    steps: [],
+    gradingNotes: ""
+  }
+];
+
