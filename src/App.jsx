@@ -471,15 +471,11 @@ export default function App() {
         navigate={(path) => {
           navigate(path);
         }}
+        roles={roles}
+        users={users}
         onStartPractice={() => {
           setEduGuideOpen(false);
           setPracticeActive(true);
-        }}
-        onResetPractice={() => {
-          setRoles([...DEFAULT_SYSTEM_ROLES]);
-          setUsers([...DEFAULT_SYSTEM_USERS]);
-          setPracticeActive(false);
-          navigate('home');
         }}
       />
 

@@ -6,22 +6,26 @@ export default function EduGuideDrawer({
   onClose, 
   navigate, 
   onStartPractice,
-  onResetPractice 
+  roles = [],
+  users = []
 }) {
   const [activeModuleId, setActiveModuleId] = useState('mod-1');
-  const [resetToast, setResetToast] = useState('');
 
   if (!isOpen) return null;
 
   const currentModule = EDU_MODULES.find(m => m.id === activeModuleId) || EDU_MODULES[0];
 
-  const handleReset = () => {
-    if (onResetPractice) {
-      onResetPractice();
-    }
-    setResetToast('Đã đặt lại dữ liệu thực hành về ban đầu.');
-    setTimeout(() => setResetToast(''), 3000);
+  // Tính toán tiến độ Phân hệ 01: User & Access Management (4 mốc x 25% = 100%)
+  const calculateProgress = () => {
+    let score = 0;
+    if (roles.length > 2) score += 25;      // 1. Đã tạo vai trò đầu tiên (TKB_TELLER_CASHIER)
+    if (roles.length >= 16) score += 25;    // 2. Đã nạp đủ 16 vai trò chuẩn từ database
+    if (users.length > 2) score += 25;      // 3. Đã tạo tài khoản nhân viên đầu tiên (tkb.teller01)
+    if (users.length >= 26) score += 25;    // 4. Đã nạp đủ 26 tài khoản nhân sự từ database
+    return score;
   };
+
+  const progress = calculateProgress();
 
   return (
     <aside className="fixed right-0 top-12 bottom-0 w-full sm:w-[480px] md:w-[500px] bg-white shadow-xl z-50 flex flex-col animate-in slide-in-from-right duration-150">
@@ -44,24 +48,26 @@ export default function EduGuideDrawer({
         </button>
       </div>
 
-      {/* Module Selector - Plain text tabs, no icons */}
-      <div className="bg-[#0e619e] px-5 py-2 flex space-x-2">
-        {EDU_MODULES.map((mod) => {
-          const isSelected = mod.id === activeModuleId;
-          return (
-            <button
-              key={mod.id}
-              onClick={() => setActiveModuleId(mod.id)}
-              className={`text-xs font-semibold px-3 py-1 rounded-[2px] transition-colors cursor-pointer ${
-                isSelected
-                  ? 'bg-white text-[#1072ba] font-bold'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              Phân hệ {mod.number}
-            </button>
-          );
-        })}
+      {/* Module Selector & Thanh đo tiến độ (Vị trí vạch đỏ) */}
+      <div className="bg-[#0e619e] px-5 py-2 flex items-center justify-between gap-3">
+        <div className="shrink-0">
+          <span className="text-xs font-bold px-3 py-1 rounded-[2px] bg-white text-[#1072ba] inline-block shadow-xs">
+            Phân hệ 01
+          </span>
+        </div>
+
+        {/* Thanh đo tiến độ */}
+        <div className="flex-1 flex items-center gap-2.5 min-w-0" title={`Tiến độ hoàn thành: ${progress}%`}>
+          <div className="flex-1 bg-black/25 h-2 rounded-full overflow-hidden p-[1px]">
+            <div 
+              className="h-full rounded-full bg-[#28a745] transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-[11px] font-bold text-white shrink-0 font-mono tracking-tight">
+            {progress}%
+          </span>
+        </div>
       </div>
 
       {/* Module Content Body - Pure white, NO decorative boxes, NO borders for text */}
@@ -124,47 +130,27 @@ export default function EduGuideDrawer({
           </div>
         </div>
 
-        {/* Nút Làm lại & Bắt đầu thực hành */}
-        <div className="pt-2 space-y-2">
-          {resetToast && (
-            <div className="text-[11px] text-[#28a745] font-medium text-center animate-in fade-in">
-              {resetToast}
-            </div>
-          )}
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={handleReset}
-              className="w-1/3 py-2.5 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors text-center"
-              title="Đặt lại toàn bộ dữ liệu thực hành về ban đầu"
-            >
-              Làm lại
-            </button>
-            <button
-              onClick={() => {
-                if (onStartPractice) {
-                  onStartPractice();
-                }
-              }}
-              className="w-2/3 py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-            >
-              Bắt đầu thực hành
-            </button>
-          </div>
+        {/* Nút Bắt đầu thực hành */}
+        <div className="pt-2">
+          <button
+            onClick={() => {
+              if (onStartPractice) {
+                onStartPractice();
+              }
+            }}
+            className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+          >
+            Bắt đầu thực hành
+          </button>
         </div>
       </div>
 
       {/* Footer */}
       <div className="px-6 py-3 bg-white border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
         <span>Môi trường học tập Mifos X Edu</span>
-        <button
-          onClick={() => {
-            const nextIdx = (EDU_MODULES.findIndex(m => m.id === activeModuleId) + 1) % EDU_MODULES.length;
-            setActiveModuleId(EDU_MODULES[nextIdx].id);
-          }}
-          className="font-medium text-[#1072ba] hover:underline cursor-pointer"
-        >
-          Bài tiếp theo
-        </button>
+        <span className="font-semibold text-gray-700">
+          {progress === 100 ? 'Đã hoàn thành 100%' : `Tiến độ: ${progress}%`}
+        </span>
       </div>
     </aside>
   );
