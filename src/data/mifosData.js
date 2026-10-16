@@ -1926,16 +1926,26 @@ export const INITIAL_SAVINGS_ACCOUNTS = [
 // Danh sách bài học / Sổ tay hướng dẫn giáo dục từng phân hệ (Edu Walkthrough)
 export const EDU_MODULES = [
   {
-    id: "mod-1",
-    number: "01",
+    id: "part-1",
+    moduleNumber: "01",
+    partNumber: "1",
+    name: "Phần 1: User & Access Management",
+    shortLabel: "Phần 1: User & Roles",
     title: "User & Access Management (Quản Trị Người Dùng & Phân Quyền)",
-    icon: "ShieldCheck",
     objective: "Thiết lập tài khoản người dùng cho cán bộ nhân viên ngân hàng và cấu hình các vai trò (Roles & Permissions) nhằm đảm bảo nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker).",
     targetMenu: "admin-users",
-    subPath: "users",
-    dataSummary: [],
-    steps: [],
-    gradingNotes: ""
+    subPath: "users"
+  },
+  {
+    id: "part-2",
+    moduleNumber: "01",
+    partNumber: "2",
+    name: "Phần 2: Cơ Cấu Tổ Chức (Hội Sở, Chi Nhánh, TO)",
+    shortLabel: "Phần 2: Hội sở, Chi nhánh, TO",
+    title: "Cơ Cấu Tổ Chức: Hội Sở, Chi Nhánh & Phòng Giao Dịch (TO)",
+    objective: "Khởi tạo và thiết lập phân cấp mạng lưới hoạt động ngân hàng gồm Hội sở chính (Head Office), Chi nhánh khu vực (Branch) và Phòng giao dịch (Transaction Office - TO).",
+    targetMenu: "admin-offices",
+    subPath: "offices"
   }
 ];
 

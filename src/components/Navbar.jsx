@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Landmark, BookOpen, BarChart3, Shield, Users, 
-  Info, Search, Bell, CheckSquare, ChevronRight, ChevronDown,
-  User
+  Info, Search, Bell, ChevronRight, ChevronDown,
+  User, Moon, Sun, HelpCircle, Settings, LogOut
 } from 'lucide-react';
 import { MifosXIcon } from './MifosLogos';
 
@@ -21,6 +21,8 @@ export default function Navbar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('English');
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const navRef = useRef(null);
 
@@ -30,6 +32,7 @@ export default function Navbar({
       if (navRef.current && !navRef.current.contains(event.target)) {
         setOpenDropdown(null);
         setActiveSubmenu(null);
+        setProfileDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -400,23 +403,69 @@ export default function Navbar({
           <Bell className="w-4 h-4" />
         </button>
 
-        {/* Action / Checklist Icon */}
+        {/* Light / Dark Mode Icon */}
         <button 
-          onClick={openUserSwitcher}
-          className="p-1.5 hover:bg-white/10 rounded transition-colors text-white"
-          title="Checker Inbox & Tasks"
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="p-1.5 hover:bg-white/10 rounded transition-colors text-white cursor-pointer"
+          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
-          <CheckSquare className="w-4 h-4" />
+          {isDarkMode ? (
+            <Sun className="w-4 h-4 text-amber-300" />
+          ) : (
+            <Moon className="w-4 h-4 text-white fill-white" />
+          )}
         </button>
 
-        {/* User Profile Silhouette Icon */}
-        <button 
-          onClick={openUserSwitcher}
-          className="w-7 h-7 rounded-full bg-black/30 hover:bg-black/40 flex items-center justify-center text-white transition-colors ml-1 shadow-xs"
-          title={`Đang đăng nhập: ${currentUser?.username || 'mifos'} (Bấm để đổi user)`}
-        >
-          <User className="w-4 h-4 fill-white" />
-        </button>
+        {/* User Profile Silhouette Icon & Dropdown Menu */}
+        <div className="relative">
+          <button 
+            onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+            className="p-1 hover:bg-white/10 rounded transition-colors ml-1 cursor-pointer flex items-center justify-center"
+            title={`Logged in as: ${currentUser?.username || 'mifos'}`}
+          >
+            <User className="w-5 h-5 fill-black text-black" />
+          </button>
+
+          {profileDropdownOpen && (
+            <div className="absolute right-0 top-10 w-44 bg-white text-gray-800 rounded-[2px] shadow-lg py-1.5 z-50 text-[13px] animate-in fade-in duration-100 select-none border border-gray-100">
+              {/* 1. Help */}
+              <div 
+                onClick={() => setProfileDropdownOpen(false)}
+                className="flex items-center gap-3.5 px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+              >
+                <HelpCircle className="w-4 h-4 fill-gray-600 text-white" />
+                <span className="font-normal text-gray-800">Help</span>
+              </div>
+
+              {/* 2. Profile */}
+              <div 
+                onClick={() => setProfileDropdownOpen(false)}
+                className="flex items-center gap-3.5 px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+              >
+                <User className="w-4 h-4 fill-gray-600 text-gray-600" />
+                <span className="font-normal text-gray-800">Profile</span>
+              </div>
+
+              {/* 3. Settings */}
+              <div 
+                onClick={() => setProfileDropdownOpen(false)}
+                className="flex items-center gap-3.5 px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+              >
+                <Settings className="w-4 h-4 text-gray-600" />
+                <span className="font-normal text-gray-800">Settings</span>
+              </div>
+
+              {/* 4. Sign Out */}
+              <div 
+                onClick={() => setProfileDropdownOpen(false)}
+                className="flex items-center gap-3.5 px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-gray-600" />
+                <span className="font-normal text-gray-800">Sign Out</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
