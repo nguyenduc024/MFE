@@ -158,6 +158,28 @@ export default function CreateOfficeView({
     externalId: false
   });
 
+  // Guided practice autofill listener
+  React.useEffect(() => {
+    const handleAutofill = (e) => {
+      if (e?.detail) {
+        setFormData({
+          name: e.detail.name || '',
+          parentId: e.detail.parentId || 'none',
+          openingDate: e.detail.openingDate || '2026-08-01',
+          externalId: e.detail.externalId || ''
+        });
+        setTouched({
+          name: true,
+          parentId: true,
+          openingDate: true,
+          externalId: true
+        });
+      }
+    };
+    window.addEventListener('practice-autofill-office', handleAutofill);
+    return () => window.removeEventListener('practice-autofill-office', handleAutofill);
+  }, []);
+
   const isFormValid = Boolean(
     formData.name.trim() &&
     formData.parentId &&
@@ -172,6 +194,55 @@ export default function CreateOfficeView({
     setTouched(prev => ({ ...prev, [field]: true }));
   };
 
+  // Quick autofill for 4-tier banking organization practice
+  const handleQuickFill = (tier) => {
+    // Tìm các cấp parent có sẵn trong hệ thống
+    const headOffice = offices.find(o => !o.parentId || o.parentId === 'none' || o.parentId === 'root');
+    const regionalOffice = offices.find(o => {
+      if (!o.parentId) return false;
+      const p = offices.find(x => x.id === o.parentId);
+      return (p && !p.parentId) || o.name.toLowerCase().includes('region') || o.name.toLowerCase().includes('khu vực');
+    });
+    const branchOffice = offices.find(o => o.name.toLowerCase().includes('branch') || o.name.toLowerCase().includes('chi nhánh'));
+
+    if (tier === 'ho') {
+      setFormData({
+        name: 'Takashimaya Bank (TKB) - HO',
+        parentId: 'none',
+        openingDate: '2026-08-01',
+        externalId: 'TKB - HO - 001'
+      });
+    } else if (tier === 'ro') {
+      setFormData({
+        name: 'TKB - Northern Region Office',
+        parentId: headOffice ? headOffice.id : (offices[0]?.id || 'none'),
+        openingDate: '2026-08-02',
+        externalId: 'TKB - RO - NORTH'
+      });
+    } else if (tier === 'br') {
+      setFormData({
+        name: 'Hanoi Branch',
+        parentId: regionalOffice ? regionalOffice.id : (headOffice ? headOffice.id : (offices[0]?.id || 'none')),
+        openingDate: '2026-08-03',
+        externalId: 'TKB - BR - HAN'
+      });
+    } else if (tier === 'to') {
+      setFormData({
+        name: 'Cau Giay Transaction Office',
+        parentId: branchOffice ? branchOffice.id : (regionalOffice ? regionalOffice.id : (offices[0]?.id || 'none')),
+        openingDate: '2026-08-04',
+        externalId: 'TKB-TO-HAN-02'
+      });
+    }
+
+    setTouched({
+      name: true,
+      parentId: true,
+      openingDate: true,
+      externalId: true
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched({
@@ -183,12 +254,13 @@ export default function CreateOfficeView({
 
     if (!isFormValid) return;
 
-    const parent = offices.find(o => String(o.id) === String(formData.parentId));
+    const isRoot = formData.parentId === 'none' || formData.parentId === 'root';
+    const parent = isRoot ? null : offices.find(o => String(o.id) === String(formData.parentId));
     const newOffice = {
       id: String(Date.now()),
       name: formData.name.trim(),
       externalId: formData.externalId.trim(),
-      parentId: formData.parentId,
+      parentId: isRoot ? null : formData.parentId,
       parentName: parent ? parent.name : null,
       openingDate: formData.openingDate,
       hierarchy: parent ? `${parent.hierarchy || '.'}${Date.now()}.` : '.'
@@ -238,7 +310,51 @@ export default function CreateOfficeView({
       </div>
 
       {/* Main Centered Card */}
-      <div className="max-w-xl mx-auto bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8">
+      <div id="tour-office-input-card" className="max-w-xl mx-auto bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8">
+        
+        {/* Quick Sample Fill Buttons for 4-Tier Learning */}
+        <div className="mb-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              Điền nhanh mẫu thực hành Phần 2:
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleQuickFill('ho')}
+              className="px-2 py-1.5 text-[11px] font-medium bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] transition-colors cursor-pointer text-center truncate"
+              title="Điền mẫu tạo Hội sở chính (Root HO)"
+            >
+              1. Hội sở (HO)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickFill('ro')}
+              className="px-2 py-1.5 text-[11px] font-medium bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] transition-colors cursor-pointer text-center truncate"
+              title="Điền mẫu tạo Văn phòng khu vực (Miền Bắc) có parent là Hội sở"
+            >
+              2. Khu vực (Bắc)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickFill('br')}
+              className="px-2 py-1.5 text-[11px] font-medium bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] transition-colors cursor-pointer text-center truncate"
+              title="Điền mẫu tạo Chi nhánh Hà Nội có parent là Văn phòng khu vực"
+            >
+              3. Chi nhánh
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickFill('to')}
+              className="px-2 py-1.5 text-[11px] font-medium bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] transition-colors cursor-pointer text-center truncate"
+              title="Điền mẫu tạo Phòng giao dịch Cầu Giấy có parent là Chi nhánh"
+            >
+              4. PGD (TO)
+            </button>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 1. Office * */}
           <FloatingInput
@@ -260,6 +376,8 @@ export default function CreateOfficeView({
             error={touched.parentId && !formData.parentId ? 'Parent Office is required' : ''}
           >
             <option value="">Select Parent Office</option>
+            {/* Cho phép chọn Root đối với Hội sở chính */}
+            <option value="none">(None / Root - Hội sở chính)</option>
             {offices.map((office) => (
               <option key={office.id} value={office.id}>
                 {office.name}
@@ -296,6 +414,7 @@ export default function CreateOfficeView({
               Cancel
             </button>
             <button
+              id="tour-submit-office-btn"
               type="submit"
               disabled={!isFormValid}
               className={`px-5 py-1.5 rounded-[2px] text-xs font-medium transition-colors ${

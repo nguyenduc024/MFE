@@ -9,7 +9,7 @@ export const INITIAL_BANK_INFO = {
   timezone: "Asia/Ho_Chi_Minh"
 };
 
-export const INITIAL_OFFICES = [
+export const FULL_BACKUP_OFFICES = [
   {
     "id": "1",
     "name": "Takashimaya Bank (TKB) - HO",
@@ -279,6 +279,40 @@ export const INITIAL_OFFICES = [
     "parentName": "Cantho Branch",
     "openingDate": "2026-08-04",
     "hierarchy": ".3.15.30."
+  }
+];
+
+export const DEFAULT_SYSTEM_OFFICES = [];
+
+export const INITIAL_OFFICES = [...DEFAULT_SYSTEM_OFFICES];
+
+export const REGIONAL_OFFICES_SAMPLE = [
+  {
+    "id": "2",
+    "name": "TKB - Northern Region Office",
+    "externalId": "TKB - RO - NORTH",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".1.2."
+  },
+  {
+    "id": "4",
+    "name": "TKB - Central Region Office",
+    "externalId": "TKB - RO - CENTRAL",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".1.4."
+  },
+  {
+    "id": "3",
+    "name": "TKB - Southern Region Office",
+    "externalId": "TKB - RO - SOUTH",
+    "parentId": "1",
+    "parentName": "Takashimaya Bank (TKB) - HO",
+    "openingDate": "2026-08-02",
+    "hierarchy": ".1.3."
   }
 ];
 

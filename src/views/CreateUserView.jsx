@@ -424,9 +424,13 @@ export default function CreateUserView({
               value={formData.officeId}
               onChange={(e) => handleFieldChange('officeId', e.target.value)}
             >
-              {offices.map(o => (
-                <option key={o.id} value={o.id}>{o.name}</option>
-              ))}
+              {offices.length === 0 ? (
+                <option value="1">Takashimaya Bank (TKB) - HO</option>
+              ) : (
+                offices.map(o => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))
+              )}
             </FloatingSelect>
 
             {/* Staff: shows only "Staff" as label without "Select staff" dummy text */}

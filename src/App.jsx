@@ -34,6 +34,8 @@ import SavingsDetailView from './views/SavingsDetailView';
 import {
   INITIAL_BANK_INFO,
   INITIAL_OFFICES,
+  FULL_BACKUP_OFFICES,
+  REGIONAL_OFFICES_SAMPLE,
   INITIAL_ROLES,
   DEFAULT_SYSTEM_ROLES,
   FULL_BACKUP_ROLES,
@@ -79,6 +81,7 @@ export default function App() {
   const [userSwitcherOpen, setUserSwitcherOpen] = useState(false);
   const [eduGuideOpen, setEduGuideOpen] = useState(false);
   const [practiceActive, setPracticeActive] = useState(false);
+  const [practiceModule, setPracticeModule] = useState('part-1');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   // Router navigation helper
@@ -488,8 +491,10 @@ export default function App() {
         }}
         roles={roles}
         users={users}
-        onStartPractice={() => {
+        offices={offices}
+        onStartPractice={(mod) => {
           setEduGuideOpen(false);
+          setPracticeModule(mod || 'part-1');
           setPracticeActive(true);
         }}
       />
@@ -499,14 +504,26 @@ export default function App() {
         isActive={practiceActive}
         onClose={() => setPracticeActive(false)}
         currentPath={currentPath}
+        module={practiceModule}
         roles={roles}
         users={users}
+        offices={offices}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);
         }}
         onLoadAllUsers={() => {
           setUsers([...FULL_BACKUP_USERS]);
+        }}
+        onLoadAllOffices={() => {
+          setOffices([...FULL_BACKUP_OFFICES]);
+        }}
+        onLoadRegionalOffices={() => {
+          setOffices(prev => {
+            const existingIds = new Set(prev.map(o => o.id));
+            const newToAdd = REGIONAL_OFFICES_SAMPLE.filter(r => !existingIds.has(r.id));
+            return [...prev, ...newToAdd];
+          });
         }}
       />
     </div>

@@ -10,11 +10,15 @@ export default function PracticeSpotlightTour({
   isActive,
   onClose,
   currentPath,
+  module = 'part-1',
   roles = [],
   users = [],
+  offices = [],
   navigate,
   onLoadAllRoles,
-  onLoadAllUsers
+  onLoadAllUsers,
+  onLoadAllOffices,
+  onLoadRegionalOffices
 }) {
   const [targetRect, setTargetRect] = useState(null);
   const [roleCreated, setRoleCreated] = useState(false);
@@ -23,37 +27,69 @@ export default function PracticeSpotlightTour({
   const [usersImported, setUsersImported] = useState(false);
   const [tourPhase, setTourPhase] = useState('role'); // 'role', 'role-popup', 'user', 'user-popup', 'completed'
 
+  // Part 2 state
+  const [officePopup, setOfficePopup] = useState(null); // null, 'ho-created', 'ro-created', 'br-created', 'to-created'
+  const [officesImported, setOfficesImported] = useState(false);
+  const startOfficeCountRef = useRef(offices.length);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      startRoleCountRef.current = roles.length;
-      startUserCountRef.current = users.length;
-      setRoleCreated(false);
-      setRolesImported(false);
-      setUserCreated(false);
-      setUsersImported(false);
-      setTourPhase('role');
+      if (module === 'part-2') {
+        startOfficeCountRef.current = offices.length;
+        setOfficePopup(null);
+        setOfficesImported(false);
+      } else {
+        startRoleCountRef.current = roles.length;
+        startUserCountRef.current = users.length;
+        setRoleCreated(false);
+        setRolesImported(false);
+        setUserCreated(false);
+        setUsersImported(false);
+        setTourPhase('role');
+      }
     }
-  }, [isActive]);
+  }, [isActive, module]);
 
   // Track if a role was created during this active session
   useEffect(() => {
-    if (isActive && roles.length > startRoleCountRef.current && !roleCreated) {
+    if (isActive && module === 'part-1' && roles.length > startRoleCountRef.current && !roleCreated) {
       setRoleCreated(true);
       setTourPhase('role-popup');
     }
-  }, [roles.length, isActive, roleCreated]);
+  }, [roles.length, isActive, module, roleCreated]);
 
   // Track if a user was created during this active session
   useEffect(() => {
-    if (isActive && users.length > startUserCountRef.current && !userCreated) {
+    if (isActive && module === 'part-1' && users.length > startUserCountRef.current && !userCreated) {
       setUserCreated(true);
       setTourPhase('user-popup');
     }
-  }, [users.length, isActive, userCreated]);
+  }, [users.length, isActive, module, userCreated]);
+
+  // Track if an office was created during this active session (Part 2)
+  useEffect(() => {
+    if (isActive && module === 'part-2' && offices.length > startOfficeCountRef.current && !officePopup) {
+      const newlyAdded = offices[0];
+      startOfficeCountRef.current = offices.length;
+      if (!newlyAdded.parentId || newlyAdded.parentId === 'none' || newlyAdded.parentId === 'root') {
+        setOfficePopup('ho-created');
+      } else {
+        const parent = offices.find(p => String(p.id) === String(newlyAdded.parentId));
+        const isParentHO = parent && (!parent.parentId || parent.parentId === 'none' || parent.parentId === 'root');
+        if (isParentHO || newlyAdded.name.toLowerCase().includes('region') || newlyAdded.name.toLowerCase().includes('khu vực')) {
+          setOfficePopup('ro-created');
+        } else if (newlyAdded.name.toLowerCase().includes('branch') || newlyAdded.name.toLowerCase().includes('chi nhánh')) {
+          setOfficePopup('br-created');
+        } else {
+          setOfficePopup('to-created');
+        }
+      }
+    }
+  }, [offices.length, isActive, module, officePopup, offices]);
 
   // Check form fill status for Role form
   const submitRoleBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-role-btn') : null;
@@ -63,13 +99,55 @@ export default function PracticeSpotlightTour({
   const submitUserBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-user-btn') : null;
   const isUserFormFilled = Boolean(submitUserBtn && !submitUserBtn.disabled);
 
+  // Check form fill status for Office form (Part 2)
+  const submitOfficeBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-office-btn') : null;
+  const isOfficeFormFilled = Boolean(submitOfficeBtn && !submitOfficeBtn.disabled);
+
   // Determine active step & target element
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (tourPhase === 'role-popup') {
+  if (module === 'part-2') {
+    if (officePopup) {
+      targetSelector = null;
+    } else if (currentPath === 'admin-create-office') {
+      currentStep = 5;
+      if (!isOfficeFormFilled) {
+        targetSelector = '#tour-office-input-card';
+        stepTitle = 'Bước 5: Nhập thông tin Office theo phân cấp';
+        stepInstruction = 'Nhập tên văn phòng, chọn Parent Office (hoặc Root cho Hội sở) hoặc chọn các nút gợi ý "Điền nhanh mẫu thực hành" phía trên.';
+      } else {
+        targetSelector = '#tour-submit-office-btn';
+        stepTitle = 'Bước 5: Nhấn Submit để lưu đơn vị';
+        stepInstruction = 'Thông tin văn phòng đã hợp lệ. Nhấn nút Submit để lưu vào cây cơ cấu tổ chức.';
+      }
+    } else if (currentPath === 'admin-offices') {
+      currentStep = 4;
+      targetSelector = '#tour-create-office-btn';
+      stepTitle = 'Bước 4: Nhấn nút Create Office';
+      stepInstruction = 'Bấm vào nút Create Office ở góc trên bên phải để mở biểu mẫu khởi tạo văn phòng mới.';
+    } else if (currentPath === 'admin-organization') {
+      currentStep = 3;
+      targetSelector = '#tour-manage-offices';
+      stepTitle = 'Bước 3: Chọn Manage Offices';
+      stepInstruction = 'Bấm vào mục Manage Offices để mở trang Quản lý danh sách văn phòng và cây phân cấp.';
+    } else {
+      const adminOrgEl = typeof document !== 'undefined' ? document.getElementById('tour-admin-organization') : null;
+      if (adminOrgEl) {
+        currentStep = 2;
+        targetSelector = '#tour-admin-organization';
+        stepTitle = 'Bước 2: Chọn Cơ cấu tổ chức (Organization)';
+        stepInstruction = 'Bấm vào mục Organization trong danh sách thả xuống.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-nav-admin';
+        stepTitle = 'Bước 1: Mở menu Quản trị';
+        stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
+      }
+    }
+  } else if (tourPhase === 'role-popup') {
     targetSelector = null; // Displaying confirmation popup
   } else if (tourPhase === 'user') {
     if (userCreated && currentPath === 'admin-user-detail') {
@@ -226,6 +304,183 @@ export default function PracticeSpotlightTour({
     }
     setUsersImported(true);
   };
+
+  // Pop-up modals for Part 2: 4-Tier Organization Flow
+  if (module === 'part-2' && officePopup) {
+    if (officePopup === 'ho-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Bước 1 hoàn tất: Hội sở chính
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Tạo thành công Hội sở chính (Head Office)!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Bạn đã tạo thành công đơn vị đầu não: <strong className="text-gray-900">{offices[0]?.name || 'Takashimaya Bank (TKB) - HO'}</strong> (Root Head Office).
+            </p>
+            <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900">
+              <strong>Bước 2 tiếp theo:</strong> Tạo 3 Văn phòng khu vực (Miền Bắc, Miền Trung, Miền Nam) và chọn <strong>Parent Office</strong> là Hội sở vừa tạo.
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  if (onLoadRegionalOffices) onLoadRegionalOffices();
+                  setOfficePopup('ro-created');
+                }}
+                className="py-1.5 px-3 border border-sky-300 hover:bg-sky-50 text-[#1072ba] text-xs rounded-[2px] cursor-pointer transition-colors"
+              >
+                Nạp nhanh 3 VP Khu vực
+              </button>
+              <button
+                onClick={() => {
+                  setOfficePopup(null);
+                  if (navigate) navigate('admin-create-office');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục tạo VP Khu vực →
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (officePopup === 'ro-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Bước 2 hoàn tất: Văn phòng khu vực
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Thiết lập thành công Văn phòng khu vực!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Văn phòng khu vực đã được liên kết đúng với Hội sở chính theo mô hình cha - con (Parent Office).
+            </p>
+            <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900">
+              <strong>Bước 3 tiếp theo:</strong> Tạo Chi nhánh (Branch) và chọn <strong>Parent Office</strong> là Văn phòng khu vực quản lý tương ứng (VD: Hanoi Branch thuộc Miền Bắc).
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setOfficePopup(null);
+                  if (navigate) navigate('admin-create-office');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục tạo Chi nhánh →
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (officePopup === 'br-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Bước 3 hoàn tất: Chi nhánh
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Thiết lập thành công Chi nhánh ngân hàng!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Chi nhánh đã được gắn đúng về Văn phòng khu vực điều phối.
+            </p>
+            <div className="py-2.5 px-3 bg-emerald-50 border-l-2 border-[#28a745] text-xs text-emerald-900">
+              <strong>Bước 4 tiếp theo:</strong> Tạo Phòng giao dịch (Transaction Office - TO) và chọn <strong>Parent Office</strong> là Chi nhánh trực tiếp quản lý (VD: Cau Giay TO thuộc Hanoi Branch).
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setOfficePopup(null);
+                  if (navigate) navigate('admin-create-office');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục tạo Phòng giao dịch (TO) →
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (officePopup === 'to-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              {officesImported ? 'Đã nạp toàn bộ mạng lưới' : 'Hoàn tất xuất sắc 4 cấp cơ cấu tổ chức!'}
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              {officesImported 
+                ? 'Đã nạp đầy đủ 32 đơn vị mạng lưới vào hệ thống!' 
+                : 'Chúc mừng bạn đã thiết lập trọn vẹn mô hình 4 cấp mạng lưới ngân hàng!'}
+            </h3>
+            {!officesImported ? (
+              <>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Bạn đã thực hành chính xác trọn vẹn luồng phân cấp:
+                </p>
+                <div className="py-2.5 px-3 bg-gray-50 border-l-2 border-[#28a745] text-xs text-gray-700 space-y-1">
+                  <div>✓ Cấp 1: Hội sở chính (Head Office)</div>
+                  <div>✓ Cấp 2: Văn phòng khu vực (Bắc, Trung, Nam có parent là Hội sở)</div>
+                  <div>✓ Cấp 3: Chi nhánh (có parent là Văn phòng khu vực)</div>
+                  <div>✓ Cấp 4: Phòng giao dịch (có parent là Chi nhánh)</div>
+                </div>
+                <div className="pt-2 flex items-center justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      if (onLoadAllOffices) onLoadAllOffices();
+                      setOfficesImported(true);
+                    }}
+                    className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Nạp toàn bộ 32 đơn vị từ database
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOfficePopup(null);
+                      onClose();
+                      if (navigate) navigate('admin-offices');
+                    }}
+                    className="py-1.5 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs rounded-[2px] cursor-pointer transition-colors"
+                  >
+                    Xem Cây phân cấp
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Toàn bộ 32 đơn vị chi nhánh và phòng giao dịch từ cơ sở dữ liệu đã được nạp đầy đủ và sẵn sàng vận hành.
+                </p>
+                <div className="pt-2 flex items-center justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setOfficePopup(null);
+                      onClose();
+                      if (navigate) navigate('admin-offices');
+                    }}
+                    className="py-2 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Xem Cây phân cấp cơ cấu tổ chức
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+  }
 
   // Pop-up prompt after creating 1 role
   if (tourPhase === 'role-popup') {
@@ -580,8 +835,8 @@ export default function PracticeSpotlightTour({
           </p>
         </div>
 
-        {/* Quick autofill suggestion button for Role creation */}
-        {currentStep === 5 && (
+        {/* Quick autofill suggestion button for Role creation (Part 1) */}
+        {module === 'part-1' && currentStep === 5 && (
           <div className="pt-1 flex items-center justify-between">
             <button
               type="button"
@@ -589,6 +844,62 @@ export default function PracticeSpotlightTour({
               className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
             >
               Điền nhanh mẫu (TKB_TELLER_CASHIER)
+            </button>
+          </div>
+        )}
+
+        {/* Quick autofill suggestion button for Office creation (Part 2) */}
+        {module === 'part-2' && currentStep === 5 && (
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                const hasHO = offices.some(o => !o.parentId || o.parentId === 'none' || o.parentId === 'root');
+                const headOffice = offices.find(o => !o.parentId || o.parentId === 'none' || o.parentId === 'root');
+                const regionalOffice = offices.find(o => o.name.toLowerCase().includes('region') || o.name.toLowerCase().includes('khu vực'));
+                const branchOffice = offices.find(o => o.name.toLowerCase().includes('branch') || o.name.toLowerCase().includes('chi nhánh'));
+
+                if (!hasHO) {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-office', {
+                    detail: {
+                      name: 'Takashimaya Bank (TKB) - HO',
+                      parentId: 'none',
+                      openingDate: '2026-08-01',
+                      externalId: 'TKB - HO - 001'
+                    }
+                  }));
+                } else if (!regionalOffice) {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-office', {
+                    detail: {
+                      name: 'TKB - Northern Region Office',
+                      parentId: headOffice?.id || '1',
+                      openingDate: '2026-08-02',
+                      externalId: 'TKB - RO - NORTH'
+                    }
+                  }));
+                } else if (!branchOffice) {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-office', {
+                    detail: {
+                      name: 'Hanoi Branch',
+                      parentId: regionalOffice?.id || '2',
+                      openingDate: '2026-08-03',
+                      externalId: 'TKB - BR - HAN'
+                    }
+                  }));
+                } else {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-office', {
+                    detail: {
+                      name: 'Cau Giay Transaction Office',
+                      parentId: branchOffice?.id || '5',
+                      openingDate: '2026-08-04',
+                      externalId: 'TKB-TO-HAN-02'
+                    }
+                  }));
+                }
+              }}
+              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Điền nhanh mẫu đơn vị tiếp theo
             </button>
           </div>
         )}

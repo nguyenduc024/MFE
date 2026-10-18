@@ -168,6 +168,7 @@ export default function OfficesView({ offices, onAddOffice, navigate }) {
 
           {/* Create Office Button (1 single plus sign) */}
           <button
+            id="tour-create-office-btn"
             onClick={() => navigate ? navigate('admin-create-office') : setShowAddModal(true)}
             className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-3.5 py-1.5 rounded-[2px] flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
           >
@@ -213,8 +214,14 @@ export default function OfficesView({ offices, onAddOffice, navigate }) {
               <tbody>
                 {filteredOffices.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-gray-400">
-                      Không tìm thấy văn phòng nào phù hợp.
+                    <td colSpan="6" className="text-center py-12 text-gray-500">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <Building2 className="w-8 h-8 text-gray-300" />
+                        <div className="font-semibold text-xs text-gray-700">Chưa có văn phòng nào trong hệ thống</div>
+                        <p className="text-[11px] text-gray-400 max-w-sm">
+                          Hãy bấm nút <strong className="text-[#1072ba]">Create Office</strong> ở góc trên bên phải để bắt đầu thiết lập Hội sở chính (Head Office).
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -270,7 +277,14 @@ export default function OfficesView({ offices, onAddOffice, navigate }) {
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
             Cây phân cấp cơ cấu tổ chức Takashimaya Bank (TKB)
           </div>
-          {officeTree.map(rootNode => renderTreeNode(rootNode, 0))}
+          {officeTree.length === 0 ? (
+            <div className="py-10 text-center text-gray-400 text-xs space-y-1">
+              <div>Chưa có dữ liệu cơ cấu tổ chức nào.</div>
+              <p className="text-[11px] text-gray-400">Hãy nhấn Create Office để tạo Hội sở chính đầu tiên.</p>
+            </div>
+          ) : (
+            officeTree.map(rootNode => renderTreeNode(rootNode, 0))
+          )}
         </div>
       )}
 

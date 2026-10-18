@@ -271,7 +271,11 @@ export default function Navbar({
                 >
                   Users
                 </div>
-                <div onClick={() => handleItemClick('admin-organization')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <div 
+                  id="tour-admin-organization"
+                  onClick={() => handleItemClick('admin-organization')} 
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
                   Organization
                 </div>
                 <div 

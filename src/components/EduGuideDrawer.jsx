@@ -8,7 +8,8 @@ export default function EduGuideDrawer({
   navigate, 
   onStartPractice,
   roles = [],
-  users = []
+  users = [],
+  offices = []
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -39,13 +40,46 @@ export default function EduGuideDrawer({
     return score;
   };
 
-  // Tiến độ Phần 2: Cơ Cấu Tổ Chức (Hội sở, Chi nhánh, TO) - Để trống chưa thêm gì
-  const calculatePart2Progress = () => 0;
+  // Tính toán tiến độ Phần 2: Cơ Cấu Tổ Chức (4 mốc x 25% = 100%)
+  const calculatePart2Progress = () => {
+    let score = 0;
+    // 1. Bước 1: Đã tạo Hội sở chính (Head Office)
+    const hasHO = offices.some(o => !o.parentId || o.parentId === 'none' || o.parentId === 'root');
+    if (hasHO) score += 25;
+
+    // 2. Bước 2: Đã tạo Văn phòng khu vực (Bắc / Trung / Nam có parent là HO)
+    const hasRO = offices.some(o => {
+      if (!o.parentId || o.parentId === 'none' || o.parentId === 'root') return false;
+      const parent = offices.find(p => String(p.id) === String(o.parentId));
+      return (parent && (!parent.parentId || parent.parentId === 'none' || parent.parentId === 'root')) ||
+        o.name.toLowerCase().includes('region') ||
+        o.name.toLowerCase().includes('khu vực');
+    });
+    if (hasRO) score += 25;
+
+    // 3. Bước 3: Đã tạo Chi nhánh (Branch có parent là Regional Office)
+    const hasBranch = offices.some(o => {
+      return o.name.toLowerCase().includes('branch') || o.name.toLowerCase().includes('chi nhánh');
+    });
+    if (hasBranch) score += 25;
+
+    // 4. Bước 4: Đã tạo Phòng giao dịch (TO có parent là Branch)
+    const hasTO = offices.some(o => {
+      return o.name.toLowerCase().includes('transaction office') ||
+        o.name.toLowerCase().includes('phòng giao dịch') ||
+        (o.externalId && o.externalId.toLowerCase().includes('-to-'));
+    });
+    if (hasTO) score += 25;
+
+    return score;
+  };
 
   const currentModule = EDU_MODULES.find(m => m.id === activePartId) || EDU_MODULES[0];
   const part1Progress = calculatePart1Progress();
-  const currentProgress = activePartId === 'part-1' ? part1Progress : calculatePart2Progress();
+  const part2Progress = calculatePart2Progress();
+  const currentProgress = activePartId === 'part-1' ? part1Progress : part2Progress;
   const isPart1Complete = part1Progress === 100;
+  const isPart2Complete = part2Progress === 100;
 
   return (
     <aside className="fixed right-0 top-12 bottom-0 w-full sm:w-[480px] md:w-[500px] bg-white shadow-xl z-50 flex flex-col animate-in slide-in-from-right duration-150">
@@ -90,7 +124,7 @@ export default function EduGuideDrawer({
 
               {EDU_MODULES.map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = item.id === 'part-1' ? part1Progress : calculatePart2Progress();
+                const itemProgress = item.id === 'part-1' ? part1Progress : part2Progress;
 
                 return (
                   <div
@@ -106,21 +140,19 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        {item.id === 'part-1' ? 'Thiết lập Role & User ngân hàng' : 'Hội sở, Chi nhánh, Phòng giao dịch'}
+                        {item.id === 'part-1' ? 'Thiết lập Role & User ngân hàng' : 'Hội sở, Khu vực, Chi nhánh, PGD (TO)'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      {item.id === 'part-1' ? (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                          itemProgress === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-[#1072ba]'
-                        }`}>
-                          {itemProgress}%
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                          0%
-                        </span>
-                      )}
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        itemProgress === 100 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : itemProgress > 0 
+                          ? 'bg-sky-100 text-[#1072ba]' 
+                          : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {itemProgress}%
+                      </span>
                     </div>
                   </div>
                 );
@@ -206,11 +238,11 @@ export default function EduGuideDrawer({
             </div>
           </>
         ) : (
-          /* Phần 2: Cơ cấu tổ chức (Hội sở, Chi nhánh, TO) - Để trống theo yêu cầu */
+          /* Phần 2: Cơ cấu tổ chức (Hội sở, Chi nhánh, TO) */
           <div className="space-y-6">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
-                Phân hệ 01: Cơ Cấu Tổ Chức
+                Phân hệ 01: Cơ Cấu Tổ Chức & Mạng Lưới Hoạt Động
               </span>
               <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
                 {currentModule.title}
@@ -220,14 +252,89 @@ export default function EduGuideDrawer({
               </p>
             </div>
 
-            {/* Để trống nội dung bài học theo yêu cầu */}
-            <div className="py-16 text-center text-gray-400 space-y-2 border-t border-gray-100">
-              <div className="text-xs font-semibold text-gray-500">
-                Nội dung thực hành Phần 2 đang để trống
+            {/* Sơ đồ Cây Phân Cấp Trực Quan 4 Cấp */}
+            <div className="bg-sky-50/60 border border-sky-100 rounded-[2px] p-4 text-xs space-y-2">
+              <div className="font-bold text-[#1072ba] uppercase text-[11px] tracking-wider flex items-center justify-between">
+                <span>Mô hình 4 cấp mạng lưới ngân hàng:</span>
+                <span className="text-gray-500 font-normal lowercase">Parent Office Flow</span>
               </div>
-              <p className="text-[11px] text-gray-400 max-w-xs mx-auto">
-                (Phần này sẽ xây dựng luồng thực hành tạo Hội sở chính, Chi nhánh khu vực và Phòng giao dịch TO sau).
-              </p>
+              <div className="font-mono text-[11px] bg-white p-3 rounded border border-sky-100 text-gray-700 leading-relaxed overflow-x-auto">
+                <div className="font-bold text-sky-900">🏛️ Cấp 1: Hội sở chính (Head Office - HO)</div>
+                <div className="text-gray-400 pl-4">└── Parent = (None / Root)</div>
+                <div className="font-bold text-sky-800 pl-4 mt-1">🏢 Cấp 2: Văn phòng khu vực (Bắc / Trung / Nam)</div>
+                <div className="text-gray-400 pl-8">└── Parent = Hội sở chính (HO)</div>
+                <div className="font-bold text-sky-700 pl-8 mt-1">🏦 Cấp 3: Chi nhánh (Branch: Hà Nội, TP.HCM, Đà Nẵng...)</div>
+                <div className="text-gray-400 pl-12">└── Parent = Văn phòng khu vực (RO)</div>
+                <div className="font-bold text-sky-600 pl-12 mt-1">🏪 Cấp 4: Phòng giao dịch (Transaction Office - TO)</div>
+                <div className="text-gray-400 pl-16">└── Parent = Chi nhánh (Branch)</div>
+              </div>
+            </div>
+
+            {/* Chi tiết 4 Bước thực hành Phần 2 */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn:
+              </h4>
+
+              <div className="space-y-4 text-xs text-gray-700 leading-relaxed">
+                {/* Bước 1: Tạo Hội sở */}
+                <div className="border border-gray-100 p-3.5 rounded bg-gray-50/60">
+                  <div className="font-bold text-gray-900 flex items-center justify-between">
+                    <span>Bước 1: Tạo Hội sở chính (Head Office)</span>
+                    <span className="text-[10px] text-sky-700 font-medium bg-sky-100 px-1.5 py-0.5 rounded">Cấp 1</span>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    Đường dẫn: <strong className="text-gray-900">Admin → Organization → Manage Offices → Create Office</strong>.
+                  </p>
+                  <ul className="list-disc list-inside mt-1.5 space-y-0.5 text-gray-600 text-[11px]">
+                    <li><strong>Office *</strong>: Nhập tên Hội sở (VD: <code className="bg-white px-1 py-0.5 border rounded">Takashimaya Bank (TKB) - HO</code>).</li>
+                    <li><strong>Parent Office *</strong>: Chọn <code className="bg-white px-1 py-0.5 border rounded">(None / Root - Hội sở chính)</code>.</li>
+                    <li><strong>Opened On *</strong>: 01/08/2026. External ID: <code className="bg-white px-1 py-0.5 border rounded">TKB - HO - 001</code>.</li>
+                  </ul>
+                </div>
+
+                {/* Bước 2: Tạo Văn phòng khu vực */}
+                <div className="border border-gray-100 p-3.5 rounded bg-gray-50/60">
+                  <div className="font-bold text-gray-900 flex items-center justify-between">
+                    <span>Bước 2: Tạo Văn phòng khu vực (Bắc, Trung, Nam)</span>
+                    <span className="text-[10px] text-sky-700 font-medium bg-sky-100 px-1.5 py-0.5 rounded">Cấp 2</span>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    Đường dẫn: Tương tự truy cập <strong className="text-gray-900">Create Office</strong>. Khởi tạo 3 trung tâm khu vực miền (Miền Bắc, Miền Trung, Miền Nam).
+                  </p>
+                  <div className="mt-1.5 p-2 bg-amber-50/80 border border-amber-200/60 rounded text-[11px] text-amber-900">
+                    <strong>Thao tác then chốt:</strong> Tại trường <strong>Parent Office *</strong>, bắt buộc chọn <strong>Hội sở chính vừa tạo</strong> ở Bước 1 (<code className="bg-white px-1 py-0.5 border rounded">Takashimaya Bank (TKB) - HO</code>) rồi nhấn Submit.
+                  </div>
+                </div>
+
+                {/* Bước 3: Tạo Chi nhánh */}
+                <div className="border border-gray-100 p-3.5 rounded bg-gray-50/60">
+                  <div className="font-bold text-gray-900 flex items-center justify-between">
+                    <span>Bước 3: Tạo Chi nhánh (Branches)</span>
+                    <span className="text-[10px] text-sky-700 font-medium bg-sky-100 px-1.5 py-0.5 rounded">Cấp 3</span>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    Đường dẫn: Tương tự nhấn <strong className="text-gray-900">Create Office</strong>, nhập tên Chi nhánh (VD: <code className="bg-white px-1 py-0.5 border rounded">Hanoi Branch</code>, <code className="bg-white px-1 py-0.5 border rounded">Hochiminh Branch</code>...).
+                  </p>
+                  <div className="mt-1.5 p-2 bg-sky-50/80 border border-sky-200/60 rounded text-[11px] text-sky-900">
+                    <strong>Thao tác then chốt:</strong> Tại trường <strong>Parent Office *</strong>, chọn <strong>Văn phòng khu vực miền tương ứng</strong> (VD: Chi nhánh Hà Nội chọn Parent là <code className="bg-white px-1 py-0.5 border rounded">TKB - Northern Region Office</code>).
+                  </div>
+                </div>
+
+                {/* Bước 4: Tạo Phòng giao dịch */}
+                <div className="border border-gray-100 p-3.5 rounded bg-gray-50/60">
+                  <div className="font-bold text-gray-900 flex items-center justify-between">
+                    <span>Bước 4: Tạo Phòng giao dịch (Transaction Office - TO)</span>
+                    <span className="text-[10px] text-sky-700 font-medium bg-sky-100 px-1.5 py-0.5 rounded">Cấp 4</span>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    Đường dẫn: Tương tự nhấn <strong className="text-gray-900">Create Office</strong>, nhập tên Phòng giao dịch (VD: <code className="bg-white px-1 py-0.5 border rounded">Cau Giay Transaction Office</code>, <code className="bg-white px-1 py-0.5 border rounded">Thu Duc Transaction Office</code>...).
+                  </p>
+                  <div className="mt-1.5 p-2 bg-emerald-50/80 border border-emerald-200/60 rounded text-[11px] text-emerald-900">
+                    <strong>Khác biệt quan trọng:</strong> Khác với 2 cấp trên, trường <strong>Parent Office *</strong> của Phòng giao dịch phải chọn <strong>Chi nhánh trực tiếp quản lý</strong> (VD: PGD Cầu Giấy chọn Parent là <code className="bg-white px-1 py-0.5 border rounded">Hanoi Branch</code>).
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -247,7 +354,7 @@ export default function EduGuideDrawer({
               <button
                 onClick={() => {
                   if (onStartPractice) {
-                    onStartPractice();
+                    onStartPractice('part-1');
                   }
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
@@ -256,12 +363,23 @@ export default function EduGuideDrawer({
               </button>
             )
           ) : (
-            <button
-              disabled
-              className="w-full py-2.5 px-4 bg-gray-200 text-gray-400 text-xs font-semibold rounded-[2px] cursor-not-allowed text-center"
-            >
-              Chưa bắt đầu thực hành
-            </button>
+            isPart2Complete ? (
+              <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                <span>✓</span>
+                <span>Đã hoàn thành xuất sắc Phần 2 (100%)</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('part-2');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Phần 2
+              </button>
+            )
           )}
         </div>
       </div>
