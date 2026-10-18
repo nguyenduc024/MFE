@@ -10,6 +10,7 @@ import PracticeSpotlightTour from './components/PracticeSpotlightTour';
 import HomeView from './views/HomeView';
 import AdminHubView from './views/AdminHubView';
 import OfficesView from './views/OfficesView';
+import CreateOfficeView from './views/CreateOfficeView';
 import OrganizationView from './views/OrganizationView';
 import SystemView from './views/SystemView';
 import TellersView from './views/TellersView';
@@ -180,6 +181,8 @@ export default function App() {
         return [{ label: 'Admin', path: 'admin' }, { label: 'System' }];
       case 'admin-offices':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Organization', path: 'admin' }, { label: 'Manage Offices' }];
+      case 'admin-create-office':
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Organization', path: 'admin' }, { label: 'Manage Offices', path: 'admin-offices' }, { label: 'Create Office' }];
       case 'admin-tellers':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Organization', path: 'admin' }, { label: 'Cash Management' }];
       case 'admin-users':
@@ -300,7 +303,19 @@ export default function App() {
         )}
 
         {currentPath === 'admin-offices' && (
-          <OfficesView offices={offices} onAddOffice={handleAddOffice} />
+          <OfficesView
+            offices={offices}
+            onAddOffice={handleAddOffice}
+            navigate={navigate}
+          />
+        )}
+
+        {currentPath === 'admin-create-office' && (
+          <CreateOfficeView
+            offices={offices}
+            onAddOffice={handleAddOffice}
+            navigate={navigate}
+          />
         )}
 
         {currentPath === 'admin-tellers' && (

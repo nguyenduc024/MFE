@@ -4,7 +4,7 @@ import {
   MapPin, Check, X, ShieldAlert, ChevronRight, ChevronDown
 } from 'lucide-react';
 
-export default function OfficesView({ offices, onAddOffice }) {
+export default function OfficesView({ offices, onAddOffice, navigate }) {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'tree'
   const [filterText, setFilterText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -117,16 +117,30 @@ export default function OfficesView({ offices, onAddOffice }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-        <div>
-          <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#1072ba]" />
-            <span>Manage Offices (Quản Lý Văn Phòng & Chi Nhánh)</span>
+      {/* Header: "Manage Offices | Home / Organization / Manage Offices" on left, "+ Create Office" on right */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-baseline space-x-2.5">
+          <h1 className="text-xl font-normal text-[#212529]">
+            Manage Offices
           </h1>
-          <p className="text-xs text-gray-500">
-            Hệ thống cơ cấu tổ chức 4 cấp: Hội sở chính → Vùng miền → Chi nhánh tỉnh/thành → Phòng giao dịch (PGD)
-          </p>
+          <span className="text-gray-300 font-light text-base">|</span>
+          <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5">
+            <span 
+              onClick={() => navigate && navigate('home')} 
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Home
+            </span>
+            <span className="text-gray-400">/</span>
+            <span 
+              onClick={() => navigate && navigate('admin-organization')} 
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Organization
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-500">Manage Offices</span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -134,7 +148,7 @@ export default function OfficesView({ offices, onAddOffice }) {
           <div className="flex items-center bg-gray-100 p-0.5 rounded text-xs">
             <button
               onClick={() => setViewMode('table')}
-              className={`px-2.5 py-1 rounded flex items-center gap-1 font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded flex items-center gap-1 font-medium transition-colors cursor-pointer ${
                 viewMode === 'table' ? 'bg-white shadow-xs text-[#1072ba] font-bold' : 'text-gray-600'
               }`}
             >
@@ -143,7 +157,7 @@ export default function OfficesView({ offices, onAddOffice }) {
             </button>
             <button
               onClick={() => setViewMode('tree')}
-              className={`px-2.5 py-1 rounded flex items-center gap-1 font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded flex items-center gap-1 font-medium transition-colors cursor-pointer ${
                 viewMode === 'tree' ? 'bg-white shadow-xs text-[#1072ba] font-bold' : 'text-gray-600'
               }`}
             >
@@ -152,13 +166,13 @@ export default function OfficesView({ offices, onAddOffice }) {
             </button>
           </div>
 
-          {/* Add Office Button */}
+          {/* Create Office Button (1 single plus sign) */}
           <button
-            onClick={() => setShowAddModal(true)}
-            className="mifos-btn-blue px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 shadow-xs"
+            onClick={() => navigate ? navigate('admin-create-office') : setShowAddModal(true)}
+            className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-3.5 py-1.5 rounded-[2px] flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>+ Add Office</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Office</span>
           </button>
         </div>
       </div>
