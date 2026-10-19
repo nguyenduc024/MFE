@@ -12,12 +12,17 @@ export default function EduGuideDrawer({
   offices = [],
   currencies = [],
   glAccounts = [],
+  financialActivities = [],
   onResetCurrencies,
   onResetGlHeaders,
   onResetGlLevel2,
-  onResetGlDetails
+  onResetGlDetails,
+  onResetFinancialActivities,
+  contraAccountConfigEnabled = false,
+  hasOpeningBalanceSubmitted = false,
+  onResetOpeningBalances
 }) {
-  const [activePartId, setActivePartId] = useState('gl-part-2');
+  const [activePartId, setActivePartId] = useState('gl-part-6');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -72,6 +77,23 @@ export default function EduGuideDrawer({
     return Math.min(100, Math.round((detailCount / totalDetails) * 100));
   };
 
+  // Tính toán tiến độ Phân hệ 01 - Phần 5: Ánh Xạ Hoạt Động Tài Chính (6 liên kết = 100%)
+  const calculateGlPart5Progress = () => {
+    const requiredCodes = ['300', '101', '102', '103', '100', '200'];
+    const matched = requiredCodes.filter(code => 
+      financialActivities.some(fa => String(fa.activityCode) === String(code))
+    );
+    return Math.round((matched.length / requiredCodes.length) * 100);
+  };
+
+  // Tính toán tiến độ Phân hệ 01 - Phần 6: Khởi Tạo Số Dư Đầu Kỳ (Opening Balance Migration)
+  const calculateGlPart6Progress = () => {
+    let score = 0;
+    if (contraAccountConfigEnabled) score += 50;
+    if (hasOpeningBalanceSubmitted) score += 50;
+    return score;
+  };
+
   // Tính toán tiến độ Foundation 1: User & Access Management (4 mốc x 25% = 100%)
   const calculatePart1Progress = () => {
     let score = 0;
@@ -117,6 +139,8 @@ export default function EduGuideDrawer({
   const glPart2Progress = calculateGlPart2Progress();
   const glPart3Progress = calculateGlPart3Progress();
   const glPart4Progress = calculateGlPart4Progress();
+  const glPart5Progress = calculateGlPart5Progress();
+  const glPart6Progress = calculateGlPart6Progress();
   const part1Progress = calculatePart1Progress();
   const part2Progress = calculatePart2Progress();
   
@@ -125,12 +149,16 @@ export default function EduGuideDrawer({
     activePartId === 'gl-part-2' ? glPart2Progress :
     activePartId === 'gl-part-3' ? glPart3Progress :
     activePartId === 'gl-part-4' ? glPart4Progress :
+    activePartId === 'gl-part-5' ? glPart5Progress :
+    activePartId === 'gl-part-6' ? glPart6Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
   const isGlPart2Complete = glPart2Progress === 100;
   const isGlPart3Complete = glPart3Progress === 100;
   const isGlPart4Complete = glPart4Progress === 100;
+  const isGlPart5Complete = glPart5Progress === 100;
+  const isGlPart6Complete = glPart6Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -181,7 +209,9 @@ export default function EduGuideDrawer({
                 const itemProgress = 
                   item.id === 'gl-part-1' ? glPart1Progress : 
                   item.id === 'gl-part-2' ? glPart2Progress : 
-                  item.id === 'gl-part-3' ? glPart3Progress : glPart4Progress;
+                  item.id === 'gl-part-3' ? glPart3Progress : 
+                  item.id === 'gl-part-4' ? glPart4Progress : 
+                  item.id === 'gl-part-5' ? glPart5Progress : glPart6Progress;
 
                 return (
                   <div
@@ -200,7 +230,9 @@ export default function EduGuideDrawer({
                         {item.id === 'gl-part-1' ? 'Cấu hình đơn vị tiền tệ VND, USD, JPY...' : 
                          item.id === 'gl-part-2' ? 'Thiết lập 5 tài khoản GL Header cấp 1' :
                          item.id === 'gl-part-3' ? 'Thiết lập 11 tài khoản GL Header cấp 2' :
-                         'Thiết lập 54 tài khoản GL Chi tiết (Detail)'}
+                         item.id === 'gl-part-4' ? 'Thiết lập 54 tài khoản GL Chi tiết (Detail)' :
+                         item.id === 'gl-part-5' ? 'Ánh xạ 6 hoạt động tài chính tự động (Financial Activities)' :
+                         'Khởi tạo số dư đầu kỳ (1 tỷ) & tra cứu Journal Entries'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -1007,6 +1039,417 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 5: FINANCIAL ACTIVITY MAPPINGS
+            ========================================================== */}
+        {activePartId === 'gl-part-5' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Thanh tiến độ & Nút Reset */}
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-[2px] space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gray-700">Tiến độ thiết lập Financial Activity Mappings</span>
+                <span className={`font-bold ${isGlPart5Complete ? 'text-emerald-700' : 'text-[#1072ba]'}`}>
+                  {glPart5Progress}% ({financialActivities.length}/6 liên kết)
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-300 ${isGlPart5Complete ? 'bg-[#28a745]' : 'bg-[#1072ba]'}`}
+                  style={{ width: `${glPart5Progress}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-1 text-[11px] text-gray-500">
+                <span>Yêu cầu: Liên kết đủ 6 hoạt động tài chính tự động</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetFinancialActivities) {
+                      onResetFinancialActivities();
+                    }
+                  }}
+                  className="text-gray-500 hover:text-red-600 underline cursor-pointer"
+                >
+                  Thiết lập lại từ đầu
+                </button>
+              </div>
+            </div>
+
+            {/* Danh sách 6 hoạt động tài chính tự động */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                  Danh mục 6 liên kết hoạt động tài chính (Mifos X System)
+                </h4>
+                <span className="text-[11px] text-gray-500 font-mono">
+                  {financialActivities.length}/6
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-[11px]">
+                {[
+                  { step: 1, code: '300', name: 'Opening Balances Transfer Contra', accCode: '310199', accName: 'Opening Balance Contra', type: 'EQUITY' },
+                  { step: 2, code: '101', name: 'Cash At Main Vault', accCode: '110101', accName: 'Cash at Vault', type: 'ASSET' },
+                  { step: 3, code: '102', name: 'Cash At Teller', accCode: '110102', accName: 'Cash at Teller', type: 'ASSET' },
+                  { step: 4, code: '103', name: 'Fund Source', accCode: '110201', accName: 'Settlement Bank Account', type: 'ASSET' },
+                  { step: 5, code: '100', name: 'Asset Transfer', accCode: '130101', accName: 'Clearing Receivable', type: 'ASSET' },
+                  { step: 6, code: '200', name: 'Liability Transfer', accCode: '220201', accName: 'Clearing Payable', type: 'LIABILITY' },
+                ].map((item) => {
+                  const isDone = financialActivities.some(a => String(a.activityCode) === String(item.code));
+                  return (
+                    <div key={item.code} className="flex items-center justify-between py-1.5 px-2.5 rounded bg-white border border-gray-100">
+                      <div className="flex items-center space-x-2 truncate pr-2">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                          isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                        }`}>
+                          {isDone ? '✓' : item.step}
+                        </span>
+                        <span className="font-mono font-bold text-gray-900 shrink-0">({item.code})</span>
+                        <span className="text-gray-800 truncate">{item.name}</span>
+                        <span className="text-gray-400 shrink-0">➔</span>
+                        <span className="font-mono text-[#1072ba] shrink-0">{item.accCode}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">({item.type})</span>
+                      </div>
+                      <span className={`text-[10px] font-semibold shrink-0 ${isDone ? 'text-emerald-600' : 'text-gray-400'}`}>
+                        {isDone ? 'Đã liên kết' : 'Chưa liên kết'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn (4 Thao tác)
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-gray-700">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span>Truy cập menu Accounting</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Nhấn vào tab <strong className="text-gray-900">Accounting</strong> trên thanh điều hướng chính ở đầu trang.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span>Chọn Accounts Linked to Financial Activities</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Trong bảng danh mục nghiệp vụ kế toán, nhấn vào mục <strong className="text-gray-900">Accounts Linked to Financial Activities</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    <span>Nhấn nút + Define New Mapping</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Ở góc trên bên phải màn hình danh sách, nhấn nút màu xanh <strong className="text-[#1072ba]">+ Define New Mapping</strong> để mở biểu mẫu thiết lập liên kết mới.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
+                  <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                    <span>Chọn Financial Activity và Account rồi bấm Submit</span>
+                  </div>
+                  <p className="text-gray-700 pl-6 leading-relaxed">
+                    Chọn <strong className="text-gray-900">Financial Activity *</strong> từ danh sách hệ thống, sau đó chọn tài khoản GL chi tiết tương ứng ở trường <strong className="text-gray-900">Account *</strong> (tìm kiếm theo mã hoặc tên), rồi nhấn <strong className="text-[#1072ba]">Submit</strong> để ghi nhận liên kết.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bảng đối chiếu 6 liên kết Financial Activities */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Bảng thông số 6 liên kết Financial Activity Mappings mẫu
+              </h4>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-[11px]">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                    <tr>
+                      <th className="py-1.5 px-2">STT</th>
+                      <th className="py-1.5 px-2">Mã</th>
+                      <th className="py-1.5 px-2">Financial Activity</th>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2">GL Code</th>
+                      <th className="py-1.5 px-2">Tên tài khoản (Account)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">1</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">300</td>
+                      <td className="py-1.5 px-2">Opening Balances Transfer Contra</td>
+                      <td className="py-1.5 px-2">EQUITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">310199</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Opening Balance Contra</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">2</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">101</td>
+                      <td className="py-1.5 px-2">Cash At Main Vault</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110101</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Cash at Vault</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">3</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">102</td>
+                      <td className="py-1.5 px-2">Cash At Teller</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110102</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Cash at Teller</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">4</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">103</td>
+                      <td className="py-1.5 px-2">Fund Source</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110201</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Settlement Bank Account</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">5</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">100</td>
+                      <td className="py-1.5 px-2">Asset Transfer</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">130101</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Clearing Receivable</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">6</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">200</td>
+                      <td className="py-1.5 px-2">Liability Transfer</td>
+                      <td className="py-1.5 px-2">LIABILITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">220201</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">Clearing Payable</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 6: OPENING BALANCE MIGRATION & JOURNAL ENTRIES
+            ========================================================== */}
+        {activePartId === 'gl-part-6' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Thanh tiến độ & Nút Reset */}
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-[2px] space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gray-700">Tiến độ Khởi tạo số dư đầu kỳ</span>
+                <span className={`font-bold ${isGlPart6Complete ? 'text-emerald-700' : 'text-[#1072ba]'}`}>
+                  {glPart6Progress}% ({contraAccountConfigEnabled && hasOpeningBalanceSubmitted ? '2/2 mốc' : contraAccountConfigEnabled || hasOpeningBalanceSubmitted ? '1/2 mốc' : '0/2 mốc'})
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-300 ${isGlPart6Complete ? 'bg-[#28a745]' : 'bg-[#1072ba]'}`}
+                  style={{ width: `${glPart6Progress}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between pt-1 text-[11px] text-gray-500">
+                <span>Yêu cầu: Bật Contra Account & Khởi tạo số dư 1 tỷ cân đối Nợ/Có</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetOpeningBalances) onResetOpeningBalances();
+                  }}
+                  className="inline-flex items-center space-x-1 text-[11px] text-[#1072ba] hover:underline cursor-pointer"
+                  title="Xóa trạng thái để thực hành lại"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Thiết lập lại từ đầu</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Danh mục kiểm tra checklist */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Tiêu chuẩn kiểm tra hoàn thành (3 Tiêu chí)
+              </h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      contraAccountConfigEnabled ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {contraAccountConfigEnabled ? '✓' : '1'}
+                    </span>
+                    <span className="font-mono font-medium text-gray-900">office-opening-balances-contra-account</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${contraAccountConfigEnabled ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {contraAccountConfigEnabled ? 'Đã kích hoạt' : 'Chưa bật'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      hasOpeningBalanceSubmitted ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {hasOpeningBalanceSubmitted ? '✓' : '2'}
+                    </span>
+                    <span className="text-gray-900">Khởi tạo số dư Hội sở (TKB - HO) 1.000.000.000 VND</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${hasOpeningBalanceSubmitted ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {hasOpeningBalanceSubmitted ? 'Đã hoàn tất' : 'Chưa nhập'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      hasOpeningBalanceSubmitted ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {hasOpeningBalanceSubmitted ? '✓' : '3'}
+                    </span>
+                    <span className="text-gray-900">Đối soát bút toán sổ cái tại Search Journal Entries</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${hasOpeningBalanceSubmitted ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {hasOpeningBalanceSubmitted ? 'Đã ghi sổ' : 'Chưa kiểm tra'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn (4 Thao tác)
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-gray-700">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span>Admin → System → Configurations</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Tìm dòng <strong className="text-gray-900">office-opening-balances-contra-account</strong> và bấm công tắc chuyển sang <strong className="text-emerald-600">Enabled</strong> để mở khóa tính năng nhập số dư đầu kỳ.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span>Accounting → Migrate Opening Balances</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Chọn văn phòng <strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong> (Hội sở) rồi nhấn nút <strong className="text-[#1072ba]">Retrieve</strong> để truy xuất bảng tài khoản kế toán.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    <span>Nhập số dư Nợ/Có cân đối (1.000.000.000 VND)</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Chọn tiền tệ <strong className="text-gray-900">VND</strong>, ngày <strong className="text-gray-900">12/10/2026</strong>. Nhập Nợ: <strong className="text-gray-900">Cash at Vault</strong> (200.000.000), <strong className="text-gray-900">Settlement Bank Account</strong> (800.000.000). Nhập Có: <strong className="text-gray-900">Contributed Capital</strong> (1.000.000.000). Sau đó nhấn <strong className="text-[#1072ba]">Submit</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
+                  <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                    <span>Accounting → Search Journal Entries</span>
+                  </div>
+                  <p className="text-gray-700 pl-6">
+                    Truy cập màn hình tra cứu bút toán, chỉnh khoảng ngày lọc bao gồm ngày giao dịch 12/10/2026 để xem hệ thống tự động sinh bút toán sổ cái cân đối Nợ = Có hoàn chỉnh.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bảng đối chiếu số liệu mẫu */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Bảng thông số số dư đầu kỳ thực hành
+              </h4>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-[11px]">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                    <tr>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2">GL Code</th>
+                      <th className="py-1.5 px-2">Tên tài khoản</th>
+                      <th className="py-1.5 px-2 text-right">Debit (Nợ)</th>
+                      <th className="py-1.5 px-2 text-right">Credit (Có)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110101</td>
+                      <td className="py-1.5 px-2 font-medium">Cash at Vault</td>
+                      <td className="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">200,000,000</td>
+                      <td className="py-1.5 px-2 text-right font-mono text-gray-400">—</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110201</td>
+                      <td className="py-1.5 px-2 font-medium">Settlement Bank Account</td>
+                      <td className="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">800,000,000</td>
+                      <td className="py-1.5 px-2 text-right font-mono text-gray-400">—</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-purple-700">EQUITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">310101</td>
+                      <td className="py-1.5 px-2 font-medium">Contributed Capital</td>
+                      <td className="py-1.5 px-2 text-right font-mono text-gray-400">—</td>
+                      <td className="py-1.5 px-2 text-right font-mono font-bold text-rose-700">1,000,000,000</td>
+                    </tr>
+                    <tr className="bg-gray-50 font-bold">
+                      <td colSpan={3} className="py-1.5 px-2 text-right">Tổng cộng cân đối:</td>
+                      <td className="py-1.5 px-2 text-right text-emerald-700">1,000,000,000</td>
+                      <td className="py-1.5 px-2 text-right text-rose-700">1,000,000,000</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
             BÀI HỌC: FOUNDATION 1: USER & ROLES
             ========================================================== */}
         {activePartId === 'part-1' && (
@@ -1238,10 +1681,13 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-4' ? (
             isGlPart4Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
-                  <span>Đã thiết lập hoàn tất danh mục GL Detail (100%)!</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePartId('gl-part-5')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: Financial Activity Mapping →
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -1277,6 +1723,94 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu thực hành GL Detail (5 nhóm)
+              </button>
+            )
+          ) : activePartId === 'gl-part-5' ? (
+            isGlPart5Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                  <span>✓</span>
+                  <span>Đã thiết lập hoàn tất 6 Financial Activity Mappings (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetFinancialActivities) {
+                      onResetFinancialActivities();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-5');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Financial Activity Mapping
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetFinancialActivities) {
+                    onResetFinancialActivities();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-5');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Financial Activity Mapping (6 liên kết)
+              </button>
+            )
+          ) : activePartId === 'gl-part-6' ? (
+            isGlPart6Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                  <span>✓</span>
+                  <span>Đã hoàn thành xuất sắc Khởi tạo số dư đầu kỳ & Đối soát Journal Entries (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetOpeningBalances) {
+                      onResetOpeningBalances();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-6');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Opening Balance Migration
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetOpeningBalances) {
+                    onResetOpeningBalances();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-6');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Opening Balance Migration
               </button>
             )
           ) : activePartId === 'part-1' ? (

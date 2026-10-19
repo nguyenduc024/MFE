@@ -2018,12 +2018,54 @@ export const INITIAL_TELLERS = [
 ];
 
 export const INITIAL_FINANCIAL_ACTIVITIES = [
-  { id: "1", activityName: "Opening Balances Contra", glCode: "310001", glName: "Retained Earnings", type: "300" },
-  { id: "2", activityName: "Asset Transfer", glCode: "110201", glName: "Branch Cash in Transit", type: "101" },
-  { id: "3", activityName: "Liability Transfer", glCode: "110202", glName: "Clearing Clearing Transit", type: "102" },
-  { id: "4", activityName: "Cash at Main Vault", glCode: "110101", glName: "Main Vault Cash", type: "103" },
-  { id: "5", activityName: "Cash at Teller", glCode: "110102", glName: "Cash at Teller", type: "100" },
-  { id: "6", activityName: "Customer Deposits Suspense", glCode: "210101", glName: "Suspense Account", type: "200" }
+  {
+    id: "1",
+    activityCode: "102",
+    activityName: "Cash At Teller",
+    accountType: "ASSET",
+    accountCode: "110102",
+    accountName: "Cash at Teller"
+  },
+  {
+    id: "2",
+    activityCode: "100",
+    activityName: "Asset Transfer",
+    accountType: "ASSET",
+    accountCode: "130101",
+    accountName: "Clearing Receivable"
+  },
+  {
+    id: "3",
+    activityCode: "200",
+    activityName: "Liability Transfer",
+    accountType: "LIABILITY",
+    accountCode: "220201",
+    accountName: "Clearing Payable"
+  },
+  {
+    id: "4",
+    activityCode: "103",
+    activityName: "Fund Source",
+    accountType: "ASSET",
+    accountCode: "110201",
+    accountName: "Settlement Bank Account"
+  },
+  {
+    id: "5",
+    activityCode: "300",
+    activityName: "Opening Balances Transfer Contra",
+    accountType: "EQUITY",
+    accountCode: "310199",
+    accountName: "Opening Balance Contra"
+  },
+  {
+    id: "6",
+    activityCode: "101",
+    activityName: "Cash At Main Vault",
+    accountType: "ASSET",
+    accountCode: "110101",
+    accountName: "Cash at Vault"
+  }
 ];
 
 export const INITIAL_ACCOUNTING_RULES = [
@@ -2176,6 +2218,30 @@ export const EDU_MODULES = [
     objective: "Khai báo các tài khoản GL Chi tiết (Detail Accounts) thuộc 5 nhóm tài khoản chính có liên kết Parent Header theo đúng các tài khoản GL Cấp 2 tương ứng, phục vụ hạch toán nghiệp vụ ngân hàng.",
     targetMenu: "accounting",
     subPath: "coa-details"
+  },
+  {
+    id: "gl-part-5",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "5",
+    name: "Phần 5: Ánh Xạ Hoạt Động Tài Chính (Financial Activity Mappings)",
+    shortLabel: "Phần 5: Financial Activity Mapping",
+    title: "Ánh Xạ Hoạt Động Tài Chính (Financial Activity Mappings)",
+    objective: "Khai báo và liên kết 6 hoạt động tài chính tự động (Opening Balance Contra, Cash at Main Vault, Cash at Teller, Fund Source, Asset Transfer, Liability Transfer) tới các tài khoản GL chi tiết tương ứng, phục vụ hạch toán tự động trong hệ thống ngân hàng.",
+    targetMenu: "accounting",
+    subPath: "activities"
+  },
+  {
+    id: "gl-part-6",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "6",
+    name: "Phần 6: Khởi Tạo Số Dư Đầu Kỳ (Opening Balance Migration)",
+    shortLabel: "Phần 6: Opening Balance Migration",
+    title: "Khởi Tạo Số Dư Đầu Kỳ & Tra Cứu Nhật Ký Bút Toán (Opening Balance Migration & Journal Entries)",
+    objective: "Kích hoạt cấu hình tài khoản đối ứng (Contra Account), khởi tạo số dư đầu kỳ cho các tài khoản tiền mặt, tiền gửi thanh toán và vốn góp tại Hội sở, sau đó tra cứu đối soát nhật ký sổ cái (Journal Entries).",
+    targetMenu: "accounting",
+    subPath: "opening-balances"
   },
   {
     id: "part-1",

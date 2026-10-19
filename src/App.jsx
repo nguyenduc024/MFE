@@ -25,6 +25,7 @@ import ChartOfAccountsView, {
 } from './views/ChartOfAccountsView';
 import AccountingView from './views/AccountingView';
 import CurrencyConfigView from './views/CurrencyConfigView';
+import FinancialActivityMappingsView from './views/FinancialActivityMappingsView';
 import AccountingRulesView from './views/AccountingRulesView';
 import JournalEntriesView from './views/JournalEntriesView';
 import LoanProductsView from './views/LoanProductsView';
@@ -36,6 +37,8 @@ import UserDetailView from './views/UserDetailView';
 import ClientDetailView from './views/ClientDetailView';
 import LoanDetailView from './views/LoanDetailView';
 import SavingsDetailView from './views/SavingsDetailView';
+import ConfigurationsView from './views/ConfigurationsView';
+import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
 
 // Authentic Dataset
 import {
@@ -77,6 +80,7 @@ export default function App() {
   const [tellers, setTellers] = useState(INITIAL_TELLERS);
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [savingsAccounts, setSavingsAccounts] = useState(INITIAL_SAVINGS_ACCOUNTS);
+  const [financialActivities, setFinancialActivities] = useState(INITIAL_FINANCIAL_ACTIVITIES);
 
   // Navigation & UI state
   const [currentPath, setCurrentPath] = useState('home');
@@ -92,6 +96,10 @@ export default function App() {
   const [practiceActive, setPracticeActive] = useState(false);
   const [practiceModule, setPracticeModule] = useState('part-1');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+
+  // Opening Balance Migration states
+  const [contraAccountConfigEnabled, setContraAccountConfigEnabled] = useState(false);
+  const [hasOpeningBalanceSubmitted, setHasOpeningBalanceSubmitted] = useState(false);
 
   // Router navigation helper
   const navigate = (path, params = {}) => {
@@ -182,6 +190,18 @@ export default function App() {
     }));
   };
 
+  const handleSaveFinancialActivity = (newMapping) => {
+    setFinancialActivities(prev => {
+      const existingIndex = prev.findIndex(a => a.activityCode === newMapping.activityCode);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = { ...updated[existingIndex], ...newMapping };
+        return updated;
+      }
+      return [newMapping, ...prev];
+    });
+  };
+
   // Breadcrumbs computation
   const getBreadcrumbs = () => {
     switch (currentPath) {
@@ -207,20 +227,24 @@ export default function App() {
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Roles and Permissions' }];
       case 'admin-add-role':
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Roles and Permissions', path: 'admin-roles' }, { label: 'Add' }];
+      case 'admin-configurations':
+        return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Configurations' }];
       case 'admin-loan-products':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin' }, { label: 'Loan Products' }];
       case 'admin-savings-products':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin' }, { label: 'Savings Products' }];
       case 'accounting-coa':
-        return [{ label: 'Accounting', path: 'accounting-coa' }, { label: 'Chart of Accounts' }];
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Chart of Accounts' }];
       case 'accounting-activities':
-        return [{ label: 'Accounting', path: 'accounting-coa' }, { label: 'Financial Activity Mappings' }];
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Financial Activity Mappings' }];
       case 'accounting-rules':
-        return [{ label: 'Accounting', path: 'accounting-coa' }, { label: 'Accounting Rules' }];
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Accounting Rules' }];
       case 'accounting-closure':
-        return [{ label: 'Accounting', path: 'accounting-coa' }, { label: 'Closing Entries' }];
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Closing Entries' }];
       case 'accounting-journal':
-        return [{ label: 'Accounting', path: 'accounting-coa' }, { label: 'Search Journal Entries' }];
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Search Journal Entries' }];
+      case 'accounting-opening-balances':
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Migrate Opening Balances' }];
       case 'clients':
         return [{ label: 'Clients', path: 'clients' }];
       case 'client-detail':
@@ -263,7 +287,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-configurations' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -312,6 +336,14 @@ export default function App() {
 
         {currentPath === 'admin-system' && (
           <SystemView navigate={navigate} />
+        )}
+
+        {currentPath === 'admin-configurations' && (
+          <ConfigurationsView
+            navigate={navigate}
+            contraAccountEnabled={contraAccountConfigEnabled}
+            onToggleContraAccount={(val) => setContraAccountConfigEnabled(val)}
+          />
         )}
 
         {currentPath === 'admin-offices' && (
@@ -422,20 +454,47 @@ export default function App() {
           />
         )}
 
-        {(currentPath === 'accounting-activities' || currentPath === 'accounting-rules' || currentPath === 'accounting-closure') && (
+        {currentPath === 'accounting-activities' && (
+          <FinancialActivityMappingsView
+            activities={financialActivities}
+            onSaveActivity={handleSaveFinancialActivity}
+            glAccounts={glAccounts}
+            navigate={navigate}
+          />
+        )}
+
+        {(currentPath === 'accounting-rules' || currentPath === 'accounting-closure') && (
           <AccountingRulesView
-            activities={INITIAL_FINANCIAL_ACTIVITIES}
+            activities={financialActivities}
             rules={INITIAL_ACCOUNTING_RULES}
             closures={INITIAL_GL_CLOSURES}
             defaultTab={
-              currentPath === 'accounting-rules' ? 'rules' :
-              currentPath === 'accounting-closure' ? 'closure' : 'activities'
+              currentPath === 'accounting-rules' ? 'rules' : 'closure'
             }
           />
         )}
 
         {currentPath === 'accounting-journal' && (
-          <JournalEntriesView />
+          <JournalEntriesView
+            offices={offices}
+            glAccounts={glAccounts}
+            hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
+            navigate={navigate}
+          />
+        )}
+
+        {currentPath === 'accounting-opening-balances' && (
+          <MigrateOpeningBalancesView
+            offices={offices}
+            currencies={currencies}
+            glAccounts={glAccounts}
+            financialActivities={financialActivities}
+            navigate={navigate}
+            onSubmitOpeningBalances={() => {
+              setHasOpeningBalanceSubmitted(true);
+              navigate('accounting');
+            }}
+          />
         )}
 
         {currentPath === 'clients' && (
@@ -540,6 +599,10 @@ export default function App() {
         onResetGlDetails={() => {
           setGlAccounts(prev => prev.filter(a => (a.usage || '').toLowerCase() !== 'detail'));
         }}
+        financialActivities={financialActivities}
+        onResetFinancialActivities={() => {
+          setFinancialActivities([]);
+        }}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
           const targetModule = mod || 'gl-part-2';
@@ -597,7 +660,28 @@ export default function App() {
             ]);
             setCurrentPath('home');
           }
+          if (targetModule === 'gl-part-5') {
+            setFinancialActivities([]);
+            const requiredCodes = ['310199', '110101', '110102', '110201', '130101', '220201'];
+            const existingCodes = new Set(glAccounts.map(a => a.glCode));
+            const missingAccounts = INITIAL_GL_ACCOUNTS.filter(a => requiredCodes.includes(a.glCode) && !existingCodes.has(a.glCode));
+            if (missingAccounts.length > 0) {
+              setGlAccounts(prev => [...missingAccounts, ...prev]);
+            }
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-6') {
+            setContraAccountConfigEnabled(false);
+            setHasOpeningBalanceSubmitted(false);
+            setCurrentPath('home');
+          }
           setPracticeActive(true);
+        }}
+        contraAccountConfigEnabled={contraAccountConfigEnabled}
+        hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
+        onResetOpeningBalances={() => {
+          setContraAccountConfigEnabled(false);
+          setHasOpeningBalanceSubmitted(false);
         }}
       />
 
@@ -612,6 +696,11 @@ export default function App() {
         offices={offices}
         currencies={currencies}
         glAccounts={glAccounts}
+        financialActivities={financialActivities}
+        contraAccountConfigEnabled={contraAccountConfigEnabled}
+        onToggleContraAccount={(val) => setContraAccountConfigEnabled(val)}
+        hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
+        onSubmitOpeningBalances={() => setHasOpeningBalanceSubmitted(true)}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);
@@ -669,6 +758,9 @@ export default function App() {
             });
             return [...newDetails, ...prev];
           });
+        }}
+        onLoadAllFinancialActivities={() => {
+          setFinancialActivities([...INITIAL_FINANCIAL_ACTIVITIES]);
         }}
       />
     </div>

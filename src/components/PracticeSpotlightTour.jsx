@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ROOT_GL_HEADERS_SAMPLES, SAMPLE_GL_LEVEL_2, FULL_GL_LEVEL_2_ACCOUNTS, SAMPLE_GL_DETAILS } from '../views/ChartOfAccountsView';
+import { SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS } from '../views/FinancialActivityMappingsView';
 
 /**
  * PracticeSpotlightTour - Guided interactive walkthrough for:
@@ -9,6 +10,7 @@ import { ROOT_GL_HEADERS_SAMPLES, SAMPLE_GL_LEVEL_2, FULL_GL_LEVEL_2_ACCOUNTS, S
  * 4. GL Part 2: 5 Root GL Headers (100000 TOTAL ASSETS -> 500000 TOTAL EXPENSES)
  * 5. GL Part 3: GL Level 2 Headers across 5 categories
  * 6. GL Part 4: GL Detail Accounts across 5 categories
+ * 7. GL Part 5: Financial Activity Mappings (6 mappings)
  */
 export default function PracticeSpotlightTour({
   isActive,
@@ -20,6 +22,11 @@ export default function PracticeSpotlightTour({
   offices = [],
   currencies = [],
   glAccounts = [],
+  financialActivities = [],
+  contraAccountConfigEnabled = false,
+  onToggleContraAccount,
+  hasOpeningBalanceSubmitted = false,
+  onSubmitOpeningBalances,
   navigate,
   onLoadAllRoles,
   onLoadAllUsers,
@@ -27,7 +34,8 @@ export default function PracticeSpotlightTour({
   onLoadRegionalOffices,
   onLoadAllCurrencies,
   onLoadAllGlLevel2,
-  onLoadAllGlDetails
+  onLoadAllGlDetails,
+  onLoadAllFinancialActivities
 }) {
   const [targetRect, setTargetRect] = useState(null);
   const [roleCreated, setRoleCreated] = useState(false);
@@ -63,13 +71,28 @@ export default function PracticeSpotlightTour({
   const [lastDetailCreated, setLastDetailCreated] = useState(null);
   const prevGlDetailRef = useRef(glAccounts);
 
+  // GL Part 5 state (Financial Activity Mappings)
+  const [finActivityPopup, setFinActivityPopup] = useState(null); // null, 'mapping-created', 'mappings-completed', 'all-imported'
+  const [finActivityImported, setFinActivityImported] = useState(false);
+  const [lastMappingCreated, setLastMappingCreated] = useState(null);
+  const prevFinActivitiesRef = useRef(financialActivities);
+
+  // GL Part 6 state (Opening Balance Migration & Journal Entries)
+  const [glPart6Popup, setGlPart6Popup] = useState(null);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'gl-part-4') {
+      if (module === 'gl-part-6') {
+        setGlPart6Popup(null);
+      } else if (module === 'gl-part-5') {
+        setFinActivityPopup(null);
+        setFinActivityImported(false);
+        prevFinActivitiesRef.current = financialActivities;
+      } else if (module === 'gl-part-4') {
         setGlDetailPopup(null);
         setGlDetailImported(false);
         prevGlDetailRef.current = glAccounts;
@@ -99,6 +122,32 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [isActive, module]);
+
+  // Track if Financial Activity Mapping was submitted / created (GL Part 5)
+  useEffect(() => {
+    if (isActive && module === 'gl-part-5') {
+      if (financialActivities.length > prevFinActivitiesRef.current.length) {
+        const requiredCodes = ['300', '101', '102', '103', '100', '200'];
+        const newlyAdded = financialActivities[0];
+        prevFinActivitiesRef.current = financialActivities;
+
+        if (newlyAdded && requiredCodes.includes(newlyAdded.activityCode) && !finActivityPopup) {
+          setLastMappingCreated(newlyAdded);
+          const completedCount = requiredCodes.filter(c => 
+            financialActivities.some(a => String(a.activityCode) === String(c))
+          ).length;
+
+          if (completedCount >= 6) {
+            setFinActivityPopup('mappings-completed');
+          } else {
+            setFinActivityPopup('mapping-created');
+          }
+        }
+      } else {
+        prevFinActivitiesRef.current = financialActivities;
+      }
+    }
+  }, [financialActivities, isActive, module, finActivityPopup]);
 
   // Track if GL Headers were submitted / created (GL Part 2)
   useEffect(() => {
@@ -272,13 +321,185 @@ export default function PracticeSpotlightTour({
   const nextDetailSample = SAMPLE_GL_DETAILS.find(s => !detailCompletedSampleCodes.includes(s.glCode)) || SAMPLE_GL_DETAILS[0];
   const totalDetailsCreated = glAccounts.filter(a => (a.usage || '').toLowerCase() === 'detail').length;
 
+  // Check form status for Financial Activity Mappings (GL Part 5)
+  const requiredActivityCodes = ['300', '101', '102', '103', '100', '200'];
+  const completedActivityCodes = requiredActivityCodes.filter(c => 
+    financialActivities.some(a => String(a.activityCode) === String(c))
+  );
+  const nextMappingSample = SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS.find(s => !completedActivityCodes.includes(s.activityCode)) || SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS[0];
+  const submitMappingBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-mapping-btn') : null;
+  const isMappingFormOpen = Boolean(typeof document !== 'undefined' && document.getElementById('tour-mapping-create-card'));
+  const isMappingFormFilled = Boolean(submitMappingBtn && !submitMappingBtn.disabled);
+
   // Determine active step & target element
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'gl-part-4') {
+  if (module === 'gl-part-6') {
+    if (!contraAccountConfigEnabled) {
+      if (currentPath === 'admin-configurations') {
+        currentStep = 4;
+        targetSelector = '#tour-enable-contra-account-btn';
+        stepTitle = 'Bước 4: Bật office-opening-balances-contra-account';
+        stepInstruction = 'Mifos bắt buộc tham số cấu hình office-opening-balances-contra-account phải ở trạng thái Enabled trước khi hạch toán số dư đầu kỳ. Hãy gạt công tắc chuyển sang Enabled.';
+      } else if (currentPath === 'admin-system') {
+        currentStep = 3;
+        targetSelector = '#tour-configurations-tile';
+        stepTitle = 'Bước 3: Chọn Configurations';
+        stepInstruction = 'Bấm vào thẻ Configurations để xem danh sách tham số cấu hình toàn cục của hệ thống Mifos.';
+      } else if (currentPath === 'admin' || currentPath === 'admin-hub') {
+        currentStep = 2;
+        targetSelector = '#tour-admin-system';
+        stepTitle = 'Bước 2: Chọn mục System';
+        stepInstruction = 'Trong trung tâm quản trị Admin, chọn thẻ System để mở các thiết lập kỹ thuật và thông số hệ thống.';
+      } else {
+        const adminSystemInDom = Boolean(typeof document !== 'undefined' && document.getElementById('tour-admin-system'));
+        if (adminSystemInDom) {
+          currentStep = 2;
+          targetSelector = '#tour-admin-system';
+          stepTitle = 'Bước 2: Chọn mục System';
+          stepInstruction = 'Trong menu Admin vừa mở, bấm chọn System để truy cập cài đặt hệ thống.';
+        } else {
+          currentStep = 1;
+          targetSelector = '#tour-nav-admin';
+          stepTitle = 'Bước 1: Vào phân hệ Admin';
+          stepInstruction = 'Bấm vào menu Admin trên thanh điều hướng đầu trang để bắt đầu quy trình kích hoạt cấu hình Contra Account.';
+        }
+      }
+    } else if (!hasOpeningBalanceSubmitted) {
+      if (currentPath === 'accounting-opening-balances') {
+        const isFormRetrieved = Boolean(typeof document !== 'undefined' && document.getElementById('tour-migration-form-card'));
+        const submitBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-opening-balances-btn') : null;
+
+        if (isFormRetrieved) {
+          const vaultInput = typeof document !== 'undefined' ? document.getElementById('tour-input-debit-110101') : null;
+          const bankInput = typeof document !== 'undefined' ? document.getElementById('tour-input-debit-110201') : null;
+          const capitalInput = typeof document !== 'undefined' ? document.getElementById('tour-input-credit-310101') : null;
+
+          const vaultVal = vaultInput?.value ? Number(vaultInput.value) : 0;
+          const bankVal = bankInput?.value ? Number(bankInput.value) : 0;
+          const capitalVal = capitalInput?.value ? Number(capitalInput.value) : 0;
+
+          const isVaultDone = vaultVal >= 200000000;
+          const isBankDone = bankVal >= 800000000;
+          const isCapitalDone = capitalVal >= 1000000000;
+
+          if (!isVaultDone) {
+            currentStep = 9;
+            targetSelector = '#tour-cell-debit-110101';
+            stepTitle = 'Bước 9.1: Nhập Nợ (Debit) Cash at Vault (TK 110101)';
+            stepInstruction = 'Tại dòng Cash at Vault (TK 110101), nhập số tiền Debit: 200000000 (200.000.000 VND). Vùng sáng đang chỉ định trực tiếp vào ô Debit.';
+          } else if (!isBankDone) {
+            currentStep = 9;
+            targetSelector = '#tour-cell-debit-110201';
+            stepTitle = 'Bước 9.2: Nhập Nợ (Debit) Settlement Bank Account (TK 110201)';
+            stepInstruction = 'Tại dòng Settlement Bank Account (TK 110201), nhập số tiền Debit: 800000000 (800.000.000 VND). Vùng sáng đang chỉ định trực tiếp vào ô Debit.';
+          } else if (!isCapitalDone) {
+            currentStep = 9;
+            targetSelector = '#tour-cell-credit-310101';
+            stepTitle = 'Bước 9.3: Nhập Có (Credit) Contributed Capital (TK 310101)';
+            stepInstruction = 'Tại dòng Contributed Capital (TK 310101), nhập số tiền Credit: 1000000000 (1 tỷ VND để cân bằng Tổng Nợ = Tổng Có). Vùng sáng đang chỉ định trực tiếp vào ô Credit.';
+          } else {
+            currentStep = 10;
+            targetSelector = '#tour-submit-opening-balances-btn';
+            stepTitle = 'Bước 10: Bấm Submit để ghi nhận số dư đầu kỳ';
+            stepInstruction = 'Số liệu đầu kỳ đã cân đối hoàn hảo (Tổng Nợ 1 tỷ = Tổng Có 1 tỷ VND). Bấm nút Submit màu xanh để ghi nhận giao dịch vào sổ cái!';
+          }
+        } else {
+          const officeSelectText = typeof document !== 'undefined' ? document.getElementById('tour-office-select-field')?.textContent : '';
+          const hasSelectedOffice = officeSelectText && officeSelectText.includes('Takashimaya');
+          if (hasSelectedOffice) {
+            currentStep = 8;
+            targetSelector = '#tour-btn-retrieve';
+            stepTitle = 'Bước 8: Bấm nút Retrieve';
+            stepInstruction = 'Bấm nút Retrieve màu xanh để tải bảng danh mục tài khoản kế toán của Hội sở Takashimaya Bank (TKB) - HO.';
+          } else {
+            currentStep = 7;
+            targetSelector = '#tour-office-select-field';
+            stepTitle = 'Bước 7: Chọn Office Hội sở TKB - HO';
+            stepInstruction = 'Chọn văn phòng cấp cao nhất: Takashimaya Bank (TKB) - HO (Hội sở) để khởi tạo số dư tài khoản ban đầu.';
+          }
+        }
+      } else if (currentPath === 'accounting') {
+        currentStep = 6;
+        targetSelector = '#tour-opening-balances-tile';
+        stepTitle = 'Bước 6: Chọn Migrate Opening Balances (Office-wise)';
+        stepInstruction = 'Trong danh mục Accounting, bấm vào mục Migrate Opening Balances (Office-wise) để bắt đầu khởi tạo số dư đầu kỳ cho chi nhánh.';
+      } else {
+        currentStep = 5;
+        targetSelector = '#tour-nav-accounting';
+        stepTitle = 'Bước 5: Chuyển sang phân hệ Accounting';
+        stepInstruction = 'Tham số Contra Account đã được kích hoạt thành công! Bấm vào menu Accounting trên thanh điều hướng để mở chức năng nhập số dư đầu kỳ.';
+      }
+    } else {
+      if (currentPath === 'accounting-journal') {
+        const hasTargetEntry = Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target'));
+        if (hasTargetEntry) {
+          currentStep = 14;
+          targetSelector = '#tour-journal-entry-target';
+          stepTitle = 'Bước 14: Đối soát bút toán Số dư đầu kỳ';
+          stepInstruction = 'Ý nghĩa tài chính: Bút toán khởi tạo nguồn vốn chủ sở hữu ban đầu (Vốn góp 1.000.000.000 VND) và phân bổ thành tài sản khả dụng gồm Tiền mặt tại quỹ (200.000.000 VND) và Tiền gửi ngân hàng (800.000.000 VND). Định khoản: Nợ TK 110101 (200 tr) + Nợ TK 110201 (800 tr) = Có TK 310101 (1 tỷ). Tổng Nợ = Tổng Có = 1.000.000.000 VND!';
+        } else {
+          currentStep = 13;
+          targetSelector = '#tour-journal-filters-area';
+          stepTitle = 'Bước 13: Lọc ngày giao dịch phát sinh (12/10/2026)';
+          stepInstruction = 'Chỉnh "Transaction Date From.." và "Transaction Date To" sao cho bao gồm ngày phát sinh số dư đầu kỳ (12/10/2026) để hệ thống hiển thị danh sách giao dịch. Bấm nút "Lọc ngày giao dịch (12/10/2026)" bên dưới để lọc ngay.';
+        }
+      } else if (currentPath === 'accounting') {
+        currentStep = 12;
+        targetSelector = '#tour-search-journal-tile';
+        stepTitle = 'Bước 12: Chọn Search Journal Entries';
+        stepInstruction = 'Giao dịch hạch toán số dư đầu kỳ đã ghi nhận thành công vào sổ cái! Bấm vào Search Journal Entries để tra cứu và kiểm tra bút toán sổ nhật ký chung.';
+      } else {
+        currentStep = 11;
+        targetSelector = '#tour-nav-accounting';
+        stepTitle = 'Bước 11: Đến phân hệ Accounting để tra cứu Sổ cái';
+        stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng đầu trang để vào tra cứu Sổ nhật ký chung.';
+      }
+    }
+  } else if (module === 'gl-part-5') {
+    if (finActivityPopup) {
+      targetSelector = null;
+    } else if (currentPath === 'accounting-activities') {
+      if (isMappingFormOpen) {
+        if (isMappingFormFilled) {
+          currentStep = 5;
+          targetSelector = '#tour-submit-mapping-btn';
+          stepTitle = `Bước 5: Nhấn Submit để lưu liên kết (${nextMappingSample.activityName})`;
+          stepInstruction = `Thông tin liên kết Financial Activity (${nextMappingSample.activityCode}) ${nextMappingSample.activityName} nối tới tài khoản ${nextMappingSample.accountCode} - ${nextMappingSample.accountName} (${nextMappingSample.accountType}) đã hợp lệ. Nhấn nút Submit để lưu vào hệ thống!`;
+        } else {
+          currentStep = 4;
+          targetSelector = '#tour-mapping-create-card';
+          stepTitle = `Bước 4: Chọn Financial Activity và Account (${completedActivityCodes.length + 1}/6)`;
+          stepInstruction = `Biểu mẫu Define New Mapping đã mở. Xem thông tin liên kết ${completedActivityCodes.length + 1}/6: ${nextMappingSample.activityName} (Mã: ${nextMappingSample.activityCode}) nối tới tài khoản ${nextMappingSample.accountCode} - ${nextMappingSample.accountName} và bấm "Nhập dữ liệu mẫu" bên trái để điền tự động.`;
+        }
+      } else {
+        if (completedActivityCodes.length >= 6 || financialActivities.length >= 6) {
+          currentStep = 6;
+          targetSelector = null;
+          stepTitle = 'Đã hoàn thành 6 Financial Activity Mappings!';
+          stepInstruction = 'Bạn đã thiết lập toàn bộ 6 liên kết hoạt động tài chính tự động trong hệ thống. Nhấn nút "Hoàn thành phần thực hành" bên dưới để kết thúc.';
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-btn-define-mapping';
+          stepTitle = `Bước 3: Nhấn + Define New Mapping (${completedActivityCodes.length + 1}/6)`;
+          stepInstruction = `Nhấn nút + Define New Mapping ở góc phải trên để tạo liên kết hoạt động tài chính tiếp theo: ${nextMappingSample.activityName} (${nextMappingSample.activityCode}) nối tới tài khoản ${nextMappingSample.accountCode} - ${nextMappingSample.accountName}.`;
+        }
+      }
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      targetSelector = '#tour-financial-activities-tile';
+      stepTitle = 'Bước 2 / 5: Chọn Accounts Linked to Financial Activities';
+      stepInstruction = 'Trong danh mục Accounting, bấm vào mục Accounts Linked to Financial Activities để mở bảng quản lý liên kết tài khoản kế toán với hoạt động tài chính.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 5: Vào phân hệ Accounting';
+      stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng ở đầu trang.';
+    }
+  } else if (module === 'gl-part-4') {
     if (glDetailPopup) {
       targetSelector = null;
     } else if (currentPath === 'accounting-coa') {
@@ -607,6 +828,27 @@ export default function PracticeSpotlightTour({
           }
         }
 
+        // Auto-scroll target into view if outside visible viewport
+        if (targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target') {
+          const inView = rect.top >= 60 && rect.bottom <= (window.innerHeight || 800) - 60;
+          if (!inView) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+
+        // Expand spotlight for debit and credit cells so user sees Account Code & Name on the left
+        if (targetSelector.startsWith('#tour-cell-debit-') || targetSelector.startsWith('#tour-cell-credit-')) {
+          const row = el.closest('.grid');
+          if (row) {
+            const rowRect = row.getBoundingClientRect();
+            left = Math.round(rowRect.left + 8);
+            top = Math.round(rowRect.top + 2);
+            bottom = Math.round(rowRect.bottom - 2);
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+
         setTargetRect({ left, top, width, height, right, bottom });
         return;
       }
@@ -751,6 +993,100 @@ export default function PracticeSpotlightTour({
                   setGlPopup(null);
                   onClose();
                   if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2.5 px-5 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Hoàn thành phần thực hành
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Pop-up modals for GL Part 5: Financial Activity Mapping Flow
+  if (module === 'gl-part-5' && finActivityPopup) {
+    if (finActivityPopup === 'mapping-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Tiến độ: {completedActivityCodes.length}/6 liên kết Financial Activities
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Liên kết thành công: {lastMappingCreated?.activityName || 'Hoạt động'} ({lastMappingCreated?.activityCode}) ➔ {lastMappingCreated?.accountCode} - {lastMappingCreated?.accountName}!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Hoạt động tài chính <strong className="text-gray-900">{lastMappingCreated?.activityName}</strong> đã được liên kết chính xác tới tài khoản kế toán chi tiết <strong className="text-[#1072ba]">{lastMappingCreated?.accountCode} - {lastMappingCreated?.accountName}</strong> ({lastMappingCreated?.accountType}).
+            </p>
+            {nextMappingSample && (
+              <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900">
+                <strong>Thao tác tiếp theo ({completedActivityCodes.length + 1}/6):</strong> Nhấn nút <strong>+ Define New Mapping</strong> để liên kết tiếp hoạt động <strong>({nextMappingSample.activityCode}) {nextMappingSample.activityName}</strong> tới tài khoản <strong>{nextMappingSample.accountCode} - {nextMappingSample.accountName}</strong>.
+              </div>
+            )}
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setFinActivityPopup(null);
+                  if (navigate) navigate('accounting-activities');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục liên kết hoạt động tiếp theo
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (finActivityPopup === 'mappings-completed') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Hoàn thành xuất sắc Phân hệ 01 - Phần 5
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Đã hoàn thành liên kết đủ 6 Financial Activities!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Bạn đã liên kết thành công đầy đủ 6 hoạt động tài chính tự động trong hệ thống ngân hàng Takashimaya Bank theo đúng chuẩn Mifos X:
+            </p>
+            <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 font-mono">
+              <div className="flex items-center justify-between">
+                <span>[1] (300) Opening Balances Transfer Contra ➔ 310199</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">EQUITY - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>[2] (101) Cash At Main Vault ➔ 110101</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>[3] (102) Cash At Teller ➔ 110102</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>[4] (103) Fund Source ➔ 110201</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>[5] (100) Asset Transfer ➔ 130101</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>[6] (200) Liability Transfer ➔ 220201</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">LIABILITY - Đạt</span>
+              </div>
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setFinActivityPopup(null);
+                  onClose();
+                  if (navigate) navigate('accounting-activities');
                 }}
                 className="py-2.5 px-5 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
@@ -1500,7 +1836,7 @@ export default function PracticeSpotlightTour({
   };
 
   if (box) {
-    if (targetSelector === '#tour-gl-create-card') {
+    if (targetSelector === '#tour-gl-create-card' || targetSelector === '#tour-mapping-create-card') {
       const tooltipWidth = 330;
       const tooltipLeft = Math.max(16, box.left - tooltipWidth - 20);
       const tooltipTop = Math.max(16, Math.min(box.top, windowHeight - 460));
@@ -1691,6 +2027,39 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Quick autofill suggestion popup card for Financial Activity Mapping (GL Part 5) */}
+        {module === 'gl-part-5' && isMappingFormOpen && !isMappingFormFilled && (
+          <div className="p-3 bg-slate-50 border border-slate-300 rounded-[2px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
+            <div className="text-gray-900 font-bold text-xs border-b border-gray-200 pb-1">
+              Nhập dữ liệu mẫu Mapping ({completedActivityCodes.length + 1}/6): {nextMappingSample.activityName}
+            </div>
+            <div className="text-[11px] text-gray-700 space-y-1 bg-white p-2.5 rounded border border-gray-200 font-mono">
+              <div>Financial Activity: <strong className="text-gray-900">{nextMappingSample.activityName}</strong></div>
+              <div>Mã Activity: <strong className="text-gray-900">{nextMappingSample.activityCode}</strong></div>
+              <div>Account Type: <strong className="text-gray-900">{nextMappingSample.accountType}</strong></div>
+              <div>Account GL: <strong className="text-gray-900">{nextMappingSample.accountCode} - {nextMappingSample.accountName}</strong></div>
+              <div className="text-gray-500 font-sans text-[10px] pt-0.5">{nextMappingSample.description}</div>
+            </div>
+            <p className="text-[11px] text-gray-600 leading-relaxed">
+              Nhấn nút bên dưới để tự động chọn đúng Financial Activity và Tài khoản GL tương ứng:
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-activity-mapping', {
+                  detail: {
+                    activityCode: nextMappingSample.activityCode,
+                    accountCode: nextMappingSample.accountCode
+                  }
+                }));
+              }}
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
+            >
+              <span>Nhập dữ liệu mẫu ({nextMappingSample.activityCode} ➔ {nextMappingSample.accountCode})</span>
+            </button>
+          </div>
+        )}
+
         {/* Quick autofill suggestion popup card for GL Header creation (GL Part 2) */}
         {module === 'gl-part-2' && isGlFormOpen && !isGlFormFilled && (
           <div className="p-3 bg-slate-50 border border-slate-300 rounded-[2px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -1790,6 +2159,50 @@ export default function PracticeSpotlightTour({
               className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
             >
               <span>Nhập dữ liệu mẫu ({nextLevel2Sample.name} - {nextLevel2Sample.glCode})</span>
+            </button>
+          </div>
+        )}
+
+        {/* Completion action button in tooltip card for GL Part 6 (Opening Balance Migration & Journal Entries) */}
+        {module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target')) && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+              <div className="font-bold text-emerald-900 mb-1">
+                Đối soát cân đối kế toán thành công (1 tỷ VND):
+              </div>
+              <div>• Nợ TK 110101 (Cash at Vault): 200.000.000 VND</div>
+              <div>• Nợ TK 110201 (Settlement Bank Account): 800.000.000 VND</div>
+              <div>• Có TK 310101 (Contributed Capital): 1.000.000.000 VND</div>
+              <div className="mt-1 font-semibold text-emerald-900">
+                ➔ Tổng Nợ (1 tỷ) = Tổng Có (1 tỷ). Sổ cái Mifos hoàn toàn cân bằng!
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (navigate) navigate('accounting-journal');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
+        {/* Completion action buttons in tooltip card for GL Part 5 (Financial Activity Mappings) */}
+        {module === 'gl-part-5' && (completedActivityCodes.length >= 6 || financialActivities.length >= 6) && !isMappingFormOpen && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setFinActivityPopup(null);
+                onClose();
+                if (navigate) navigate('accounting-activities');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
             </button>
           </div>
         )}
@@ -1974,9 +2387,99 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Quick helper for GL Part 6: Enable Contra Account */}
+        {module === 'gl-part-6' && currentPath === 'admin-configurations' && !contraAccountConfigEnabled && (
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                if (onToggleContraAccount) onToggleContraAccount(true);
+                window.dispatchEvent(new CustomEvent('practice-enable-contra-account'));
+              }}
+              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Bật cấu hình Contra Account
+            </button>
+          </div>
+        )}
+
+        {/* Quick helper for GL Part 6: Autofill Opening Balances */}
+        {module === 'gl-part-6' && currentPath === 'accounting-opening-balances' && (
+          <div className="pt-1 space-y-1.5">
+            {targetSelector === '#tour-cell-debit-110101' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                    detail: { glCode: '110101', debit: '200000000' }
+                  }));
+                }}
+                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
+              >
+                Điền 200.000.000 VND (Nợ TK 110101)
+              </button>
+            )}
+
+            {targetSelector === '#tour-cell-debit-110201' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                    detail: { glCode: '110201', debit: '800000000' }
+                  }));
+                }}
+                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
+              >
+                Điền 800.000.000 VND (Nợ TK 110201)
+              </button>
+            )}
+
+            {targetSelector === '#tour-cell-credit-310101' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                    detail: { glCode: '310101', credit: '1000000000' }
+                  }));
+                }}
+                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
+              >
+                Điền 1.000.000.000 VND (Có TK 310101)
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-opening-balances'));
+              }}
+              className="w-full py-1 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-[2px] text-[10px] font-normal cursor-pointer transition-colors text-center"
+            >
+              Điền nhanh toàn bộ số liệu (1 tỷ VND)
+            </button>
+          </div>
+        )}
+
+        {/* Quick helper for GL Part 6: Filter Journal Entries Date */}
+        {module === 'gl-part-6' && currentPath === 'accounting-journal' && !Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target')) && (
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-filter-journal-dates'));
+              }}
+              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Lọc ngày giao dịch 12/10/2026
+            </button>
+          </div>
+        )}
+
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'gl-part-4' && (detailCompletedSampleCodes.length >= 5 || totalDetailsCreated >= 54)) ||
+            {(module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target'))) ||
+             (module === 'gl-part-5' && (completedActivityCodes.length >= 6 || financialActivities.length >= 6)) ||
+             (module === 'gl-part-4' && (detailCompletedSampleCodes.length >= 5 || totalDetailsCreated >= 54)) ||
              (module === 'gl-part-3' && (level2CompletedSampleCodes.length >= 5 || totalLevel2Created >= 11)) ||
              (module === 'gl-part-2' && glCompletedCodes.length >= 5) ||
              (module === 'gl-part-1' && currencies.length >= 5)

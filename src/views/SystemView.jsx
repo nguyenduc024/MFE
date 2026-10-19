@@ -92,7 +92,7 @@ export default function SystemView({ navigate }) {
       id: 'configurations',
       title: 'Configurations',
       icon: Settings2,
-      path: null,
+      path: 'admin-configurations',
       disabled: false
     },
     {
@@ -188,6 +188,7 @@ export default function SystemView({ navigate }) {
               return (
                 <div
                   key={item.id}
+                  id={item.id === 'configurations' ? 'tour-configurations-tile' : undefined}
                   onClick={() => handleItemClick(item)}
                   className={`flex items-center justify-between py-2 px-2 rounded-[2px] transition-colors ${
                     isDisabled

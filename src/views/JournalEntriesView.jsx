@@ -1,136 +1,701 @@
-import React, { useState } from 'react';
-import { 
-  BookOpen, Search, Calendar, Filter, ArrowUpRight, 
-  ArrowDownLeft, FileText, CheckCircle2
-} from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-export default function JournalEntriesView() {
-  const [filterText, setFilterText] = useState('');
+export const SCREENSHOT_SAMPLE_JOURNAL_ENTRIES = [
+  {
+    id: '57',
+    office: 'Takashimaya Bank (TKB) - HO',
+    txId: 'a2f68debe1a7',
+    txDate: '12 October 2026 00:00:00',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '12 October 2026 00:00:00',
+    glCode: '220301',
+    glName: 'Accrued Operating Expenses Payable',
+    currency: 'VND',
+    debit: null,
+    credit: 5000000
+  },
+  {
+    id: '58',
+    office: 'Takashimaya Bank (TKB) - HO',
+    txId: 'a2f68debe1a7',
+    txDate: '12 October 2026 00:00:00',
+    type: 'EXPENSE',
+    createdBy: 'mifos',
+    submittedDate: '12 October 2026 00:00:00',
+    glCode: '530101',
+    glName: 'Operating Expense',
+    currency: 'VND',
+    debit: 5000000,
+    credit: null
+  },
+  {
+    id: '61',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S1',
+    txDate: '13 October 2026',
+    type: 'ASSET',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '110201',
+    glName: 'Settlement Bank Account',
+    currency: 'VND',
+    debit: 5000000,
+    credit: null
+  },
+  {
+    id: '62',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S1',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '210102',
+    glName: 'Current Account Deposits',
+    currency: 'VND',
+    debit: null,
+    credit: 5000000
+  },
+  {
+    id: '63',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S2',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '210102',
+    glName: 'Current Account Deposits',
+    currency: 'VND',
+    debit: 2000000,
+    credit: null
+  },
+  {
+    id: '64',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S2',
+    txDate: '13 October 2026',
+    type: 'ASSET',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '110201',
+    glName: 'Settlement Bank Account',
+    currency: 'VND',
+    debit: null,
+    credit: 2000000
+  },
+  {
+    id: '65',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S3',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '210102',
+    glName: 'Current Account Deposits',
+    currency: 'VND',
+    debit: 1000000,
+    credit: null
+  },
+  {
+    id: '66',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S3',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '220201',
+    glName: 'Clearing Payable',
+    currency: 'VND',
+    debit: null,
+    credit: 1000000
+  },
+  {
+    id: '67',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S4',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '220201',
+    glName: 'Clearing Payable',
+    currency: 'VND',
+    debit: 1000000,
+    credit: null
+  },
+  {
+    id: '68',
+    office: 'Thu Duc Transaction Office',
+    txId: 'S4',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '210102',
+    glName: 'Current Account Deposits',
+    currency: 'VND',
+    debit: null,
+    credit: 1000000
+  }
+];
+
+export const OPENING_BALANCE_MIGRATION_ENTRIES = [
+  {
+    id: '79',
+    office: 'Takashimaya Bank (TKB) - HO',
+    txId: 'TX-OPB-20261012-01',
+    txDate: '12 October 2026 00:00:00',
+    type: 'ASSET',
+    createdBy: 'mifos',
+    submittedDate: '12 October 2026 00:00:00',
+    glCode: '110101',
+    glName: 'Cash at Vault',
+    currency: 'VND',
+    debit: 200000000,
+    credit: null,
+    isTarget: true
+  },
+  {
+    id: '80',
+    office: 'Takashimaya Bank (TKB) - HO',
+    txId: 'TX-OPB-20261012-01',
+    txDate: '12 October 2026 00:00:00',
+    type: 'ASSET',
+    createdBy: 'mifos',
+    submittedDate: '12 October 2026 00:00:00',
+    glCode: '110201',
+    glName: 'Settlement Bank Account',
+    currency: 'VND',
+    debit: 800000000,
+    credit: null,
+    isTarget: true
+  },
+  {
+    id: '81',
+    office: 'Takashimaya Bank (TKB) - HO',
+    txId: 'TX-OPB-20261012-01',
+    txDate: '12 October 2026 00:00:00',
+    type: 'EQUITY',
+    createdBy: 'mifos',
+    submittedDate: '12 October 2026 00:00:00',
+    glCode: '310101',
+    glName: 'Contributed Capital',
+    currency: 'VND',
+    debit: null,
+    credit: 1000000000,
+    isTarget: true
+  }
+];
+
+/**
+ * JournalEntriesView
+ * Pixel-perfect implementation of Mifos X Journal Entries (Search Journal Entries)
+ * Matches screenshot media_1792397849040_eb2ddf29.png
+ */
+export default function JournalEntriesView({
+  offices = [],
+  glAccounts = [],
+  hasOpeningBalanceSubmitted = false,
+  navigate
+}) {
+  // Filter form states
+  const [selectedOffice, setSelectedOffice] = useState('');
+  const [officeDropdownOpen, setOfficeDropdownOpen] = useState(false);
+
+  const [selectedGlAccount, setSelectedGlAccount] = useState('');
+  const [glDropdownOpen, setGlDropdownOpen] = useState(false);
+
   const [filterType, setFilterType] = useState('All');
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
 
-  // 15 representative sample entries from the 75 entries in database
-  const entries = [
-    { id: "75", date: "2026-10-14", txId: "TX-20261014-001", glCode: "110102", glName: "Cash at Teller", entryType: "DEBIT", amount: 2500000, office: "Thu Duc Transaction Office", desc: "Thu nợ định kỳ kỳ 2 khoản vay #000000001" },
-    { id: "74", date: "2026-10-14", txId: "TX-20261014-001", glCode: "120101", glName: "Retail Loan Principal", entryType: "CREDIT", amount: 2000000, office: "Thu Duc Transaction Office", desc: "Giảm dư nợ gốc khoản vay #000000001" },
-    { id: "73", date: "2026-10-14", txId: "TX-20261014-001", glCode: "410001", glName: "Interest on Retail Loans", entryType: "CREDIT", amount: 500000, office: "Thu Duc Transaction Office", desc: "Hạch toán thu lãi vay cá nhân" },
-    { id: "72", date: "2026-09-15", txId: "TX-20260915-001", glCode: "110102", glName: "Cash at Teller", entryType: "DEBIT", amount: 2500000, office: "Thu Duc Transaction Office", desc: "Thu nợ định kỳ kỳ 1 khoản vay #000000001" },
-    { id: "71", date: "2026-09-15", txId: "TX-20260915-001", glCode: "120101", glName: "Retail Loan Principal", entryType: "CREDIT", amount: 2000000, office: "Thu Duc Transaction Office", desc: "Giảm dư nợ gốc khoản vay #000000001" },
-    { id: "70", date: "2026-09-15", txId: "TX-20260915-001", glCode: "410001", glName: "Interest on Retail Loans", entryType: "CREDIT", amount: 500000, office: "Thu Duc Transaction Office", desc: "Hạch toán thu lãi vay cá nhân" },
-    { id: "65", date: "2026-08-15", txId: "TX-20260815-002", glCode: "120101", glName: "Retail Loan Principal", entryType: "DEBIT", amount: 10000000, office: "Thu Duc Transaction Office", desc: "Giải ngân khoản vay TKB Personal Loan #000000001" },
-    { id: "64", date: "2026-08-15", txId: "TX-20260815-002", glCode: "110102", glName: "Cash at Teller", entryType: "CREDIT", amount: 10000000, office: "Thu Duc Transaction Office", desc: "Chi tiền mặt giải ngân tại quầy giao dịch" },
-    { id: "50", date: "2026-08-12", txId: "TX-20260812-001", glCode: "110102", glName: "Cash at Teller", entryType: "DEBIT", amount: 50000000, office: "Thu Duc Transaction Office", desc: "Khách hàng mở sổ tiết kiệm có kỳ hạn #000000003" },
-    { id: "49", date: "2026-08-12", txId: "TX-20260812-001", glCode: "210201", glName: "Fixed Term Deposits", entryType: "CREDIT", amount: 50000000, office: "Thu Duc Transaction Office", desc: "Tăng nguồn vốn tiền gửi có kỳ hạn" },
-    { id: "20", date: "2026-08-05", txId: "TX-20260805-001", glCode: "110102", glName: "Cash at Teller", entryType: "DEBIT", amount: 50000000, office: "Thu Duc Transaction Office", desc: "Cấp hạn mức tiền mặt đầu ngày cho Teller Thu Duc" },
-    { id: "19", date: "2026-08-05", txId: "TX-20260805-001", glCode: "110101", glName: "Main Vault Cash", entryType: "CREDIT", amount: 50000000, office: "Takashimaya Bank (TKB) - HO", desc: "Xuất quỹ kho chính điều chuyển cho quầy giao dịch" },
-    { id: "8", date: "2026-08-01", txId: "TX-20260801-001", glCode: "110101", glName: "Main Vault Cash", entryType: "DEBIT", amount: 500000000, office: "Takashimaya Bank (TKB) - HO", desc: "Ghi nhận số dư đầu kỳ quỹ tiền mặt Hội sở" },
-    { id: "7", date: "2026-08-01", txId: "TX-20260801-001", glCode: "310001", glName: "Retained Earnings", entryType: "CREDIT", amount: 500000000, office: "Takashimaya Bank (TKB) - HO", desc: "Đối ứng vốn số dư đầu kỳ (Opening Balance Contra)" }
-  ];
+  const [txDateFrom, setTxDateFrom] = useState('');
+  const [txDateTo, setTxDateTo] = useState('');
+  const [transactionId, setTransactionId] = useState('');
 
-  const filtered = entries.filter(e => {
-    const matchType = filterType === 'All' || e.entryType === filterType;
-    const matchText = 
-      e.glCode.includes(filterText) ||
-      e.glName.toLowerCase().includes(filterText.toLowerCase()) ||
-      e.desc.toLowerCase().includes(filterText.toLowerCase());
-    return matchType && matchText;
-  });
+  const [submittedDateFrom, setSubmittedDateFrom] = useState('');
+  const [submittedDateTo, setSubmittedDateTo] = useState('');
+
+  // Pagination states
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [itemsPerPageDropdownOpen, setItemsPerPageDropdownOpen] = useState(false);
+
+  // Filter trigger state
+  const [isFiltered, setIsFiltered] = useState(false);
+
+  const officeRef = useRef(null);
+  const glRef = useRef(null);
+  const filterRef = useRef(null);
+  const itemsPerPageRef = useRef(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (officeRef.current && !officeRef.current.contains(e.target)) {
+        setOfficeDropdownOpen(false);
+      }
+      if (glRef.current && !glRef.current.contains(e.target)) {
+        setGlDropdownOpen(false);
+      }
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterDropdownOpen(false);
+      }
+      if (itemsPerPageRef.current && !itemsPerPageRef.current.contains(e.target)) {
+        setItemsPerPageDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Listen to practice event to filter dates
+  useEffect(() => {
+    const handleFilterDates = () => {
+      setTxDateFrom('10/01/2026');
+      setTxDateTo('10/31/2026');
+      setIsFiltered(true);
+    };
+
+    window.addEventListener('practice-filter-journal-dates', handleFilterDates);
+    return () => window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
+  }, []);
+
+  // Computed displayed entries
+  const displayedEntries = useMemo(() => {
+    // Only display entries if submitted and filtered with valid date range
+    if (!isFiltered && (!txDateFrom || !txDateTo)) {
+      return [];
+    }
+
+    return [
+      ...OPENING_BALANCE_MIGRATION_ENTRIES,
+      ...SCREENSHOT_SAMPLE_JOURNAL_ENTRIES
+    ];
+  }, [isFiltered, txDateFrom, txDateTo]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
-        <div>
-          <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-sky-700" />
-            <span>Search Journal Entries (Nhật Ký Sổ Cái Kế Toán)</span>
-          </h1>
-          <p className="text-xs text-gray-500">
-            Tổng hợp 75 bút toán kế toán Nợ/Có phát sinh từ chu trình giải ngân vay, thu nợ, nộp tiết kiệm và điều chuyển quỹ
-          </p>
+    <div className="max-w-7xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
+      {/* 1. Header: Journal Entries | Home / Accounting / Journal Entries */}
+      <div className="flex items-center space-x-2.5 mb-6">
+        <h1 className="text-xl font-normal text-[#212529]">
+          Journal Entries
+        </h1>
+        <span className="text-gray-300 font-light text-base">|</span>
+        <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5">
+          <span
+            onClick={() => navigate && navigate('home')}
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            Home
+          </span>
+          <span className="text-gray-400">/</span>
+          <span
+            onClick={() => navigate && navigate('accounting')}
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            Accounting
+          </span>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-500">Journal Entries</span>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded border border-gray-200 shadow-2xs">
-        <div className="flex items-center space-x-3 flex-1 max-w-md">
-          <div className="relative w-full">
-            <input
-              type="text"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-              placeholder="Lọc theo mã GL, tên tài khoản, nội dung bút toán..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-gray-300 focus:outline-none focus:border-sky-600"
-            />
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
+      {/* 2. Main Container Card matching screenshot */}
+      <div className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-6 space-y-6">
+        
+        {/* 2.1 Filter Form Controls (3 columns x 3 rows) */}
+        <div id="tour-journal-filters-area" className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+          
+          {/* Row 1, Col 1: Office Name */}
+          <div className="relative" ref={officeRef}>
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Office Name
+            </label>
+            <div
+              onClick={() => setOfficeDropdownOpen(!officeDropdownOpen)}
+              className="w-full flex items-center justify-between border-b border-gray-300 pb-1 cursor-pointer hover:border-gray-400 focus:border-[#1072ba] transition-colors"
+            >
+              <span className={`text-xs ${selectedOffice ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+                {selectedOffice || ''}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+            </div>
+
+            {officeDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-[2px] shadow-lg max-h-56 overflow-y-auto z-50 py-1">
+                <div
+                  onClick={() => {
+                    setSelectedOffice('');
+                    setOfficeDropdownOpen(false);
+                  }}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  -- All Offices --
+                </div>
+                {offices.map(off => (
+                  <div
+                    key={off.id}
+                    onClick={() => {
+                      setSelectedOffice(off.name);
+                      setOfficeDropdownOpen(false);
+                    }}
+                    className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-100 ${
+                      selectedOffice === off.name ? 'bg-sky-50 text-[#1072ba] font-medium' : 'text-gray-700'
+                    }`}
+                  >
+                    {off.name}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center bg-gray-100 p-0.5 rounded border border-gray-200 text-xs">
-            {['All', 'DEBIT', 'CREDIT'].map(t => (
-              <button
-                key={t}
-                onClick={() => setFilterType(t)}
-                className={`px-2 py-1 rounded text-xs font-semibold ${
-                  filterType === t ? 'bg-white shadow-xs text-sky-800' : 'text-gray-600'
-                }`}
-              >
-                {t === 'All' ? 'Tất cả' : t === 'DEBIT' ? 'Nợ (Dr)' : 'Có (Cr)'}
-              </button>
-            ))}
+          {/* Row 1, Col 2: GL Account Name or Code * */}
+          <div className="relative" ref={glRef}>
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              GL Account Name or Code <span className="text-gray-500">*</span>
+            </label>
+            <div
+              onClick={() => setGlDropdownOpen(!glDropdownOpen)}
+              className="w-full flex items-center justify-between border-b border-gray-300 pb-1 cursor-pointer hover:border-gray-400 focus:border-[#1072ba] transition-colors"
+            >
+              <span className={`text-xs ${selectedGlAccount ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+                {selectedGlAccount || ''}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+            </div>
+
+            {glDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-[2px] shadow-lg max-h-56 overflow-y-auto z-50 py-1">
+                <div
+                  onClick={() => {
+                    setSelectedGlAccount('');
+                    setGlDropdownOpen(false);
+                  }}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  -- Select GL Account --
+                </div>
+                {glAccounts
+                  .filter(acc => (acc.usage || '').toLowerCase() === 'detail')
+                  .map(acc => (
+                    <div
+                      key={acc.id || acc.glCode}
+                      onClick={() => {
+                        setSelectedGlAccount(`(${acc.glCode}) ${acc.name}`);
+                        setGlDropdownOpen(false);
+                      }}
+                      className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-100 ${
+                        selectedGlAccount.includes(acc.glCode) ? 'bg-sky-50 text-[#1072ba] font-medium' : 'text-gray-700'
+                      }`}
+                    >
+                      ({acc.glCode}) {acc.name}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Row 1, Col 3: Filter */}
+          <div className="relative" ref={filterRef}>
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Filter
+            </label>
+            <div
+              onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+              className="w-full flex items-center justify-between border-b border-gray-300 pb-1 cursor-pointer hover:border-gray-400 focus:border-[#1072ba] transition-colors"
+            >
+              <span className="text-xs text-gray-800 font-normal">
+                {filterType}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+            </div>
+
+            {filterDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-[2px] shadow-lg z-50 py-1">
+                {['All', 'Manual Entries', 'System Entries'].map(item => (
+                  <div
+                    key={item}
+                    onClick={() => {
+                      setFilterType(item);
+                      setFilterDropdownOpen(false);
+                    }}
+                    className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-100 ${
+                      filterType === item ? 'bg-sky-50 text-[#1072ba] font-medium' : 'text-gray-700'
+                    }`}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Row 2, Col 1: Transaction Date From */}
+          <div id="tour-journal-date-from" className="relative">
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Transaction Date From
+            </label>
+            <div className="w-full flex items-center justify-between border-b border-gray-300 pb-1">
+              <input
+                type="text"
+                value={txDateFrom}
+                onChange={(e) => {
+                  setTxDateFrom(e.target.value);
+                  setIsFiltered(true);
+                }}
+                placeholder="M/D/YYYY"
+                className="w-full text-xs text-gray-800 focus:outline-none bg-transparent"
+              />
+              <Calendar className="w-3.5 h-3.5 text-gray-500 cursor-pointer flex-shrink-0" />
+            </div>
+          </div>
+
+          {/* Row 2, Col 2: Transaction Date To */}
+          <div id="tour-journal-date-to" className="relative">
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Transaction Date To
+            </label>
+            <div className="w-full flex items-center justify-between border-b border-gray-300 pb-1">
+              <input
+                type="text"
+                value={txDateTo}
+                onChange={(e) => {
+                  setTxDateTo(e.target.value);
+                  setIsFiltered(true);
+                }}
+                placeholder="M/D/YYYY"
+                className="w-full text-xs text-gray-800 focus:outline-none bg-transparent"
+              />
+              <Calendar className="w-3.5 h-3.5 text-gray-500 cursor-pointer flex-shrink-0" />
+            </div>
+          </div>
+
+          {/* Row 2, Col 3: Transaction ID */}
+          <div className="relative">
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Transaction ID
+            </label>
+            <div className="w-full border-b border-gray-300 pb-1">
+              <input
+                type="text"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+                className="w-full text-xs text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Row 3, Col 1: Submitted on Date From */}
+          <div className="relative">
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Submitted on Date From
+            </label>
+            <div className="w-full flex items-center justify-between border-b border-gray-300 pb-1">
+              <input
+                type="text"
+                value={submittedDateFrom}
+                onChange={(e) => setSubmittedDateFrom(e.target.value)}
+                placeholder=""
+                className="w-full text-xs text-gray-800 focus:outline-none bg-transparent"
+              />
+              <Calendar className="w-3.5 h-3.5 text-gray-500 cursor-pointer flex-shrink-0" />
+            </div>
+          </div>
+
+          {/* Row 3, Col 2: Submitted on Date To */}
+          <div className="relative">
+            <label className="block text-[11px] text-gray-500 font-normal mb-0.5">
+              Submitted on Date To
+            </label>
+            <div className="w-full flex items-center justify-between border-b border-gray-300 pb-1">
+              <input
+                type="text"
+                value={submittedDateTo}
+                onChange={(e) => setSubmittedDateTo(e.target.value)}
+                placeholder=""
+                className="w-full text-xs text-gray-800 focus:outline-none bg-transparent"
+              />
+              <Calendar className="w-3.5 h-3.5 text-gray-500 cursor-pointer flex-shrink-0" />
+            </div>
+          </div>
+
+          {/* Row 3, Col 3: Empty spacer or search trigger */}
+          <div className="flex items-end justify-end pb-1">
+            <button
+              type="button"
+              onClick={() => setIsFiltered(true)}
+              className="text-xs text-[#1072ba] hover:underline font-medium cursor-pointer"
+            >
+              Apply Filter
+            </button>
           </div>
         </div>
 
-        <div className="text-xs text-gray-500">
-          Hiển thị <strong>{filtered.length}</strong> bút toán tiêu biểu
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="mifos-panel overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left mifos-table">
+        {/* 2.2 Table of Journal Entries */}
+        <div className="mt-8 overflow-x-auto border border-gray-100 rounded-[2px]">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr>
-                <th className="w-12">ID</th>
-                <th>Transaction Date</th>
-                <th>GL Account (Tài Khoản Ghi Nhận)</th>
-                <th>Type</th>
-                <th className="text-right">Debit (Ghi Nợ)</th>
-                <th className="text-right">Credit (Ghi Có)</th>
-                <th>Office</th>
-                <th>Transaction Description</th>
+              <tr className="border-b border-gray-200 text-[11px] text-gray-500 font-normal">
+                <th className="py-2.5 px-3 font-normal">Entry ID</th>
+                <th className="py-2.5 px-3 font-normal">Office</th>
+                <th className="py-2.5 px-3 font-normal">Transaction ID</th>
+                <th className="py-2.5 px-3 font-normal">Transaction Date</th>
+                <th className="py-2.5 px-3 font-normal">Type</th>
+                <th className="py-2.5 px-3 font-normal">Created By</th>
+                <th className="py-2.5 px-3 font-normal">Submitted on date</th>
+                <th className="py-2.5 px-3 font-normal">Account Code</th>
+                <th className="py-2.5 px-3 font-normal">Account Name</th>
+                <th className="py-2.5 px-3 font-normal">Currency</th>
+                <th className="py-2.5 px-3 font-normal text-right">Debit</th>
+                <th className="py-2.5 px-3 font-normal text-right">Credit</th>
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((item) => {
-                const isDebit = item.entryType === 'DEBIT';
-                return (
-                  <tr key={item.id}>
-                    <td className="font-mono text-xs text-gray-400">#{item.id}</td>
-                    <td className="font-mono text-xs text-gray-700 whitespace-nowrap">{item.date}</td>
-                    <td>
-                      <div className="font-mono text-xs font-bold text-sky-800">{item.glCode}</div>
-                      <div className="text-[11px] text-gray-600">{item.glName}</div>
-                    </td>
-                    <td>
-                      <span className={`font-bold text-xs ${
-                        isDebit ? 'text-rose-700' : 'text-emerald-700'
-                      }`}>
-                        {isDebit ? 'DEBIT (NỢ)' : 'CREDIT (CÓ)'}
-                      </span>
-                    </td>
-                    <td className="text-right font-mono text-xs font-bold text-rose-700">
-                      {isDebit ? `${item.amount.toLocaleString('vi-VN')} VND` : '—'}
-                    </td>
-                    <td className="text-right font-mono text-xs font-bold text-emerald-700">
-                      {!isDebit ? `${item.amount.toLocaleString('vi-VN')} VND` : '—'}
-                    </td>
-                    <td className="text-xs text-gray-600 truncate max-w-[150px]">{item.office}</td>
-                    <td className="text-xs text-gray-700 max-w-xs">{item.desc}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            {displayedEntries.length === 0 ? (
+              <tbody>
+                <tr>
+                  <td colSpan={12} className="py-12 text-center text-xs text-gray-400">
+                    No records found
+                  </td>
+                </tr>
+              </tbody>
+            ) : (
+              <>
+                {/* 3 Opening Balance Migration Target Entries highlighted together */}
+                <tbody id="tour-journal-entry-target" className="border-b-2 border-sky-400">
+                  {displayedEntries.filter(item => item.isTarget).map((item, index) => (
+                    <tr
+                      key={`${item.id}-${item.glCode}-${index}`}
+                      className="border-b border-sky-100 bg-sky-50/50 hover:bg-sky-50 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px]">{item.txId}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glCode}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.glName}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                      <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono">
+                        {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                      </td>
+                      <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono">
+                        {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+
+                {/* Other standard screenshot journal entries */}
+                <tbody>
+                  {displayedEntries.filter(item => !item.isTarget).map((item, index) => (
+                    <tr
+                      key={`${item.id}-${item.glCode}-${index}`}
+                      className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                    >
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px]">{item.txId}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glCode}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-800">{item.glName}</td>
+                      <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                      <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono">
+                        {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                      </td>
+                      <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono">
+                        {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            )}
           </table>
+
+          {/* 2.3 Pagination Footer */}
+          <div className="py-3 px-4 flex items-center justify-end space-x-6 text-xs text-gray-500 border-t border-gray-100">
+            {/* Items per page selector */}
+            <div className="flex items-center space-x-2 relative" ref={itemsPerPageRef}>
+              <span>Items per page:</span>
+              <div
+                onClick={() => setItemsPerPageDropdownOpen(!itemsPerPageDropdownOpen)}
+                className="flex items-center space-x-1 border-b border-gray-300 pb-0.5 cursor-pointer font-medium text-gray-700"
+              >
+                <span>{itemsPerPage}</span>
+                <ChevronDown className="w-3 h-3 text-gray-500" />
+              </div>
+
+              {itemsPerPageDropdownOpen && (
+                <div className="absolute bottom-full right-0 mb-1 bg-white border border-gray-200 rounded-[2px] shadow-lg z-50 py-1">
+                  {[10, 25, 50, 100].map(val => (
+                    <div
+                      key={val}
+                      onClick={() => {
+                        setItemsPerPage(val);
+                        setItemsPerPageDropdownOpen(false);
+                      }}
+                      className={`px-3 py-1 text-xs cursor-pointer hover:bg-gray-100 ${
+                        itemsPerPage === val ? 'bg-sky-50 text-[#1072ba] font-medium' : 'text-gray-700'
+                      }`}
+                    >
+                      {val}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Range display */}
+            <div>
+              {displayedEntries.length === 0 ? '0 – 0 of 0' : `1 – ${displayedEntries.length} of ${displayedEntries.length}`}
+            </div>
+
+            {/* Page navigation buttons */}
+            <div className="flex items-center space-x-2 text-gray-400">
+              <button
+                type="button"
+                disabled
+                className="p-1 cursor-not-allowed hover:text-gray-400"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                disabled
+                className="p-1 cursor-not-allowed hover:text-gray-400"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                disabled
+                className="p-1 cursor-not-allowed hover:text-gray-400"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                disabled
+                className="p-1 cursor-not-allowed hover:text-gray-400"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
