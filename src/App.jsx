@@ -20,7 +20,8 @@ import AddRoleView from './views/AddRoleView';
 import ChartOfAccountsView, { 
   ROOT_GL_HEADERS_SAMPLES, 
   SAMPLE_GL_LEVEL_2, 
-  FULL_GL_LEVEL_2_ACCOUNTS 
+  FULL_GL_LEVEL_2_ACCOUNTS,
+  SAMPLE_GL_DETAILS 
 } from './views/ChartOfAccountsView';
 import AccountingView from './views/AccountingView';
 import CurrencyConfigView from './views/CurrencyConfigView';
@@ -536,6 +537,9 @@ export default function App() {
           const level2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
           setGlAccounts(prev => prev.filter(a => !level2Codes.includes(a.glCode)));
         }}
+        onResetGlDetails={() => {
+          setGlAccounts(prev => prev.filter(a => (a.usage || '').toLowerCase() !== 'detail'));
+        }}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
           const targetModule = mod || 'gl-part-2';
@@ -565,6 +569,32 @@ export default function App() {
 
             const level2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
             setGlAccounts(prev => [...missingRoots, ...prev.filter(a => !level2Codes.includes(a.glCode))]);
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-4') {
+            // Ensure 5 root headers exist
+            const missingRoots = ROOT_GL_HEADERS_SAMPLES.filter(r => !glAccounts.some(a => a.glCode === r.glCode)).map(r => ({
+              id: r.step === 1 ? "1" : r.step === 2 ? "2" : r.step === 3 ? "3" : r.step === 4 ? "4" : "5",
+              glCode: r.glCode,
+              name: r.name,
+              typeId: String(r.step),
+              typeName: r.type === 'ASSET' ? 'Asset' : r.type === 'LIABILITY' ? 'Liability' : r.type === 'EQUITY' ? 'Equity' : r.type === 'INCOME' ? 'Income' : 'Expense',
+              usage: 'Header',
+              manualEntriesAllowed: false,
+              parentId: null,
+              description: r.description
+            }));
+
+            // Ensure 11 level 2 headers exist
+            const existingLevel2Codes = new Set(glAccounts.map(a => a.glCode));
+            const missingLevel2 = FULL_GL_LEVEL_2_ACCOUNTS.filter(a => !existingLevel2Codes.has(a.glCode));
+
+            // Reset detail accounts
+            setGlAccounts(prev => [
+              ...missingRoots,
+              ...missingLevel2,
+              ...prev.filter(a => (a.usage || '').toLowerCase() !== 'detail')
+            ]);
             setCurrentPath('home');
           }
           setPracticeActive(true);
@@ -621,6 +651,23 @@ export default function App() {
               return { ...item, parentId };
             });
             return [...newItems, ...prev];
+          });
+        }}
+        onLoadAllGlDetails={() => {
+          setGlAccounts(prev => {
+            const detailAccounts = INITIAL_GL_ACCOUNTS.filter(a => (a.usage || '').toLowerCase() === 'detail');
+            const existingCodes = new Set(prev.map(a => a.glCode));
+            const newDetails = detailAccounts.filter(a => !existingCodes.has(a.glCode)).map(d => {
+              const initialParent = INITIAL_GL_ACCOUNTS.find(p => p.id === d.parentId);
+              if (initialParent) {
+                const actualParent = prev.find(a => a.glCode === initialParent.glCode);
+                if (actualParent) {
+                  return { ...d, parentId: actualParent.id };
+                }
+              }
+              return d;
+            });
+            return [...newDetails, ...prev];
           });
         }}
       />

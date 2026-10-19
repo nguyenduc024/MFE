@@ -2166,6 +2166,18 @@ export const EDU_MODULES = [
     subPath: "coa-level-2"
   },
   {
+    id: "gl-part-4",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "4",
+    name: "Phần 4: Thiết Lập GL Chi Tiết (Chart of Accounts Details)",
+    shortLabel: "Phần 4: GL Chi Tiết",
+    title: "Thiết Lập Tài Khoản GL Chi Tiết (Chart of Accounts Detail Accounts)",
+    objective: "Khai báo các tài khoản GL Chi tiết (Detail Accounts) thuộc 5 nhóm tài khoản chính có liên kết Parent Header theo đúng các tài khoản GL Cấp 2 tương ứng, phục vụ hạch toán nghiệp vụ ngân hàng.",
+    targetMenu: "accounting",
+    subPath: "coa-details"
+  },
+  {
     id: "part-1",
     moduleNumber: "00",
     moduleTitle: "Foundation Setup: Thiết Lập Nền Tảng",

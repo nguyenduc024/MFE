@@ -287,6 +287,67 @@ export const FULL_GL_LEVEL_2_ACCOUNTS = [
   }
 ];
 
+/**
+ * 5 Representative GL Detail Accounts across 5 categories with Parent linked to Level 2 Headers
+ */
+export const SAMPLE_GL_DETAILS = [
+  {
+    step: 1,
+    type: 'ASSET',
+    name: 'Cash at Vault',
+    usage: 'DETAIL',
+    glCode: '110101',
+    parentGlCode: '110000',
+    parentName: 'CASH AND BANK BALANCES',
+    manualEntriesAllowed: true,
+    description: 'Records physical cash held in the main vault of the branch or head office.'
+  },
+  {
+    step: 2,
+    type: 'LIABILITY',
+    name: 'Savings Deposits',
+    usage: 'DETAIL',
+    glCode: '210101',
+    parentGlCode: '210000',
+    parentName: 'CUSTOMER DEPOSITS',
+    manualEntriesAllowed: false,
+    description: 'Records customer savings deposit liabilities managed by the savings module.'
+  },
+  {
+    step: 3,
+    type: 'EQUITY',
+    name: 'Contributed Capital',
+    usage: 'DETAIL',
+    glCode: '310101',
+    parentGlCode: '310000',
+    parentName: 'CAPITAL AND RESERVES',
+    manualEntriesAllowed: true,
+    description: 'Records contributed share capital from founding members and shareholders.'
+  },
+  {
+    step: 4,
+    type: 'INCOME',
+    name: 'Loan Interest Income',
+    usage: 'DETAIL',
+    glCode: '410101',
+    parentGlCode: '410000',
+    parentName: 'INTEREST INCOME',
+    manualEntriesAllowed: false,
+    description: 'Records interest income accrued and collected on customer loans.'
+  },
+  {
+    step: 5,
+    type: 'EXPENSE',
+    name: 'Savings Interest Expense',
+    usage: 'DETAIL',
+    glCode: '510101',
+    parentGlCode: '510000',
+    parentName: 'INTEREST EXPENSES',
+    manualEntriesAllowed: false,
+    description: 'Records interest expense paid and accrued on customer savings accounts.'
+  }
+];
+
 export default function ChartOfAccountsView({ 
   glAccounts = [], 
   onAddAccount, 
