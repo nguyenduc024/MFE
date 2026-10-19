@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, List, ChevronRight, ChevronDown, ChevronLeft, 
   ChevronsLeft, ChevronsRight, Check
@@ -110,6 +110,29 @@ export default function ChartOfAccountsView({
     manualEntriesAllowed: true,
     description: ''
   });
+
+  // Listen for practice autofill event for GL headers (GL Part 2)
+  useEffect(() => {
+    const handleAutofillGl = (e) => {
+      if (e.detail) {
+        setFormData({
+          type: e.detail.type || 'ASSET',
+          name: e.detail.name || '',
+          usage: e.detail.usage || 'HEADER',
+          glCode: e.detail.glCode || '',
+          parentId: e.detail.parentId || '',
+          tagId: e.detail.tagId || '',
+          manualEntriesAllowed: Boolean(e.detail.manualEntriesAllowed),
+          description: e.detail.description || ''
+        });
+      }
+    };
+
+    window.addEventListener('practice-autofill-gl', handleAutofillGl);
+    return () => {
+      window.removeEventListener('practice-autofill-gl', handleAutofillGl);
+    };
+  }, []);
 
   // Expanded nodes for Tree View (Hình 2)
   // By default: ACCOUNTS expanded, ASSET expanded, 100000 expanded, 130000 expanded, EQUITY expanded.
@@ -401,56 +424,7 @@ export default function ChartOfAccountsView({
           </div>
 
           {/* Form Card (Matching Image 3) */}
-          <div className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8 max-w-4xl mx-auto">
-            {/* Quick Fill Practice Helper for 5 Root Headers (Hình 1 - 5) */}
-            <div className="mb-6 p-3.5 bg-sky-50/80 border border-sky-200 rounded-[2px]">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[11px] font-bold text-[#1072ba] uppercase tracking-wide flex items-center gap-1.5">
-                  <span>⚡ Điền nhanh mẫu thực hành 5 Header cấp 1 (Hình 1 - 5):</span>
-                </span>
-                <span className="text-[10px] text-gray-500">
-                  Click để tự động điền 100% chuẩn theo hình chụp
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                {ROOT_GL_HEADERS_SAMPLES.map(sample => {
-                  const isAlreadyCreated = glAccounts.some(a => a.glCode === sample.glCode);
-                  const isCurrentSelected = formData.glCode === sample.glCode;
-                  return (
-                    <button
-                      key={sample.glCode}
-                      type="button"
-                      onClick={() => {
-                        setFormData({
-                          type: sample.type,
-                          name: sample.name,
-                          usage: sample.usage,
-                          glCode: sample.glCode,
-                          parentId: '',
-                          tagId: '',
-                          manualEntriesAllowed: sample.manualEntriesAllowed,
-                          description: sample.description
-                        });
-                      }}
-                      className={`text-left p-2 rounded-[2px] border text-[11px] transition-all cursor-pointer ${
-                        isCurrentSelected 
-                          ? 'bg-[#1072ba] text-white border-[#1072ba] shadow-xs' 
-                          : isAlreadyCreated
-                          ? 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100/70'
-                          : 'bg-white text-gray-800 border-gray-300 hover:border-[#1072ba] hover:bg-sky-50/50'
-                      }`}
-                    >
-                      <div className="font-bold flex items-center justify-between">
-                        <span>{sample.glCode}</span>
-                        {isAlreadyCreated && <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-100/80 px-1 py-0.2 rounded">✓ Đã có</span>}
-                      </div>
-                      <div className="truncate text-[10px] mt-0.5 font-medium">{sample.name}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
+          <div id="tour-gl-create-card" className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8 max-w-4xl mx-auto">
             <form onSubmit={handleFormSubmit} className="space-y-6 text-xs">
               {/* Row 1: Account Type * & Account Name * */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">

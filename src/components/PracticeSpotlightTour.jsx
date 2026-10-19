@@ -79,7 +79,7 @@ export default function PracticeSpotlightTour({
   // Track if GL Headers were submitted / created (GL Part 2)
   useEffect(() => {
     if (isActive && module === 'gl-part-2') {
-      if (glAccounts !== prevGlAccountsRef.current) {
+      if (glAccounts.length > prevGlAccountsRef.current.length) {
         const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
         const newlyAdded = glAccounts[0];
         prevGlAccountsRef.current = glAccounts;
@@ -96,6 +96,8 @@ export default function PracticeSpotlightTour({
             setGlPopup('header-created');
           }
         }
+      } else {
+        prevGlAccountsRef.current = glAccounts;
       }
     } else {
       prevGlAccountsRef.current = glAccounts;
@@ -173,6 +175,14 @@ export default function PracticeSpotlightTour({
   const addCurrencyBtn = typeof document !== 'undefined' ? document.getElementById('tour-btn-add-currency') : null;
   const isAddCurrencyBtnEnabled = Boolean(addCurrencyBtn && !addCurrencyBtn.disabled);
 
+  // Check form status for GL Account form (GL Part 2)
+  const rootGlCodes = ['100000', '200000', '300000', '400000', '500000'];
+  const glCompletedCodes = rootGlCodes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header'));
+  const glNextSample = ROOT_GL_HEADERS_SAMPLES.find(s => !glCompletedCodes.includes(s.glCode)) || ROOT_GL_HEADERS_SAMPLES[0];
+  const submitGlBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-gl-btn') : null;
+  const isGlFormOpen = Boolean(submitGlBtn);
+  const isGlFormFilled = Boolean(submitGlBtn && !submitGlBtn.disabled);
+
   // Determine active step & target element
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
@@ -180,51 +190,43 @@ export default function PracticeSpotlightTour({
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
   if (module === 'gl-part-2') {
-    const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
-    const completedCodes = rootCodes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header'));
-    const nextSample = ROOT_GL_HEADERS_SAMPLES.find(s => !completedCodes.includes(s.glCode)) || ROOT_GL_HEADERS_SAMPLES[0];
-
     if (glPopup) {
       targetSelector = null;
     } else if (currentPath === 'accounting-coa') {
-      const submitGlBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-gl-btn') : null;
-      const isGlFormOpen = Boolean(submitGlBtn);
-      const isGlFormFilled = Boolean(submitGlBtn && !submitGlBtn.disabled);
-
       if (isGlFormOpen) {
         if (isGlFormFilled) {
-          currentStep = 4;
+          currentStep = 5;
           targetSelector = '#tour-submit-gl-btn';
-          stepTitle = `Bước 4: Nhấn Submit để lưu Header (${nextSample.glCode})`;
-          stepInstruction = `Thông tin tài khoản Header ${nextSample.name} (${nextSample.glCode}) đã hợp lệ. Nhấn nút Submit để lưu vào cây tài khoản!`;
+          stepTitle = `Bước 5: Nhấn Submit để lưu Header (${glNextSample.glCode})`;
+          stepInstruction = `Thông tin tài khoản Header ${glNextSample.name} (${glNextSample.glCode}) đã hợp lệ. Nhấn nút Submit để lưu vào cây tài khoản!`;
         } else {
-          currentStep = 3;
-          targetSelector = '#tour-gl-name';
-          stepTitle = `Bước 3: Nhập tài khoản Header (${completedCodes.length + 1}/5)`;
-          stepInstruction = `Nhập thông tin cho Header ${completedCodes.length + 1}/5: ${nextSample.name} (${nextSample.glCode}). Bạn có thể click nút "Điền nhanh mẫu (${nextSample.glCode})" trên form để tự động điền!`;
+          currentStep = 4;
+          targetSelector = '#tour-gl-create-card';
+          stepTitle = `Bước 4: Nhập tài khoản Header (${glCompletedCodes.length + 1}/5)`;
+          stepInstruction = `Biểu mẫu Create GL Account đã mở. Xem thông tin Header ${glCompletedCodes.length + 1}/5: ${glNextSample.name} (${glNextSample.glCode}) và bấm "Nhập dữ liệu mẫu" bên dưới để điền tự động.`;
         }
       } else {
-        if (completedCodes.length >= 5) {
-          currentStep = 5;
+        if (glCompletedCodes.length >= 5) {
+          currentStep = 6;
           targetSelector = null;
           stepTitle = 'Đã hoàn thành 5 Header cấp 1 cao nhất!';
           stepInstruction = 'Tất cả 5 tài khoản GL Header gốc (Asset, Liability, Equity, Income, Expense) đã được thiết lập thành công.';
         } else {
           currentStep = 3;
           targetSelector = '#tour-btn-add-account';
-          stepTitle = `Bước 3: Nhấn + Add Account (${completedCodes.length + 1}/5)`;
-          stepInstruction = `Nhấn nút + Add Account ở góc phải trên để tạo tài khoản Header tiếp theo: ${nextSample.name} (${nextSample.glCode}).`;
+          stepTitle = `Bước 3: Nhấn + Add Account (${glCompletedCodes.length + 1}/5)`;
+          stepInstruction = `Nhấn nút + Add Account ở góc phải trên để tạo tài khoản Header tiếp theo: ${glNextSample.name} (${glNextSample.glCode}).`;
         }
       }
     } else if (currentPath === 'accounting') {
       currentStep = 2;
       targetSelector = '#tour-coa-tile';
-      stepTitle = 'Bước 2 / 4: Chọn Chart of Accounts';
+      stepTitle = 'Bước 2 / 5: Chọn Chart of Accounts';
       stepInstruction = 'Bấm vào mục Chart of Accounts để mở danh mục cây tài khoản kế toán của ngân hàng.';
     } else {
       currentStep = 1;
       targetSelector = '#tour-nav-accounting';
-      stepTitle = 'Bước 1 / 4: Vào phân hệ Accounting';
+      stepTitle = 'Bước 1 / 5: Vào phân hệ Accounting';
       stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng ở đầu trang.';
     }
   } else if (module === 'gl-part-1') {
@@ -522,7 +524,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Tiếp tục tạo Header tiếp theo →
+                Tiếp tục tạo Header tiếp theo
               </button>
             </div>
           </div>
@@ -545,24 +547,24 @@ export default function PracticeSpotlightTour({
             </p>
             <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
               <div className="flex items-center justify-between font-mono">
-                <span>✓ 100000 TOTAL ASSETS (ASSET - HEADER)</span>
-                <span className="text-[11px] text-emerald-600 font-semibold">Hình 1</span>
+                <span>[1] 100000 TOTAL ASSETS (ASSET - HEADER)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">Hình 1 - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>✓ 200000 TOTAL LIABILITIES (LIABILITY - HEADER)</span>
-                <span className="text-[11px] text-emerald-600 font-semibold">Hình 2</span>
+                <span>[2] 200000 TOTAL LIABILITIES (LIABILITY - HEADER)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">Hình 2 - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>✓ 300000 TOTAL EQUITY (EQUITY - HEADER)</span>
-                <span className="text-[11px] text-emerald-600 font-semibold">Hình 3</span>
+                <span>[3] 300000 TOTAL EQUITY (EQUITY - HEADER)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">Hình 3 - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>✓ 400000 TOTAL INCOME (INCOME - HEADER)</span>
-                <span className="text-[11px] text-emerald-600 font-semibold">Hình 4</span>
+                <span>[4] 400000 TOTAL INCOME (INCOME - HEADER)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">Hình 4 - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>✓ 500000 TOTAL EXPENSES (EXPENSE - HEADER)</span>
-                <span className="text-[11px] text-emerald-600 font-semibold">Hình 5</span>
+                <span>[5] 500000 TOTAL EXPENSES (EXPENSE - HEADER)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">Hình 5 - Đạt</span>
               </div>
             </div>
             <div className="pt-2 flex items-center justify-end space-x-3">
@@ -1032,7 +1034,17 @@ export default function PracticeSpotlightTour({
   };
 
   if (box) {
-    if (targetSelector === '#tour-search-currency-area' && box.right + 370 <= windowWidth) {
+    if (targetSelector === '#tour-gl-create-card') {
+      const tooltipWidth = 330;
+      const tooltipLeft = Math.max(16, box.left - tooltipWidth - 20);
+      const tooltipTop = Math.max(16, Math.min(box.top, windowHeight - 460));
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${tooltipTop}px`,
+        left: `${tooltipLeft}px`,
+        width: `${tooltipWidth}px`
+      };
+    } else if (targetSelector === '#tour-search-currency-area' && box.right + 370 <= windowWidth) {
       const tooltipTop = Math.max(16, box.top - 8);
       tooltipStyle = {
         position: 'fixed',
@@ -1209,6 +1221,37 @@ export default function PracticeSpotlightTour({
               className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
             >
               <span>Nhập dữ liệu mẫu (VND - Vietnamese Dong)</span>
+            </button>
+          </div>
+        )}
+
+        {/* Quick autofill suggestion popup card for GL Header creation (GL Part 2) */}
+        {module === 'gl-part-2' && isGlFormOpen && !isGlFormFilled && (
+          <div className="p-3 bg-slate-50 border border-slate-300 rounded-[2px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
+            <div className="text-gray-900 font-bold text-xs border-b border-gray-200 pb-1">
+              Nhập dữ liệu mẫu Header ({glCompletedCodes.length + 1}/5): {glNextSample.name}
+            </div>
+            <div className="text-[11px] text-gray-700 space-y-1 bg-white p-2.5 rounded border border-gray-200 font-mono">
+              <div>Account Type: <strong className="text-gray-900">{glNextSample.type}</strong></div>
+              <div>GL Code: <strong className="text-gray-900">{glNextSample.glCode}</strong></div>
+              <div>Account Name: <strong className="text-gray-900">{glNextSample.name}</strong></div>
+              <div>Account Usage: <strong className="text-gray-900">{glNextSample.usage}</strong></div>
+              <div>Manual Entries Allowed: <strong className="text-gray-900">Không chọn (Unchecked)</strong></div>
+              <div className="text-gray-500 font-sans text-[10px] pt-0.5">{glNextSample.description}</div>
+            </div>
+            <p className="text-[11px] text-gray-600 leading-relaxed">
+              Nhấn nút bên dưới để tự động điền toàn bộ thông tin chuẩn cho Header {glNextSample.name} ({glNextSample.glCode}):
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-gl', {
+                  detail: glNextSample
+                }));
+              }}
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
+            >
+              <span>Nhập dữ liệu mẫu ({glNextSample.name} - {glNextSample.glCode})</span>
             </button>
           </div>
         )}

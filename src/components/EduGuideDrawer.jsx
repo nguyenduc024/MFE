@@ -12,7 +12,8 @@ export default function EduGuideDrawer({
   offices = [],
   currencies = [],
   glAccounts = [],
-  onResetCurrencies
+  onResetCurrencies,
+  onResetGlHeaders
 }) {
   const [activePartId, setActivePartId] = useState('gl-part-2');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -429,7 +430,21 @@ export default function EduGuideDrawer({
             <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-[2px] space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-gray-800">Tiến độ thiết lập 5 Header cấp 1:</span>
-                <span className="font-mono font-bold text-[#1072ba]">{glPart2Progress}%</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-[#1072ba]">{glPart2Progress}%</span>
+                  {glAccounts.some(a => ['100000', '200000', '300000', '400000', '500000'].includes(a.glCode)) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onResetGlHeaders) onResetGlHeaders();
+                      }}
+                      className="text-[10px] text-red-600 hover:text-red-700 font-medium underline cursor-pointer"
+                      title="Xoá 5 Header để thực hành lại từ đầu"
+                    >
+                      Đặt lại
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-1.5 text-[11px]">
                 {[
@@ -715,6 +730,12 @@ export default function EduGuideDrawer({
                 <button
                   type="button"
                   onClick={() => {
+                    if (onResetGlHeaders) {
+                      onResetGlHeaders();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
                     if (onStartPractice) {
                       onStartPractice('gl-part-2');
                     }
@@ -728,6 +749,12 @@ export default function EduGuideDrawer({
               <button
                 type="button"
                 onClick={() => {
+                  if (onResetGlHeaders) {
+                    onResetGlHeaders();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
                   if (onStartPractice) {
                     onStartPractice('gl-part-2');
                   }

@@ -524,12 +524,21 @@ export default function App() {
         onResetCurrencies={() => {
           setCurrencies([]);
         }}
+        onResetGlHeaders={() => {
+          const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+          setGlAccounts(prev => prev.filter(a => !rootCodes.includes(a.glCode)));
+        }}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
           const targetModule = mod || 'gl-part-2';
           setPracticeModule(targetModule);
           if (targetModule === 'gl-part-1') {
             setCurrencies([]);
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-2') {
+            const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+            setGlAccounts(prev => prev.filter(a => !rootCodes.includes(a.glCode)));
             setCurrentPath('home');
           }
           setPracticeActive(true);
