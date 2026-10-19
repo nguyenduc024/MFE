@@ -180,6 +180,7 @@ export default function Navbar({
           {/* 2. Accounting Navigation Item (Direct link, no subtabs/dropdown) */}
           <div className="relative h-full flex items-center">
             <button
+              id="tour-nav-accounting"
               onClick={() => handleItemClick('accounting')}
               className={`mifos-header-item h-9 ${currentPath === 'accounting' ? 'active' : ''}`}
             >

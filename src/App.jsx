@@ -520,9 +520,18 @@ export default function App() {
         users={users}
         offices={offices}
         currencies={currencies}
+        glAccounts={glAccounts}
+        onResetCurrencies={() => {
+          setCurrencies([]);
+        }}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
-          setPracticeModule(mod || 'gl-part-1');
+          const targetModule = mod || 'gl-part-2';
+          setPracticeModule(targetModule);
+          if (targetModule === 'gl-part-1') {
+            setCurrencies([]);
+            setCurrentPath('home');
+          }
           setPracticeActive(true);
         }}
       />
@@ -537,6 +546,7 @@ export default function App() {
         users={users}
         offices={offices}
         currencies={currencies}
+        glAccounts={glAccounts}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);

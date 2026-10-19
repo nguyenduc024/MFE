@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, RotateCcw } from 'lucide-react';
 import { EDU_MODULES } from '../data/mifosData';
 
 export default function EduGuideDrawer({ 
@@ -10,9 +10,11 @@ export default function EduGuideDrawer({
   roles = [],
   users = [],
   offices = [],
-  currencies = []
+  currencies = [],
+  glAccounts = [],
+  onResetCurrencies
 }) {
-  const [activePartId, setActivePartId] = useState('gl-part-1');
+  const [activePartId, setActivePartId] = useState('gl-part-2');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -34,36 +36,39 @@ export default function EduGuideDrawer({
   // Tính toán tiến độ Phân hệ 01 - Phần 1: Thiết Lập Đơn Vị Tiền Tệ (4 mốc x 25% = 100%)
   const calculateGlPart1Progress = () => {
     let score = 0;
-    // 1. Mốc 1: Đã cấu hình ít nhất 1 đồng tiền
     if (currencies.length > 0) score += 25;
-    // 2. Mốc 2: Đã cấu hình đồng tiền mẫu VND (Vietnamese Dong)
     const hasVnd = currencies.some(c => c.code === 'VND');
     if (hasVnd) score += 25;
-    // 3. Mốc 3: Đã cấu hình từ 3 loại tiền tệ trở lên
     if (currencies.length >= 3) score += 25;
-    // 4. Mốc 4: Đã nạp đủ 5 loại tiền tệ chuẩn từ database (CNY, IDR, JPY, USD, VND)
     if (currencies.length >= 5) score += 25;
     return score;
+  };
+
+  // Tính toán tiến độ Phân hệ 01 - Phần 2: Thiết Lập 5 Header Cấp 1 (5 mốc x 20% = 100%)
+  const calculateGlPart2Progress = () => {
+    const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+    const matched = rootCodes.filter(code => 
+      glAccounts.some(a => a.glCode === code && (a.usage || '').toLowerCase() === 'header')
+    );
+    return matched.length * 20;
   };
 
   // Tính toán tiến độ Foundation 1: User & Access Management (4 mốc x 25% = 100%)
   const calculatePart1Progress = () => {
     let score = 0;
-    if (roles.length > 2) score += 25;      // 1. Đã tạo vai trò đầu tiên (TKB_TELLER_CASHIER)
-    if (roles.length >= 16) score += 25;    // 2. Đã nạp đủ 16 vai trò chuẩn từ database
-    if (users.length > 2) score += 25;      // 3. Đã tạo tài khoản nhân viên đầu tiên (tkb.teller01)
-    if (users.length >= 26) score += 25;    // 4. Đã nạp đủ 26 tài khoản nhân sự từ database
+    if (roles.length > 2) score += 25;
+    if (roles.length >= 16) score += 25;
+    if (users.length > 2) score += 25;
+    if (users.length >= 26) score += 25;
     return score;
   };
 
   // Tính toán tiến độ Foundation 2: Cơ Cấu Tổ Chức (4 mốc x 25% = 100%)
   const calculatePart2Progress = () => {
     let score = 0;
-    // 1. Bước 1: Đã tạo Hội sở chính (Head Office)
     const hasHO = offices.some(o => !o.parentId || o.parentId === 'none' || o.parentId === 'root');
     if (hasHO) score += 25;
 
-    // 2. Bước 2: Đã tạo Văn phòng khu vực (Bắc / Trung / Nam có parent là HO)
     const hasRO = offices.some(o => {
       if (!o.parentId || o.parentId === 'none' || o.parentId === 'root') return false;
       const parent = offices.find(p => String(p.id) === String(o.parentId));
@@ -73,13 +78,11 @@ export default function EduGuideDrawer({
     });
     if (hasRO) score += 25;
 
-    // 3. Bước 3: Đã tạo Chi nhánh (Branch có parent là Regional Office)
     const hasBranch = offices.some(o => {
       return o.name.toLowerCase().includes('branch') || o.name.toLowerCase().includes('chi nhánh');
     });
     if (hasBranch) score += 25;
 
-    // 4. Bước 4: Đã tạo Phòng giao dịch (TO có parent là Branch)
     const hasTO = offices.some(o => {
       return o.name.toLowerCase().includes('transaction office') ||
         o.name.toLowerCase().includes('phòng giao dịch') ||
@@ -92,14 +95,17 @@ export default function EduGuideDrawer({
 
   const currentModule = EDU_MODULES.find(m => m.id === activePartId) || EDU_MODULES[0];
   const glPart1Progress = calculateGlPart1Progress();
+  const glPart2Progress = calculateGlPart2Progress();
   const part1Progress = calculatePart1Progress();
   const part2Progress = calculatePart2Progress();
   
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
+    activePartId === 'gl-part-2' ? glPart2Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
+  const isGlPart2Complete = glPart2Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -147,7 +153,7 @@ export default function EduGuideDrawer({
 
               {EDU_MODULES.filter(m => m.moduleNumber === "01").map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = glPart1Progress;
+                const itemProgress = item.id === 'gl-part-1' ? glPart1Progress : glPart2Progress;
 
                 return (
                   <div
@@ -163,7 +169,7 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        Cấu hình đơn vị tiền tệ VND, USD, JPY...
+                        {item.id === 'gl-part-1' ? 'Cấu hình đơn vị tiền tệ VND, USD, JPY...' : 'Thiết lập 5 tài khoản GL Header cấp 1'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -289,7 +295,7 @@ export default function EduGuideDrawer({
                 </div>
 
                 {/* Bước 3 */}
-                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                   <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
                     <span>Tìm kiếm và chọn đơn vị tiền tệ mẫu</span>
@@ -297,6 +303,26 @@ export default function EduGuideDrawer({
                   <p className="text-gray-600 pl-6">
                     Tại ô nhập <code className="bg-white px-1 py-0.5 border rounded">Currency *</code>, gõ chữ <strong className="text-gray-900">VND</strong> hoặc <strong className="text-gray-900">v</strong>. Danh sách gợi ý sẽ hiển thị <code className="bg-white px-1 py-0.5 border rounded">(VND) Vietnamese Dong</code>. Bấm chọn đồng tiền này.
                   </p>
+                  <div className="ml-6 p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
+                    <div className="text-[11px] text-sky-900 leading-tight">
+                      <strong>Dữ liệu mẫu:</strong> <code>(VND) Vietnamese Dong</code>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('admin-manage-currencies');
+                        if (onStartPractice) onStartPractice('gl-part-1');
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-currency', {
+                            detail: { code: 'VND', name: 'Vietnamese Dong' }
+                          }));
+                        }, 100);
+                      }}
+                      className="px-2.5 py-1.5 bg-[#1072ba] hover:bg-[#0d5d99] text-white text-[11px] font-semibold rounded-[2px] transition-colors cursor-pointer flex items-center shadow-2xs shrink-0"
+                    >
+                      <span>Nhập mẫu VND</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Bước 4 */}
@@ -377,6 +403,177 @@ export default function EduGuideDrawer({
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 2: THIẾT LẬP 5 GL HEADER CẤP 1
+            ========================================================== */}
+        {activePartId === 'gl-part-2' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Tiêu đề & Mục tiêu */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân Hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                Phần 2: Thiết Lập 5 Tài Khoản GL Header Cấp 1
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                Khai báo 5 tài khoản Tổng hợp cấp 1 cao nhất (Root GL Headers: 100000 TOTAL ASSETS, 200000 TOTAL LIABILITIES, 300000 TOTAL EQUITY, 400000 TOTAL INCOME, 500000 TOTAL EXPENSES) theo đúng chuẩn Mifos X để làm nền tảng xương sống cho toàn bộ cây tài khoản kế toán ngân hàng Takashimaya Bank.
+              </p>
+            </div>
+
+            {/* Tiến độ chi tiết 5 Header */}
+            <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-[2px] space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gray-800">Tiến độ thiết lập 5 Header cấp 1:</span>
+                <span className="font-mono font-bold text-[#1072ba]">{glPart2Progress}%</span>
+              </div>
+              <div className="space-y-1.5 text-[11px]">
+                {[
+                  { code: '100000', name: 'TOTAL ASSETS', type: 'ASSET' },
+                  { code: '200000', name: 'TOTAL LIABILITIES', type: 'LIABILITY' },
+                  { code: '300000', name: 'TOTAL EQUITY', type: 'EQUITY' },
+                  { code: '400000', name: 'TOTAL INCOME', type: 'INCOME' },
+                  { code: '500000', name: 'TOTAL EXPENSES', type: 'EXPENSE' },
+                ].map((item, idx) => {
+                  const isDone = glAccounts.some(a => a.glCode === item.code && (a.usage || '').toLowerCase() === 'header');
+                  return (
+                    <div key={item.code} className="flex items-center justify-between py-1 px-2 rounded bg-white border border-gray-100">
+                      <div className="flex items-center space-x-2">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                        }`}>
+                          {isDone ? '✓' : idx + 1}
+                        </span>
+                        <span className="font-mono font-bold text-gray-900">{item.code}</span>
+                        <span className="text-gray-700">{item.name}</span>
+                        <span className="text-[10px] text-gray-400">({item.type})</span>
+                      </div>
+                      <span className={`text-[10px] font-semibold ${isDone ? 'text-emerald-600' : 'text-gray-400'}`}>
+                        {isDone ? 'Đã thiết lập' : 'Chưa tạo'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn (4 Thao tác)
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-gray-700">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span>Truy cập menu Accounting</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Nhấn vào tab <strong className="text-gray-900">Accounting</strong> trên thanh điều hướng chính ở đầu trang.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span>Chọn Chart of Accounts</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Trong bảng danh mục nghiệp vụ kế toán, nhấn vào mục <strong className="text-gray-900">Chart of Accounts</strong> (biểu tượng sơ đồ phân cấp).
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    <span>Nhấn nút + Add Account</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Ở góc trên bên phải màn hình Chart of Accounts, nhấn nút màu xanh <strong className="text-[#1072ba]">+ Add Account</strong> để mở biểu mẫu Create GL Account.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
+                  <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                    <span>Nhập 5 tài khoản mẫu theo 5 hình chụp thực tế</span>
+                  </div>
+                  <p className="text-gray-700 pl-6">
+                    Nhập đúng các thông số bắt buộc. Lưu ý: Với tài khoản <strong>HEADER</strong>, ô <code className="bg-white px-1 border rounded text-[10px]">Manual Entries Allowed</code> luôn để <strong>TRỐNG (Unchecked)</strong> vì tài khoản tổng hợp không cho phép hạch toán thủ công trực tiếp.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bảng đối chiếu 5 hình mẫu thực tế */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Bảng thông số chi tiết theo 5 hình mẫu thực tế
+              </h4>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-[11px]">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                    <tr>
+                      <th className="py-1.5 px-2">Hình</th>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2">GL Code</th>
+                      <th className="py-1.5 px-2">Tên tài khoản</th>
+                      <th className="py-1.5 px-2">Usage</th>
+                      <th className="py-1.5 px-2 text-center">Manual</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Hình 1</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">100000</td>
+                      <td className="py-1.5 px-2">TOTAL ASSETS</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Hình 2</td>
+                      <td className="py-1.5 px-2">LIABILITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">200000</td>
+                      <td className="py-1.5 px-2">TOTAL LIABILITIES</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Hình 3</td>
+                      <td className="py-1.5 px-2">EQUITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">300000</td>
+                      <td className="py-1.5 px-2">TOTAL EQUITY</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Hình 4</td>
+                      <td className="py-1.5 px-2">INCOME</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">400000</td>
+                      <td className="py-1.5 px-2">TOTAL INCOME</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Hình 5</td>
+                      <td className="py-1.5 px-2">EXPENSE</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">500000</td>
+                      <td className="py-1.5 px-2">TOTAL EXPENSES</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[10px] text-gray-500 italic mt-1">
+                * Mẹo: Trên form Create GL Account đã có sẵn thanh công cụ "Điền nhanh mẫu 5 Header", bạn có thể click để tự động điền chính xác 100% dữ liệu mẫu của từng hình.
+              </p>
             </div>
           </div>
         )}
@@ -464,16 +661,41 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
-                  onClick={() => alert('Phần tiếp theo của Phân hệ 01: Chart of Accounts (COA) đang được chuẩn bị.')}
+                  onClick={() => setActivePartId('gl-part-2')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
                   Đến bài học kế tiếp (Chart of Accounts) →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetCurrencies) {
+                      onResetCurrencies();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-1');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-[2px] shadow-2xs cursor-pointer transition-colors text-center flex items-center justify-center gap-1.5"
+                  title="Xóa danh sách tiền tệ đã cấu hình và bắt đầu thực hành lại từ đầu"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Làm lại (Reset tiến trình & data)</span>
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => {
+                  if (onResetCurrencies) {
+                    onResetCurrencies();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
                   if (onStartPractice) {
                     onStartPractice('gl-part-1');
                   }
@@ -481,6 +703,38 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu thực hành Phần 1 (Currency)
+              </button>
+            )
+          ) : activePartId === 'gl-part-2' ? (
+            isGlPart2Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                  <span>✓</span>
+                  <span>Đã thiết lập hoàn tất 5 GL Header cấp 1 (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-2');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại tạo 5 GL Header
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-2');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Phần 2 (5 GL Headers)
               </button>
             )
           ) : activePartId === 'part-1' ? (

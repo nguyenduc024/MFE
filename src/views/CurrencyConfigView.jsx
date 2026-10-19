@@ -16,13 +16,21 @@ export default function CurrencyConfigView({
 
   // Active currencies state
   const [configuredCurrencies, setConfiguredCurrencies] = useState(
-    propCurrencies && propCurrencies.length > 0 
-      ? propCurrencies 
-      : INITIAL_CONFIGURED_CURRENCIES
+    Array.isArray(propCurrencies) ? propCurrencies : INITIAL_CONFIGURED_CURRENCIES
   );
 
   // Working draft state for Edit mode
-  const [draftCurrencies, setDraftCurrencies] = useState(configuredCurrencies);
+  const [draftCurrencies, setDraftCurrencies] = useState(
+    Array.isArray(propCurrencies) ? propCurrencies : INITIAL_CONFIGURED_CURRENCIES
+  );
+
+  // Synchronize when propCurrencies updates (e.g. on reset to [])
+  useEffect(() => {
+    if (Array.isArray(propCurrencies)) {
+      setConfiguredCurrencies(propCurrencies);
+      setDraftCurrencies(propCurrencies);
+    }
+  }, [propCurrencies]);
 
   // Filter text for List view (Hình 1)
   const [filterText, setFilterText] = useState('');
@@ -43,6 +51,9 @@ export default function CurrencyConfigView({
     setSelectedCurrency(null);
     setIsDropdownOpen(false);
     setMode('edit');
+    if (navigate) {
+      navigate('admin-manage-currencies');
+    }
   };
 
   // Close autocomplete dropdown when clicking outside
@@ -66,6 +77,9 @@ export default function CurrencyConfigView({
       setSelectedCurrency(curr);
       setSearchTerm(`(${curr.code}) ${curr.name}`);
       setIsDropdownOpen(false);
+      if (searchInputRef.current) {
+        searchInputRef.current.blur();
+      }
     };
     window.addEventListener('practice-autofill-currency', handleAutofill);
     return () => window.removeEventListener('practice-autofill-currency', handleAutofill);
@@ -93,6 +107,9 @@ export default function CurrencyConfigView({
     setSelectedCurrency(curr);
     setSearchTerm(`(${curr.code}) ${curr.name}`);
     setIsDropdownOpen(false);
+    if (searchInputRef.current) {
+      searchInputRef.current.blur();
+    }
   };
 
   // Handle adding currency (+ button)
@@ -109,10 +126,13 @@ export default function CurrencyConfigView({
       if (!draftCurrencies.some(c => c.code === currToAdd.code)) {
         setDraftCurrencies(prev => [...prev, currToAdd]);
       }
-      setSelectedCurrency(null);
-      setSearchTerm('');
+      // Retain the entered data in input field as requested
+      setSelectedCurrency(currToAdd);
+      setSearchTerm(`(${currToAdd.code}) ${currToAdd.name}`);
       setIsDropdownOpen(false);
-      if (searchInputRef.current) searchInputRef.current.focus();
+      if (searchInputRef.current) {
+        searchInputRef.current.blur();
+      }
     }
   };
 
@@ -128,6 +148,9 @@ export default function CurrencyConfigView({
       onSaveCurrencies(draftCurrencies);
     }
     setMode('list');
+    if (navigate) {
+      navigate('admin-currency-config');
+    }
   };
 
   // Filtered currencies for List view table (Hình 1)
@@ -353,7 +376,7 @@ export default function CurrencyConfigView({
           {/* White Card matching Image 2 */}
           <div className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8 relative">
             {/* Top Search Input & + Add Button */}
-            <div className="flex items-start space-x-2 relative z-20">
+            <div id="tour-search-currency-area" className="flex items-start space-x-2 relative z-20">
               {/* Autocomplete Input Container */}
               <div className="relative w-80">
                 {/* Floating Label */}
@@ -402,7 +425,8 @@ export default function CurrencyConfigView({
                 {isDropdownOpen && (
                   <div
                     ref={dropdownRef}
-                    className="absolute left-0 top-full mt-1 w-[340px] bg-white rounded-[2px] shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 py-1 max-h-56 overflow-y-auto z-50 text-xs"
+                    id="tour-currency-dropdown"
+                    className="absolute left-0 top-full mt-1 w-[340px] bg-white rounded-[2px] shadow-[0_8px_24px_rgba(0,0,0,0.25)] border border-gray-200 py-1 max-h-56 overflow-y-auto z-50 text-xs pointer-events-auto"
                   >
                     {filteredIsoCurrencies.length === 0 ? (
                       <div className="px-3 py-2 text-gray-400 text-[11px]">
@@ -426,12 +450,14 @@ export default function CurrencyConfigView({
                     )}
                   </div>
                 )}
+
               </div>
 
               {/* + Icon Button (Turns blue #1072ba when currency is typed/selected) */}
               <div className="pt-[22px]">
                 {(() => {
-                  const hasSelection = !!selectedCurrency || (searchTerm.trim().length > 0 && filteredIsoCurrencies.length > 0);
+                  const isAlreadyDrafted = selectedCurrency && draftCurrencies.some(c => c.code === selectedCurrency.code);
+                  const hasSelection = (!isAlreadyDrafted && !!selectedCurrency) || (!isAlreadyDrafted && searchTerm.trim().length > 0 && filteredIsoCurrencies.length > 0);
                   return (
                     <button
                       id="tour-btn-add-currency"
@@ -454,10 +480,11 @@ export default function CurrencyConfigView({
 
             {/* Configured Currencies List (2-column layout matching Image 2) */}
             <div className="mt-8 border-t border-gray-100 pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-3">
+              <div id="tour-draft-currencies-list" className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-3">
                 {draftCurrencies.map((curr) => (
                   <div
                     key={curr.code}
+                    data-currency-code={curr.code}
                     className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50/70 rounded-[2px] transition-colors border-b border-gray-100/60"
                   >
                     <span className="text-xs text-[#212529] font-normal">

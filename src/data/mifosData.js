@@ -2142,6 +2142,18 @@ export const EDU_MODULES = [
     subPath: "currency"
   },
   {
+    id: "gl-part-2",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "2",
+    name: "Phần 2: Thiết Lập GL Header Cấp 1 (Chart of Accounts)",
+    shortLabel: "Phần 2: GL Header Cấp 1",
+    title: "Thiết Lập 5 Tài Khoản GL Header Cấp 1 (Root Chart of Accounts)",
+    objective: "Khai báo 5 tài khoản Tổng hợp cấp 1 cao nhất (Root GL Headers: 100000 TOTAL ASSETS, 200000 TOTAL LIABILITIES, 300000 TOTAL EQUITY, 400000 TOTAL INCOME, 500000 TOTAL EXPENSES) theo đúng chuẩn Mifos X để làm nền tảng xương sống cho toàn bộ cây tài khoản kế toán ngân hàng Takashimaya Bank.",
+    targetMenu: "accounting",
+    subPath: "coa"
+  },
+  {
     id: "part-1",
     moduleNumber: "00",
     moduleTitle: "Foundation Setup: Thiết Lập Nền Tảng",

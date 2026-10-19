@@ -166,6 +166,7 @@ export default function AccountingView({ navigate }) {
               return (
                 <div
                   key={item.id}
+                  id={isCOA ? "tour-coa-tile" : undefined}
                   onClick={() => {
                     if (isCOA && navigate) {
                       navigate('accounting-coa');

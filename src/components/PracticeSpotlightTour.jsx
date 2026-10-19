@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ROOT_GL_HEADERS_SAMPLES } from '../views/ChartOfAccountsView';
 
 /**
  * PracticeSpotlightTour - Guided interactive walkthrough for:
- * 1. Creating 1 role (spotlighting input box & suggest autofill)
- * 2. Pop-up prompt to confirm auto-importing remaining 13 bank roles
- * 3. Continuing the walkthrough to create a user account for staff
+ * 1. Foundation: Roles & Users
+ * 2. Foundation: 4-Tier Organization (HO, Region, Branch, TO)
+ * 3. GL Part 1: Currency Configuration (VND & 5 Database Currencies)
+ * 4. GL Part 2: 5 Root GL Headers (100000 TOTAL ASSETS -> 500000 TOTAL EXPENSES)
  */
 export default function PracticeSpotlightTour({
   isActive,
@@ -15,6 +17,7 @@ export default function PracticeSpotlightTour({
   users = [],
   offices = [],
   currencies = [],
+  glAccounts = [],
   navigate,
   onLoadAllRoles,
   onLoadAllUsers,
@@ -39,13 +42,21 @@ export default function PracticeSpotlightTour({
   const [currenciesImported, setCurrenciesImported] = useState(false);
   const startCurrencyCountRef = useRef(currencies.length);
 
+  // GL Part 2 state (5 Root GL Headers)
+  const [glPopup, setGlPopup] = useState(null); // null, 'header-created', 'completed'
+  const [lastHeaderCreated, setLastHeaderCreated] = useState(null);
+  const prevGlAccountsRef = useRef(glAccounts);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'gl-part-1') {
+      if (module === 'gl-part-2') {
+        setGlPopup(null);
+        prevGlAccountsRef.current = glAccounts;
+      } else if (module === 'gl-part-1') {
         startCurrencyCountRef.current = currencies.length;
         setCurrencyPopup(false);
         setCurrenciesImported(false);
@@ -65,12 +76,44 @@ export default function PracticeSpotlightTour({
     }
   }, [isActive, module]);
 
+  // Track if GL Headers were submitted / created (GL Part 2)
+  useEffect(() => {
+    if (isActive && module === 'gl-part-2') {
+      if (glAccounts !== prevGlAccountsRef.current) {
+        const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+        const newlyAdded = glAccounts[0];
+        prevGlAccountsRef.current = glAccounts;
+
+        if (newlyAdded && rootCodes.includes(newlyAdded.glCode) && !glPopup) {
+          setLastHeaderCreated(newlyAdded);
+          const completedCount = rootCodes.filter(c => 
+            glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header')
+          ).length;
+
+          if (completedCount >= 5) {
+            setGlPopup('completed');
+          } else {
+            setGlPopup('header-created');
+          }
+        }
+      }
+    } else {
+      prevGlAccountsRef.current = glAccounts;
+    }
+  }, [glAccounts, isActive, module, glPopup]);
+
   // Track if currencies were submitted / added (GL Part 1)
   useEffect(() => {
-    if (isActive && module === 'gl-part-1' && currencies.length > startCurrencyCountRef.current && !currencyPopup && !currenciesImported) {
-      startCurrencyCountRef.current = currencies.length;
-      if (currencies.some(c => c.code === 'VND') && currencies.length < 5) {
-        setCurrencyPopup(true);
+    if (isActive && module === 'gl-part-1') {
+      if (currencies.length === 0) {
+        startCurrencyCountRef.current = 0;
+        setCurrencyPopup(false);
+        setCurrenciesImported(false);
+      } else if (currencies.length > startCurrencyCountRef.current && !currencyPopup && !currenciesImported) {
+        startCurrencyCountRef.current = currencies.length;
+        if (currencies.some(c => c.code === 'VND') && currencies.length < 5) {
+          setCurrencyPopup(true);
+        }
       }
     }
   }, [currencies.length, isActive, module, currencyPopup, currenciesImported, currencies]);
@@ -124,35 +167,87 @@ export default function PracticeSpotlightTour({
   const submitOfficeBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-office-btn') : null;
   const isOfficeFormFilled = Boolean(submitOfficeBtn && !submitOfficeBtn.disabled);
 
+  // Check draft & add button status for Currency form (GL Part 1)
+  const draftCurrencyContainer = typeof document !== 'undefined' ? document.getElementById('tour-draft-currencies-list') : null;
+  const hasVndDraft = Boolean(draftCurrencyContainer && draftCurrencyContainer.querySelector('[data-currency-code="VND"]'));
+  const addCurrencyBtn = typeof document !== 'undefined' ? document.getElementById('tour-btn-add-currency') : null;
+  const isAddCurrencyBtnEnabled = Boolean(addCurrencyBtn && !addCurrencyBtn.disabled);
+
   // Determine active step & target element
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'gl-part-1') {
+  if (module === 'gl-part-2') {
+    const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+    const completedCodes = rootCodes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header'));
+    const nextSample = ROOT_GL_HEADERS_SAMPLES.find(s => !completedCodes.includes(s.glCode)) || ROOT_GL_HEADERS_SAMPLES[0];
+
+    if (glPopup) {
+      targetSelector = null;
+    } else if (currentPath === 'accounting-coa') {
+      const submitGlBtn = typeof document !== 'undefined' ? document.getElementById('tour-submit-gl-btn') : null;
+      const isGlFormOpen = Boolean(submitGlBtn);
+      const isGlFormFilled = Boolean(submitGlBtn && !submitGlBtn.disabled);
+
+      if (isGlFormOpen) {
+        if (isGlFormFilled) {
+          currentStep = 4;
+          targetSelector = '#tour-submit-gl-btn';
+          stepTitle = `Bước 4: Nhấn Submit để lưu Header (${nextSample.glCode})`;
+          stepInstruction = `Thông tin tài khoản Header ${nextSample.name} (${nextSample.glCode}) đã hợp lệ. Nhấn nút Submit để lưu vào cây tài khoản!`;
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-gl-name';
+          stepTitle = `Bước 3: Nhập tài khoản Header (${completedCodes.length + 1}/5)`;
+          stepInstruction = `Nhập thông tin cho Header ${completedCodes.length + 1}/5: ${nextSample.name} (${nextSample.glCode}). Bạn có thể click nút "Điền nhanh mẫu (${nextSample.glCode})" trên form để tự động điền!`;
+        }
+      } else {
+        if (completedCodes.length >= 5) {
+          currentStep = 5;
+          targetSelector = null;
+          stepTitle = 'Đã hoàn thành 5 Header cấp 1 cao nhất!';
+          stepInstruction = 'Tất cả 5 tài khoản GL Header gốc (Asset, Liability, Equity, Income, Expense) đã được thiết lập thành công.';
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-btn-add-account';
+          stepTitle = `Bước 3: Nhấn + Add Account (${completedCodes.length + 1}/5)`;
+          stepInstruction = `Nhấn nút + Add Account ở góc phải trên để tạo tài khoản Header tiếp theo: ${nextSample.name} (${nextSample.glCode}).`;
+        }
+      }
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      targetSelector = '#tour-coa-tile';
+      stepTitle = 'Bước 2 / 4: Chọn Chart of Accounts';
+      stepInstruction = 'Bấm vào mục Chart of Accounts để mở danh mục cây tài khoản kế toán của ngân hàng.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 4: Vào phân hệ Accounting';
+      stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng ở đầu trang.';
+    }
+  } else if (module === 'gl-part-1') {
+    const isEditViewActive = currentPath === 'admin-manage-currencies' || Boolean(typeof document !== 'undefined' && (document.getElementById('tour-search-currency-area') || document.getElementById('tour-input-currency')));
+
     if (currencyPopup) {
       targetSelector = null;
-    } else if (currentPath === 'admin-manage-currencies') {
-      const addBtn = typeof document !== 'undefined' ? document.getElementById('tour-btn-add-currency') : null;
-      const isAddBtnEnabled = Boolean(addBtn && !addBtn.disabled);
-      const hasVndDraft = Boolean(typeof document !== 'undefined' && document.body.innerText.includes('Vietnamese Dong'));
-
+    } else if (isEditViewActive) {
       if (hasVndDraft) {
         currentStep = 6;
         targetSelector = '#tour-submit-currencies-btn';
-        stepTitle = 'Bước 6: Nhấn Submit để lưu mẫu';
+        stepTitle = 'Bước 6: Nhấn Submit để lưu mẫu (VND)';
         stepInstruction = 'Đồng tiền VND đã nằm trong danh sách cấu hình. Nhấn nút Submit để hoàn tất lưu vào hệ thống.';
-      } else if (isAddBtnEnabled) {
+      } else if (isAddCurrencyBtnEnabled) {
         currentStep = 5;
         targetSelector = '#tour-btn-add-currency';
         stepTitle = 'Bước 5: Nhấn nút dấu cộng (+) màu xanh nước biển';
         stepInstruction = 'Dấu cộng bên phải đã hiện màu xanh nước biển! Nhấn vào nút dấu cộng để thêm đơn vị tiền tệ vào danh sách.';
       } else {
         currentStep = 4;
-        targetSelector = '#tour-input-currency';
-        stepTitle = 'Bước 4: Nhập đơn vị tiền tệ mẫu (VND)';
-        stepInstruction = 'Gõ "VND" vào ô tìm kiếm Currency * hoặc bấm nút "Điền nhanh mẫu (VND)" bên dưới, sau đó chọn Vietnamese Dong.';
+        targetSelector = '#tour-search-currency-area';
+        stepTitle = 'Bước 4: Nhập và chọn đơn vị tiền tệ mẫu (VND)';
+        stepInstruction = 'Vùng tìm kiếm đã được tô sáng! Gõ "VND" vào ô tìm kiếm hoặc bấm nút "Nhập dữ liệu mẫu" ở popup bên cạnh để điền tự động.';
       }
     } else if (currentPath === 'admin-currency-config') {
       if (currencies.length >= 5) {
@@ -312,14 +407,28 @@ export default function PracticeSpotlightTour({
     if (el) {
       const rect = el.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
-        setTargetRect({
-          left: Math.round(rect.left),
-          top: Math.round(rect.top),
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-          right: Math.round(rect.right),
-          bottom: Math.round(rect.bottom)
-        });
+        let left = Math.round(rect.left);
+        let top = Math.round(rect.top);
+        let width = Math.round(rect.width);
+        let height = Math.round(rect.height);
+        let right = Math.round(rect.right);
+        let bottom = Math.round(rect.bottom);
+
+        // If highlighting currency search area, expand bounding box if autocomplete dropdown is open
+        if (targetSelector === '#tour-search-currency-area') {
+          const dropdown = document.getElementById('tour-currency-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+
+        setTargetRect({ left, top, width, height, right, bottom });
         return;
       }
     }
@@ -380,6 +489,99 @@ export default function PracticeSpotlightTour({
     }
     setUsersImported(true);
   };
+
+  // Pop-up modals for GL Part 2: 5 Root GL Headers Flow
+  if (module === 'gl-part-2' && glPopup) {
+    const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
+    const completedList = rootCodes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header'));
+    const nextSample = ROOT_GL_HEADERS_SAMPLES.find(s => !completedList.includes(s.glCode));
+
+    if (glPopup === 'header-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Tiến độ: {completedList.length}/5 Header cấp 1
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Tạo thành công Header: {lastHeaderCreated?.name || 'Tài khoản'} ({lastHeaderCreated?.glCode})!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Tài khoản tổng hợp <strong className="text-gray-900">{lastHeaderCreated?.name}</strong> đã được lưu thành công vào hệ thống.
+            </p>
+            {nextSample && (
+              <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900">
+                <strong>Thao tác tiếp theo ({completedList.length + 1}/5):</strong> Nhấn nút <strong>+ Add Account</strong> để tạo tiếp tài khoản <strong>{nextSample.name} ({nextSample.glCode})</strong> theo hình kế tiếp.
+              </div>
+            )}
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setGlPopup(null);
+                  if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục tạo Header tiếp theo →
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (glPopup === 'completed') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Hoàn thành xuất sắc Phân hệ 01 - Phần 2
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Đã thiết lập đầy đủ 5 GL Header cấp 1 cao nhất!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Bạn đã hoàn tất việc khai báo 5 tài khoản tổng hợp gốc làm khung xương sống cho toàn bộ cây tài khoản kế toán của ngân hàng Takashimaya Bank:
+            </p>
+            <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
+              <div className="flex items-center justify-between font-mono">
+                <span>✓ 100000 TOTAL ASSETS (ASSET - HEADER)</span>
+                <span className="text-[11px] text-emerald-600 font-semibold">Hình 1</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>✓ 200000 TOTAL LIABILITIES (LIABILITY - HEADER)</span>
+                <span className="text-[11px] text-emerald-600 font-semibold">Hình 2</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>✓ 300000 TOTAL EQUITY (EQUITY - HEADER)</span>
+                <span className="text-[11px] text-emerald-600 font-semibold">Hình 3</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>✓ 400000 TOTAL INCOME (INCOME - HEADER)</span>
+                <span className="text-[11px] text-emerald-600 font-semibold">Hình 4</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>✓ 500000 TOTAL EXPENSES (EXPENSE - HEADER)</span>
+                <span className="text-[11px] text-emerald-600 font-semibold">Hình 5</span>
+              </div>
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setGlPopup(null);
+                  onClose();
+                  if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Xem danh sách Chart of Accounts (100%)
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
 
   // Pop-up modals for Part 2: 4-Tier Organization Flow
   if (module === 'part-2' && officePopup) {
@@ -658,14 +860,7 @@ export default function PracticeSpotlightTour({
                 Trong <strong>Phân hệ 01: Accounting / GL</strong>, ngân hàng cần thiết lập đủ <strong>5 đơn vị tiền tệ chuẩn</strong> (VND, USD, JPY, CNY, IDR) để phục vụ hạch toán kế toán đa tiền tệ và các sản phẩm tín dụng, tiền gửi.
               </div>
 
-              <div className="pt-2 flex items-center justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setCurrencyPopup(false)}
-                  className="py-1.5 px-3 border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs rounded-[2px] cursor-pointer transition-colors"
-                >
-                  Tôi muốn tự thêm thủ công
-                </button>
+              <div className="pt-2 flex items-center justify-end">
                 <button
                   type="button"
                   onClick={() => {
@@ -837,31 +1032,41 @@ export default function PracticeSpotlightTour({
   };
 
   if (box) {
-    const spaceBelow = windowHeight - box.bottom;
-    const spaceAbove = box.top;
-    let tooltipTop = box.bottom + 12;
-
-    if (box.height > 200) {
-      if (spaceBelow >= 160) {
-        tooltipTop = box.bottom + 12;
-      } else if (spaceAbove >= 160) {
-        tooltipTop = Math.max(16, box.top - 165);
-      } else {
-        tooltipTop = 16;
-      }
+    if (targetSelector === '#tour-search-currency-area' && box.right + 370 <= windowWidth) {
+      const tooltipTop = Math.max(16, box.top - 8);
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${tooltipTop}px`,
+        left: `${box.right + 24}px`,
+        width: '350px'
+      };
     } else {
-      const placeAbove = spaceBelow < 190 && spaceAbove > 190;
-      tooltipTop = placeAbove ? Math.max(10, box.top - 180) : Math.min(windowHeight - 200, box.bottom + 12);
+      const spaceBelow = windowHeight - box.bottom;
+      const spaceAbove = box.top;
+      let tooltipTop = box.bottom + 12;
+
+      if (box.height > 200) {
+        if (spaceBelow >= 160) {
+          tooltipTop = box.bottom + 12;
+        } else if (spaceAbove >= 160) {
+          tooltipTop = Math.max(16, box.top - 165);
+        } else {
+          tooltipTop = 16;
+        }
+      } else {
+        const placeAbove = spaceBelow < 190 && spaceAbove > 190;
+        tooltipTop = placeAbove ? Math.max(10, box.top - 180) : Math.min(windowHeight - 200, box.bottom + 12);
+      }
+
+      const tooltipLeft = Math.min(Math.max(16, box.left), windowWidth - 360);
+
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${tooltipTop}px`,
+        left: `${tooltipLeft}px`,
+        width: '340px'
+      };
     }
-
-    const tooltipLeft = Math.min(Math.max(16, box.left), windowWidth - 360);
-
-    tooltipStyle = {
-      position: 'fixed',
-      top: `${tooltipTop}px`,
-      left: `${tooltipLeft}px`,
-      width: '340px'
-    };
   }
 
   return (
@@ -985,9 +1190,15 @@ export default function PracticeSpotlightTour({
           </p>
         </div>
 
-        {/* Quick autofill suggestion button for Currency creation (GL Part 1) */}
-        {module === 'gl-part-1' && currentStep === 4 && (
-          <div className="pt-1 flex items-center justify-between">
+        {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
+        {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
+          <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
+            <div className="flex items-center justify-between text-[#1072ba] font-bold text-xs">
+              <span>Nhập Dữ Liệu Mẫu (VND)</span>
+            </div>
+            <p className="text-[11px] text-gray-700 leading-relaxed">
+              Bạn có thể tự tìm kiếm ở vùng sáng bên cạnh, hoặc bấm nút dưới đây để hệ thống tự động điền đơn vị tiền tệ <strong className="text-[#1072ba]">VND (Vietnamese Dong)</strong> và bật sáng nút dấu cộng <strong className="text-gray-900">(+)</strong>:
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -995,9 +1206,9 @@ export default function PracticeSpotlightTour({
                   detail: { code: 'VND', name: 'Vietnamese Dong' }
                 }));
               }}
-              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
             >
-              Điền nhanh mẫu (VND - Vietnamese Dong)
+              <span>Nhập dữ liệu mẫu (VND - Vietnamese Dong)</span>
             </button>
           </div>
         )}
