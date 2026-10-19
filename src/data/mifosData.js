@@ -284,7 +284,7 @@ export const FULL_BACKUP_OFFICES = [
 
 export const DEFAULT_SYSTEM_OFFICES = [];
 
-export const INITIAL_OFFICES = [...DEFAULT_SYSTEM_OFFICES];
+export const INITIAL_OFFICES = [...FULL_BACKUP_OFFICES];
 
 export const REGIONAL_OFFICES_SAMPLE = [
   {

@@ -259,13 +259,13 @@ export default function EduGuideDrawer({
                 <span className="text-gray-500 font-normal lowercase">Parent Office Flow</span>
               </div>
               <div className="font-mono text-[11px] bg-white p-3 rounded border border-sky-100 text-gray-700 leading-relaxed overflow-x-auto">
-                <div className="font-bold text-sky-900">🏛️ Cấp 1: Hội sở chính (Head Office - HO)</div>
+                <div className="font-bold text-sky-900">Cấp 1: Hội sở chính (Head Office - HO)</div>
                 <div className="text-gray-400 pl-4">└── Parent = (None / Root)</div>
-                <div className="font-bold text-sky-800 pl-4 mt-1">🏢 Cấp 2: Văn phòng khu vực (Bắc / Trung / Nam)</div>
+                <div className="font-bold text-sky-800 pl-4 mt-1">Cấp 2: Văn phòng khu vực (Bắc / Trung / Nam)</div>
                 <div className="text-gray-400 pl-8">└── Parent = Hội sở chính (HO)</div>
-                <div className="font-bold text-sky-700 pl-8 mt-1">🏦 Cấp 3: Chi nhánh (Branch: Hà Nội, TP.HCM, Đà Nẵng...)</div>
+                <div className="font-bold text-sky-700 pl-8 mt-1">Cấp 3: Chi nhánh (Branch: Hà Nội, TP.HCM, Đà Nẵng...)</div>
                 <div className="text-gray-400 pl-12">└── Parent = Văn phòng khu vực (RO)</div>
-                <div className="font-bold text-sky-600 pl-12 mt-1">🏪 Cấp 4: Phòng giao dịch (Transaction Office - TO)</div>
+                <div className="font-bold text-sky-600 pl-12 mt-1">Cấp 4: Phòng giao dịch (Transaction Office - TO)</div>
                 <div className="text-gray-400 pl-16">└── Parent = Chi nhánh (Branch)</div>
               </div>
             </div>
