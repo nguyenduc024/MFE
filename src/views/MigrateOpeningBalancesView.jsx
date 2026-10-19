@@ -155,11 +155,38 @@ export default function MigrateOpeningBalancesView({
     };
     window.addEventListener('practice-autofill-single-balance', handleSingleAutofill);
 
+    const handleSelectHO = () => {
+      const ho = (offices && offices.length > 0)
+        ? offices.find(o => o.id === '1' || o.name.includes('HO') || o.name.includes('Takashimaya')) || offices[0]
+        : { id: '1', name: 'Takashimaya Bank (TKB) - HO' };
+      setSelectedOffice(ho);
+      setOfficeDropdownOpen(false);
+    };
+    window.addEventListener('practice-select-office-ho', handleSelectHO);
+
+    const handleTriggerRetrieve = () => {
+      const ho = (offices && offices.length > 0)
+        ? offices.find(o => o.id === '1' || o.name.includes('HO') || o.name.includes('Takashimaya')) || offices[0]
+        : { id: '1', name: 'Takashimaya Bank (TKB) - HO' };
+      setSelectedOffice(ho);
+      setOfficeDropdownOpen(false);
+      setIsRetrieved(true);
+      if (!selectedCurrency) {
+        setSelectedCurrency({ code: 'VND', name: 'Vietnamese Dong', symbol: '₫' });
+      }
+      if (!openingDate) {
+        setOpeningDate('10/12/2026');
+      }
+    };
+    window.addEventListener('practice-trigger-retrieve', handleTriggerRetrieve);
+
     return () => {
       window.removeEventListener('practice-autofill-opening-balances', handleAutofill);
       window.removeEventListener('practice-autofill-single-balance', handleSingleAutofill);
+      window.removeEventListener('practice-select-office-ho', handleSelectHO);
+      window.removeEventListener('practice-trigger-retrieve', handleTriggerRetrieve);
     };
-  }, [offices]);
+  }, [offices, selectedCurrency, openingDate]);
 
   // Compute Opening Balances Contra Account from financial activities
   const contraAccountText = useMemo(() => {
@@ -213,6 +240,12 @@ export default function MigrateOpeningBalancesView({
     setOfficeTouched(true);
     if (!selectedOffice) return;
     setIsRetrieved(true);
+    if (!selectedCurrency) {
+      setSelectedCurrency({ code: 'VND', name: 'Vietnamese Dong', symbol: '₫' });
+    }
+    if (!openingDate) {
+      setOpeningDate('10/12/2026');
+    }
   };
 
   const handleDebitChange = (glCode, val) => {
@@ -290,10 +323,14 @@ export default function MigrateOpeningBalancesView({
 
             {/* Dropdown Menu matching Image 2 */}
             {officeDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-[2px] shadow-lg max-h-56 overflow-y-auto z-50 text-xs py-1 animate-in fade-in duration-100">
+              <div 
+                id="tour-office-dropdown"
+                className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-[2px] shadow-lg max-h-56 overflow-y-auto z-50 text-xs py-1 animate-in fade-in duration-100"
+              >
                 {officeList.map((office) => (
                   <div
                     key={office.id}
+                    id={office.id === '1' || office.name.includes('HO') || office.name.includes('Takashimaya') ? 'tour-office-item-ho' : undefined}
                     onClick={() => {
                       setSelectedOffice(office);
                       setOfficeDropdownOpen(false);

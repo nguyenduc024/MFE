@@ -79,6 +79,7 @@ export default function PracticeSpotlightTour({
 
   // GL Part 6 state (Opening Balance Migration & Journal Entries)
   const [glPart6Popup, setGlPart6Popup] = useState(null);
+  const [openingBalanceSubStep, setOpeningBalanceSubStep] = useState('vault'); // 'vault' | 'bank' | 'capital' | 'submit'
 
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
@@ -88,6 +89,7 @@ export default function PracticeSpotlightTour({
     if (isActive) {
       if (module === 'gl-part-6') {
         setGlPart6Popup(null);
+        setOpeningBalanceSubStep('vault');
       } else if (module === 'gl-part-5') {
         setFinActivityPopup(null);
         setFinActivityImported(false);
@@ -382,25 +384,21 @@ export default function PracticeSpotlightTour({
           const bankVal = bankInput?.value ? Number(bankInput.value) : 0;
           const capitalVal = capitalInput?.value ? Number(capitalInput.value) : 0;
 
-          const isVaultDone = vaultVal >= 200000000;
-          const isBankDone = bankVal >= 800000000;
-          const isCapitalDone = capitalVal >= 1000000000;
-
-          if (!isVaultDone) {
+          if (openingBalanceSubStep === 'vault') {
             currentStep = 9;
             targetSelector = '#tour-cell-debit-110101';
-            stepTitle = 'Bước 9.1: Nhập Nợ (Debit) Cash at Vault (TK 110101)';
-            stepInstruction = 'Tại dòng Cash at Vault (TK 110101), nhập số tiền Debit: 200000000 (200.000.000 VND). Vùng sáng đang chỉ định trực tiếp vào ô Debit.';
-          } else if (!isBankDone) {
+            stepTitle = 'Bước 9.1: Nhập Nợ cho Cash at Vault (TK 110101)';
+            stepInstruction = 'Tại dòng Cash at Vault (TK 110101), nhập số tiền Debit: 200.000.000 VND. Nhấn nút "Tiếp tục" bên dưới để chuyển sang ô Settlement Bank.';
+          } else if (openingBalanceSubStep === 'bank') {
             currentStep = 9;
             targetSelector = '#tour-cell-debit-110201';
-            stepTitle = 'Bước 9.2: Nhập Nợ (Debit) Settlement Bank Account (TK 110201)';
-            stepInstruction = 'Tại dòng Settlement Bank Account (TK 110201), nhập số tiền Debit: 800000000 (800.000.000 VND). Vùng sáng đang chỉ định trực tiếp vào ô Debit.';
-          } else if (!isCapitalDone) {
+            stepTitle = 'Bước 9.2: Nhập Nợ cho Settlement Bank Account (TK 110201)';
+            stepInstruction = 'Tại dòng Settlement Bank Account (TK 110201), nhập số tiền Debit: 800.000.000 VND. Nhấn nút "Tiếp tục" bên dưới để chuyển sang ô Contributed Capital.';
+          } else if (openingBalanceSubStep === 'capital') {
             currentStep = 9;
             targetSelector = '#tour-cell-credit-310101';
-            stepTitle = 'Bước 9.3: Nhập Có (Credit) Contributed Capital (TK 310101)';
-            stepInstruction = 'Tại dòng Contributed Capital (TK 310101), nhập số tiền Credit: 1000000000 (1 tỷ VND để cân bằng Tổng Nợ = Tổng Có). Vùng sáng đang chỉ định trực tiếp vào ô Credit.';
+            stepTitle = 'Bước 9.3: Nhập Có cho Contributed Capital (TK 310101)';
+            stepInstruction = 'Tại dòng Contributed Capital (TK 310101), nhập số tiền Credit: 1.000.000.000 VND (1 tỷ) để cân đối Tổng Nợ = Tổng Có. Nhấn nút "Tiếp tục" bên dưới để chuyển tới nút Submit.';
           } else {
             currentStep = 10;
             targetSelector = '#tour-submit-opening-balances-btn';
@@ -408,8 +406,8 @@ export default function PracticeSpotlightTour({
             stepInstruction = 'Số liệu đầu kỳ đã cân đối hoàn hảo (Tổng Nợ 1 tỷ = Tổng Có 1 tỷ VND). Bấm nút Submit màu xanh để ghi nhận giao dịch vào sổ cái!';
           }
         } else {
-          const officeSelectText = typeof document !== 'undefined' ? document.getElementById('tour-office-select-field')?.textContent : '';
-          const hasSelectedOffice = officeSelectText && officeSelectText.includes('Takashimaya');
+          const officeSelectText = typeof document !== 'undefined' ? (document.getElementById('tour-office-select-field')?.textContent || '').trim() : '';
+          const hasSelectedOffice = Boolean(officeSelectText && (officeSelectText.includes('Takashimaya') || officeSelectText.includes('HO') || officeSelectText.includes('TKB')));
           if (hasSelectedOffice) {
             currentStep = 8;
             targetSelector = '#tour-btn-retrieve';
@@ -817,6 +815,20 @@ export default function PracticeSpotlightTour({
         // If highlighting currency search area, expand bounding box if autocomplete dropdown is open
         if (targetSelector === '#tour-search-currency-area') {
           const dropdown = document.getElementById('tour-currency-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+
+        // If highlighting office select field, expand bounding box if office dropdown is open
+        if (targetSelector === '#tour-office-select-field') {
+          const dropdown = document.getElementById('tour-office-dropdown');
           if (dropdown && dropdown.offsetParent !== null) {
             const dropRect = dropdown.getBoundingClientRect();
             left = Math.min(left, Math.round(dropRect.left));
@@ -2403,60 +2415,110 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
-        {/* Quick helper for GL Part 6: Autofill Opening Balances */}
-        {module === 'gl-part-6' && currentPath === 'accounting-opening-balances' && (
-          <div className="pt-1 space-y-1.5">
-            {targetSelector === '#tour-cell-debit-110101' && (
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
-                    detail: { glCode: '110101', debit: '200000000' }
-                  }));
-                }}
-                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
-              >
-                Điền 200.000.000 VND (Nợ TK 110101)
-              </button>
-            )}
-
-            {targetSelector === '#tour-cell-debit-110201' && (
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
-                    detail: { glCode: '110201', debit: '800000000' }
-                  }));
-                }}
-                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
-              >
-                Điền 800.000.000 VND (Nợ TK 110201)
-              </button>
-            )}
-
-            {targetSelector === '#tour-cell-credit-310101' && (
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
-                    detail: { glCode: '310101', credit: '1000000000' }
-                  }));
-                }}
-                className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors text-center"
-              >
-                Điền 1.000.000.000 VND (Có TK 310101)
-              </button>
-            )}
-
+        {/* Helper for GL Part 6: Step 7 - Select Office */}
+        {module === 'gl-part-6' && currentPath === 'accounting-opening-balances' && targetSelector === '#tour-office-select-field' && (
+          <div className="pt-1">
             <button
               type="button"
               onClick={() => {
-                window.dispatchEvent(new CustomEvent('practice-autofill-opening-balances'));
+                window.dispatchEvent(new CustomEvent('practice-select-office-ho'));
               }}
-              className="w-full py-1 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded-[2px] text-[10px] font-normal cursor-pointer transition-colors text-center"
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
             >
-              Điền nhanh toàn bộ số liệu (1 tỷ VND)
+              <span>Chọn Hội sở (TKB - HO) & Tiếp tục ➔</span>
             </button>
+          </div>
+        )}
+
+        {/* Helper for GL Part 6: Step 8 - Retrieve */}
+        {module === 'gl-part-6' && currentPath === 'accounting-opening-balances' && targetSelector === '#tour-btn-retrieve' && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-trigger-retrieve'));
+              }}
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+            >
+              <span>Tải danh mục (Retrieve) & Tiếp tục ➔</span>
+            </button>
+          </div>
+        )}
+
+        {/* Sequential 'Tiếp tục' helper for GL Part 6: Step 9 & 10 (Opening Balances inputs & Submit) */}
+        {module === 'gl-part-6' && currentPath === 'accounting-opening-balances' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-migration-form-card')) && (
+          <div className="pt-1">
+            {openingBalanceSubStep === 'vault' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const vaultInput = document.getElementById('tour-input-debit-110101');
+                  const val = vaultInput?.value ? Number(vaultInput.value) : 0;
+                  if (val < 200000000) {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                      detail: { glCode: '110101', debit: '200000000' }
+                    }));
+                  }
+                  setOpeningBalanceSubStep('bank');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền 200.000.000đ & Tiếp tục (Settlement Bank) ➔</span>
+              </button>
+            )}
+
+            {openingBalanceSubStep === 'bank' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const bankInput = document.getElementById('tour-input-debit-110201');
+                  const val = bankInput?.value ? Number(bankInput.value) : 0;
+                  if (val < 800000000) {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                      detail: { glCode: '110201', debit: '800000000' }
+                    }));
+                  }
+                  setOpeningBalanceSubStep('capital');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền 800.000.000đ & Tiếp tục (Contributed Capital) ➔</span>
+              </button>
+            )}
+
+            {openingBalanceSubStep === 'capital' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const capitalInput = document.getElementById('tour-input-credit-310101');
+                  const val = capitalInput?.value ? Number(capitalInput.value) : 0;
+                  if (val < 1000000000) {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-single-balance', {
+                      detail: { glCode: '310101', credit: '1000000000' }
+                    }));
+                  }
+                  setOpeningBalanceSubStep('submit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền 1.000.000.000đ & Tiếp tục đến Submit ➔</span>
+              </button>
+            )}
+
+            {openingBalanceSubStep === 'submit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const submitBtn = document.getElementById('tour-submit-opening-balances-btn');
+                  if (submitBtn) {
+                    submitBtn.click();
+                  }
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Bấm Submit ghi sổ cái & Tiếp tục ➔</span>
+              </button>
+            )}
           </div>
         )}
 
