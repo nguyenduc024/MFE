@@ -107,7 +107,7 @@ export default function Navbar({
                   Centers
                 </div>
                 <div 
-                  onClick={() => handleItemClick('accounting-coa')}
+                  onClick={() => handleItemClick('accounting')}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#333333]"
                 >
                   Accounting
@@ -177,41 +177,15 @@ export default function Navbar({
             )}
           </div>
 
-          {/* 2. Accounting Dropdown */}
+          {/* 2. Accounting Navigation Item (Direct link, no subtabs/dropdown) */}
           <div className="relative h-full flex items-center">
             <button
-              onClick={() => toggleDropdown('accounting')}
-              className={`mifos-header-item h-9 ${openDropdown === 'accounting' ? 'active' : ''}`}
+              onClick={() => handleItemClick('accounting')}
+              className={`mifos-header-item h-9 ${currentPath === 'accounting' ? 'active' : ''}`}
             >
               <BookOpen className="w-4 h-4" />
               <span>Accounting</span>
             </button>
-
-            {openDropdown === 'accounting' && (
-              <div className="absolute left-0 top-11 w-56 bg-white text-gray-800 rounded shadow-md py-1.5 z-50 text-[13px] font-normal">
-                <div onClick={() => handleItemClick('accounting-journal')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Frequent Postings
-                </div>
-                <div onClick={() => handleItemClick('accounting-coa')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Chart of Accounts
-                </div>
-                <div onClick={() => handleItemClick('accounting-activities')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Financial Activity Mappings
-                </div>
-                <div onClick={() => handleItemClick('accounting-rules')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Accruals
-                </div>
-                <div onClick={() => handleItemClick('accounting-closure')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Closing Entries
-                </div>
-                <div onClick={() => handleItemClick('accounting-rules')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Accounting Rules
-                </div>
-                <div onClick={() => handleItemClick('accounting-journal')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Search Journal Entries
-                </div>
-              </div>
-            )}
           </div>
 
           {/* 3. Reports Dropdown (Exact match to Image 2) */}

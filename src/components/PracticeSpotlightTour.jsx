@@ -14,11 +14,13 @@ export default function PracticeSpotlightTour({
   roles = [],
   users = [],
   offices = [],
+  currencies = [],
   navigate,
   onLoadAllRoles,
   onLoadAllUsers,
   onLoadAllOffices,
-  onLoadRegionalOffices
+  onLoadRegionalOffices,
+  onLoadAllCurrencies
 }) {
   const [targetRect, setTargetRect] = useState(null);
   const [roleCreated, setRoleCreated] = useState(false);
@@ -32,13 +34,22 @@ export default function PracticeSpotlightTour({
   const [officesImported, setOfficesImported] = useState(false);
   const startOfficeCountRef = useRef(offices.length);
 
+  // GL Part 1 state (Currency)
+  const [currencyPopup, setCurrencyPopup] = useState(false);
+  const [currenciesImported, setCurrenciesImported] = useState(false);
+  const startCurrencyCountRef = useRef(currencies.length);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'part-2') {
+      if (module === 'gl-part-1') {
+        startCurrencyCountRef.current = currencies.length;
+        setCurrencyPopup(false);
+        setCurrenciesImported(false);
+      } else if (module === 'part-2') {
         startOfficeCountRef.current = offices.length;
         setOfficePopup(null);
         setOfficesImported(false);
@@ -53,6 +64,16 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [isActive, module]);
+
+  // Track if currencies were submitted / added (GL Part 1)
+  useEffect(() => {
+    if (isActive && module === 'gl-part-1' && currencies.length > startCurrencyCountRef.current && !currencyPopup && !currenciesImported) {
+      startCurrencyCountRef.current = currencies.length;
+      if (currencies.some(c => c.code === 'VND') && currencies.length < 5) {
+        setCurrencyPopup(true);
+      }
+    }
+  }, [currencies.length, isActive, module, currencyPopup, currenciesImported, currencies]);
 
   // Track if a role was created during this active session
   useEffect(() => {
@@ -109,7 +130,62 @@ export default function PracticeSpotlightTour({
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'part-2') {
+  if (module === 'gl-part-1') {
+    if (currencyPopup) {
+      targetSelector = null;
+    } else if (currentPath === 'admin-manage-currencies') {
+      const addBtn = typeof document !== 'undefined' ? document.getElementById('tour-btn-add-currency') : null;
+      const isAddBtnEnabled = Boolean(addBtn && !addBtn.disabled);
+      const hasVndDraft = Boolean(typeof document !== 'undefined' && document.body.innerText.includes('Vietnamese Dong'));
+
+      if (hasVndDraft) {
+        currentStep = 6;
+        targetSelector = '#tour-submit-currencies-btn';
+        stepTitle = 'Bước 6: Nhấn Submit để lưu mẫu';
+        stepInstruction = 'Đồng tiền VND đã nằm trong danh sách cấu hình. Nhấn nút Submit để hoàn tất lưu vào hệ thống.';
+      } else if (isAddBtnEnabled) {
+        currentStep = 5;
+        targetSelector = '#tour-btn-add-currency';
+        stepTitle = 'Bước 5: Nhấn nút dấu cộng (+) màu xanh nước biển';
+        stepInstruction = 'Dấu cộng bên phải đã hiện màu xanh nước biển! Nhấn vào nút dấu cộng để thêm đơn vị tiền tệ vào danh sách.';
+      } else {
+        currentStep = 4;
+        targetSelector = '#tour-input-currency';
+        stepTitle = 'Bước 4: Nhập đơn vị tiền tệ mẫu (VND)';
+        stepInstruction = 'Gõ "VND" vào ô tìm kiếm Currency * hoặc bấm nút "Điền nhanh mẫu (VND)" bên dưới, sau đó chọn Vietnamese Dong.';
+      }
+    } else if (currentPath === 'admin-currency-config') {
+      if (currencies.length >= 5) {
+        currentStep = 7;
+        targetSelector = null;
+        stepTitle = 'Hoàn thành xuất sắc bài học!';
+        stepInstruction = 'Bạn đã cấu hình thành công đủ 5 đơn vị tiền tệ chuẩn trong Database của ngân hàng Takashimaya Bank.';
+      } else {
+        currentStep = 3;
+        targetSelector = '#tour-btn-add-edit-currency';
+        stepTitle = 'Bước 3: Nhấn nút + Add/Edit';
+        stepInstruction = 'Nhấn nút + Add/Edit ở góc trên bên phải để vào giao diện thêm/sửa đơn vị tiền tệ.';
+      }
+    } else if (currentPath === 'admin-organization') {
+      currentStep = 2;
+      targetSelector = '#tour-currency-config';
+      stepTitle = 'Bước 2: Chọn Currency Configuration';
+      stepInstruction = 'Bấm vào mục Currency Configuration trong danh sách để mở quản lý tiền tệ.';
+    } else {
+      const adminOrgEl = typeof document !== 'undefined' ? document.getElementById('tour-admin-organization') : null;
+      if (adminOrgEl) {
+        currentStep = 1;
+        targetSelector = '#tour-admin-organization';
+        stepTitle = 'Bước 1.2: Chọn Organization';
+        stepInstruction = 'Bấm vào mục Organization trong danh sách thả xuống.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-nav-admin';
+        stepTitle = 'Bước 1.1: Mở menu Quản trị';
+        stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
+      }
+    }
+  } else if (module === 'part-2') {
     if (officePopup) {
       targetSelector = null;
     } else if (currentPath === 'admin-create-office') {
@@ -557,6 +633,80 @@ export default function PracticeSpotlightTour({
     );
   }
 
+  // Pop-up prompt after creating VND sample currency (GL Part 1)
+  if (module === 'gl-part-1' && currencyPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200 select-none">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+            {currenciesImported ? 'Đã hoàn thành cấu hình tiền tệ' : 'Hoàn thành lưu mẫu đơn vị tiền tệ VND'}
+          </div>
+
+          <h3 className="text-base font-bold text-gray-900 leading-snug">
+            {currenciesImported 
+              ? 'Đã nạp đủ 5 loại tiền tệ chuẩn trong Database!' 
+              : 'Tiếp tục nạp đủ 5 đơn vị tiền tệ chuẩn trong Database?'}
+          </h3>
+
+          {!currenciesImported ? (
+            <>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Bạn đã thực hành lưu thành công đồng tiền hạch toán cơ sở <strong className="text-gray-900 font-semibold">Vietnamese Dong (VND)</strong>.
+              </p>
+
+              <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900 leading-relaxed">
+                Trong <strong>Phân hệ 01: Accounting / GL</strong>, ngân hàng cần thiết lập đủ <strong>5 đơn vị tiền tệ chuẩn</strong> (VND, USD, JPY, CNY, IDR) để phục vụ hạch toán kế toán đa tiền tệ và các sản phẩm tín dụng, tiền gửi.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrencyPopup(false)}
+                  className="py-1.5 px-3 border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs rounded-[2px] cursor-pointer transition-colors"
+                >
+                  Tôi muốn tự thêm thủ công
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onLoadAllCurrencies) onLoadAllCurrencies();
+                    setCurrenciesImported(true);
+                  }}
+                  className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Xác nhận nạp đủ 5 đơn vị tiền tệ
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Hệ thống đã tự động cấu hình đủ 5 đơn vị tiền tệ chuẩn: <strong>VND, USD, JPY, CNY, IDR</strong> vào hệ thống.
+              </p>
+
+              <div className="py-2.5 px-3 bg-emerald-50 border-l-2 border-[#28a745] text-xs text-emerald-900">
+                Chúc mừng! Tiến độ Phân hệ 01 - Phần 1 đã đạt <strong>100%</strong>. Bạn có thể chuyển sang phần tiếp theo trong Sổ tay bài học.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrencyPopup(false);
+                    onClose();
+                  }}
+                  className="py-2 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Hoàn tất bài học (100%)
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // Pop-up prompt after creating 1 user
   if (tourPhase === 'user-popup') {
     return (
@@ -834,6 +984,23 @@ export default function PracticeSpotlightTour({
             {stepInstruction}
           </p>
         </div>
+
+        {/* Quick autofill suggestion button for Currency creation (GL Part 1) */}
+        {module === 'gl-part-1' && currentStep === 4 && (
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-currency', {
+                  detail: { code: 'VND', name: 'Vietnamese Dong' }
+                }));
+              }}
+              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Điền nhanh mẫu (VND - Vietnamese Dong)
+            </button>
+          </div>
+        )}
 
         {/* Quick autofill suggestion button for Role creation (Part 1) */}
         {module === 'part-1' && currentStep === 5 && (

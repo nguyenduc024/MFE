@@ -69,7 +69,7 @@ export default function OrganizationView({ navigate }) {
       id: 'currency',
       title: 'Currency Configuration',
       icon: Settings2,
-      path: null
+      path: 'admin-currency-config'
     },
     {
       id: 'funds',
@@ -183,6 +183,7 @@ export default function OrganizationView({ navigate }) {
               return (
                 <div
                   key={item.id}
+                  id={item.id === 'currency' ? 'tour-currency-config' : undefined}
                   onClick={() => handleItemClick(item)}
                   className={`flex items-center justify-between py-2 px-2 rounded-[2px] transition-colors ${
                     item.path ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default hover:bg-gray-50/60'

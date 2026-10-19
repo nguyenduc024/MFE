@@ -18,6 +18,8 @@ import UsersView from './views/UsersView';
 import RolesView from './views/RolesView';
 import AddRoleView from './views/AddRoleView';
 import ChartOfAccountsView from './views/ChartOfAccountsView';
+import AccountingView from './views/AccountingView';
+import CurrencyConfigView from './views/CurrencyConfigView';
 import AccountingRulesView from './views/AccountingRulesView';
 import JournalEntriesView from './views/JournalEntriesView';
 import LoanProductsView from './views/LoanProductsView';
@@ -52,12 +54,14 @@ import {
   INITIAL_ACCOUNTING_RULES,
   INITIAL_GL_CLOSURES,
   INITIAL_LOANS,
-  INITIAL_SAVINGS_ACCOUNTS
+  INITIAL_SAVINGS_ACCOUNTS,
+  INITIAL_CONFIGURED_CURRENCIES
 } from './data/mifosData';
 
 export default function App() {
   // Application State
   const [bankInfo] = useState(INITIAL_BANK_INFO);
+  const [currencies, setCurrencies] = useState(INITIAL_CONFIGURED_CURRENCIES);
   const [offices, setOffices] = useState(INITIAL_OFFICES);
   const [roles, setRoles] = useState(INITIAL_ROLES);
   const [users, setUsers] = useState(INITIAL_USERS);
@@ -254,7 +258,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -321,6 +325,24 @@ export default function App() {
           />
         )}
 
+        {currentPath === 'admin-currency-config' && (
+          <CurrencyConfigView
+            navigate={navigate}
+            initialMode="list"
+            currencies={currencies}
+            onSaveCurrencies={setCurrencies}
+          />
+        )}
+
+        {currentPath === 'admin-manage-currencies' && (
+          <CurrencyConfigView
+            navigate={navigate}
+            initialMode="edit"
+            currencies={currencies}
+            onSaveCurrencies={setCurrencies}
+          />
+        )}
+
         {currentPath === 'admin-tellers' && (
           <TellersView tellers={tellers} onAllocateCash={handleAllocateCash} />
         )}
@@ -383,10 +405,15 @@ export default function App() {
           <SavingsProductsView savingsProducts={savingsProducts} />
         )}
 
+        {currentPath === 'accounting' && (
+          <AccountingView navigate={navigate} />
+        )}
+
         {currentPath === 'accounting-coa' && (
           <ChartOfAccountsView
             glAccounts={glAccounts}
             onAddAccount={handleAddAccount}
+            navigate={navigate}
           />
         )}
 
@@ -492,9 +519,10 @@ export default function App() {
         roles={roles}
         users={users}
         offices={offices}
+        currencies={currencies}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
-          setPracticeModule(mod || 'part-1');
+          setPracticeModule(mod || 'gl-part-1');
           setPracticeActive(true);
         }}
       />
@@ -508,6 +536,7 @@ export default function App() {
         roles={roles}
         users={users}
         offices={offices}
+        currencies={currencies}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);
@@ -524,6 +553,9 @@ export default function App() {
             const newToAdd = REGIONAL_OFFICES_SAMPLE.filter(r => !existingIds.has(r.id));
             return [...prev, ...newToAdd];
           });
+        }}
+        onLoadAllCurrencies={() => {
+          setCurrencies([...INITIAL_CONFIGURED_CURRENCIES]);
         }}
       />
     </div>
