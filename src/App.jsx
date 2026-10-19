@@ -39,6 +39,11 @@ import LoanDetailView from './views/LoanDetailView';
 import SavingsDetailView from './views/SavingsDetailView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
+import CreateJournalEntryView from './views/CreateJournalEntryView';
+import CreateAccountingRuleView from './views/CreateAccountingRuleView';
+import ViewAccountingRuleView from './views/ViewAccountingRuleView';
+import FrequentPostingsView from './views/FrequentPostingsView';
+import ViewTransactionView from './views/ViewTransactionView';
 
 // Authentic Dataset
 import {
@@ -81,6 +86,19 @@ export default function App() {
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [savingsAccounts, setSavingsAccounts] = useState(INITIAL_SAVINGS_ACCOUNTS);
   const [financialActivities, setFinancialActivities] = useState(INITIAL_FINANCIAL_ACTIVITIES);
+  const [accountingRules, setAccountingRules] = useState([
+    {
+      id: '1',
+      name: 'Operating Expense Accrual',
+      officeId: '1',
+      officeName: 'Takashimaya Bank (TKB) - HO',
+      debitTags: '',
+      debitAccount: 'Operating Expense',
+      creditTags: '',
+      creditAccount: 'Accrued Operating Expenses Payable',
+      description: 'Records operating expenses incurred but not yet paid, ensuring consistent accrual accounting entries.'
+    }
+  ]);
 
   // Navigation & UI state
   const [currentPath, setCurrentPath] = useState('home');
@@ -88,6 +106,8 @@ export default function App() {
   const [selectedLoan, setSelectedLoan] = useState(INITIAL_LOANS[0] || null);
   const [selectedSavings, setSelectedSavings] = useState(INITIAL_SAVINGS_ACCOUNTS[0] || null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedAccountingRule, setSelectedAccountingRule] = useState(null);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   // User & Edu guide modal
   const [currentUser, setCurrentUser] = useState(SYSTEM_ADMIN);
@@ -100,14 +120,29 @@ export default function App() {
   // Opening Balance Migration states
   const [contraAccountConfigEnabled, setContraAccountConfigEnabled] = useState(false);
   const [hasOpeningBalanceSubmitted, setHasOpeningBalanceSubmitted] = useState(false);
+  const [customJournalEntries, setCustomJournalEntries] = useState([]);
 
   // Router navigation helper
   const navigate = (path, params = {}) => {
+    if (params.rule) {
+      setSelectedAccountingRule(params.rule);
+    }
+    if (params.transaction) {
+      setSelectedTransaction(params.transaction);
+    }
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // State mutators
+  const handleSaveJournalEntry = (newEntry) => {
+    setCustomJournalEntries(prev => [newEntry, ...prev]);
+  };
+
+  const handleAddAccountingRule = (newRule) => {
+    setAccountingRules(prev => [newRule, ...prev]);
+  };
+
   const handleAddOffice = (newOffice) => {
     setOffices(prev => [newOffice, ...prev]);
   };
@@ -239,10 +274,20 @@ export default function App() {
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Financial Activity Mappings' }];
       case 'accounting-rules':
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Accounting Rules' }];
+      case 'accounting-create-rule':
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Accounting Rules', path: 'accounting-rules' }, { label: 'Create' }];
+      case 'accounting-view-rule':
+        return [
+          { label: 'Accounting', path: 'accounting' },
+          { label: 'Accounting Rules', path: 'accounting-rules' },
+          { label: selectedAccountingRule?.name || 'Operating Expense Accrual' }
+        ];
       case 'accounting-closure':
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Closing Entries' }];
       case 'accounting-journal':
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Search Journal Entries' }];
+      case 'accounting-create-journal':
+        return [{ label: 'Accounting', path: 'accounting' }, { label: 'Journal Entries', path: 'accounting-journal' }, { label: 'Create' }];
       case 'accounting-opening-balances':
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Migrate Opening Balances' }];
       case 'clients':
@@ -287,7 +332,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-configurations' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-configurations' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -463,14 +508,37 @@ export default function App() {
           />
         )}
 
-        {(currentPath === 'accounting-rules' || currentPath === 'accounting-closure') && (
+        {currentPath === 'accounting-rules' && (
           <AccountingRulesView
-            activities={financialActivities}
-            rules={INITIAL_ACCOUNTING_RULES}
-            closures={INITIAL_GL_CLOSURES}
-            defaultTab={
-              currentPath === 'accounting-rules' ? 'rules' : 'closure'
-            }
+            rules={accountingRules}
+            navigate={navigate}
+            onNavigateCreateRule={() => navigate('accounting-create-rule')}
+          />
+        )}
+
+        {currentPath === 'accounting-create-rule' && (
+          <CreateAccountingRuleView
+            offices={offices}
+            glAccounts={glAccounts}
+            navigate={navigate}
+            onAddRule={handleAddAccountingRule}
+          />
+        )}
+
+        {currentPath === 'accounting-view-rule' && (
+          <ViewAccountingRuleView
+            rule={selectedAccountingRule || accountingRules[0]}
+            navigate={navigate}
+            onDeleteRule={(ruleId) => {
+              setAccountingRules(prev => prev.filter(r => r.id !== ruleId));
+            }}
+          />
+        )}
+
+        {currentPath === 'accounting-closure' && (
+          <AccountingRulesView
+            rules={accountingRules}
+            navigate={navigate}
           />
         )}
 
@@ -479,6 +547,35 @@ export default function App() {
             offices={offices}
             glAccounts={glAccounts}
             hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
+            customJournalEntries={customJournalEntries}
+            navigate={navigate}
+          />
+        )}
+
+        {currentPath === 'accounting-create-journal' && (
+          <CreateJournalEntryView
+            offices={offices}
+            currencies={currencies}
+            glAccounts={glAccounts}
+            navigate={navigate}
+            onAddJournalEntry={handleSaveJournalEntry}
+          />
+        )}
+
+        {currentPath === 'accounting-frequent-postings' && (
+          <FrequentPostingsView
+            offices={offices}
+            currencies={currencies}
+            accountingRules={accountingRules}
+            glAccounts={glAccounts}
+            navigate={navigate}
+            onAddJournalEntry={handleSaveJournalEntry}
+          />
+        )}
+
+        {currentPath === 'accounting-view-transaction' && (
+          <ViewTransactionView
+            transaction={selectedTransaction}
             navigate={navigate}
           />
         )}
@@ -675,6 +772,18 @@ export default function App() {
             setHasOpeningBalanceSubmitted(false);
             setCurrentPath('home');
           }
+          if (targetModule === 'gl-part-7') {
+            setCustomJournalEntries([]);
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-8') {
+            setAccountingRules([]);
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-9') {
+            setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
+            setCurrentPath('home');
+          }
           setPracticeActive(true);
         }}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
@@ -682,6 +791,17 @@ export default function App() {
         onResetOpeningBalances={() => {
           setContraAccountConfigEnabled(false);
           setHasOpeningBalanceSubmitted(false);
+        }}
+        customJournalEntries={customJournalEntries}
+        onResetManualJournal={() => {
+          setCustomJournalEntries([]);
+        }}
+        accountingRules={accountingRules}
+        onResetAccountingRules={() => {
+          setAccountingRules([]);
+        }}
+        onResetFrequentPostings={() => {
+          setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
         }}
       />
 
@@ -697,10 +817,12 @@ export default function App() {
         currencies={currencies}
         glAccounts={glAccounts}
         financialActivities={financialActivities}
+        accountingRules={accountingRules}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
         onToggleContraAccount={(val) => setContraAccountConfigEnabled(val)}
         hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
         onSubmitOpeningBalances={() => setHasOpeningBalanceSubmitted(true)}
+        customJournalEntries={customJournalEntries}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);

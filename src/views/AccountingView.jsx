@@ -140,24 +140,31 @@ export default function AccountingView({ navigate }) {
           <div className="space-y-4">
             {leftColumnItems.map((item) => {
               const Icon = item.icon;
+              const isFrequentPostings = item.id === 'frequent-postings';
               const isFinActivities = item.id === 'financial-activities';
               const isMigrateOpeningBalances = item.id === 'migrate-opening-balances';
               const isSearchJournal = item.id === 'search-journal-entries';
+              const isCreateJournal = item.id === 'create-journal-entries';
+              const isClickable = isFinActivities || isMigrateOpeningBalances || isSearchJournal || isCreateJournal || isFrequentPostings;
               return (
                 <div
                   key={item.id}
-                  id={isFinActivities ? "tour-financial-activities-tile" : isMigrateOpeningBalances ? "tour-opening-balances-tile" : isSearchJournal ? "tour-search-journal-tile" : undefined}
+                  id={isFrequentPostings ? "tour-frequent-postings-tile" : isFinActivities ? "tour-financial-activities-tile" : isMigrateOpeningBalances ? "tour-opening-balances-tile" : isSearchJournal ? "tour-search-journal-tile" : isCreateJournal ? "tour-create-journal-tile" : undefined}
                   onClick={() => {
-                    if (isFinActivities && navigate) {
+                    if (isFrequentPostings && navigate) {
+                      navigate('accounting-frequent-postings');
+                    } else if (isFinActivities && navigate) {
                       navigate('accounting-activities');
                     } else if (isMigrateOpeningBalances && navigate) {
                       navigate('accounting-opening-balances');
                     } else if (isSearchJournal && navigate) {
                       navigate('accounting-journal');
+                    } else if (isCreateJournal && navigate) {
+                      navigate('accounting-create-journal');
                     }
                   }}
                   className={`flex items-center justify-between py-2 px-2 rounded-[2px] transition-colors ${
-                    isFinActivities || isMigrateOpeningBalances || isSearchJournal ? 'cursor-pointer hover:bg-gray-100/70' : 'cursor-default hover:bg-gray-50/60'
+                    isClickable ? 'cursor-pointer hover:bg-gray-100/70' : 'cursor-default hover:bg-gray-50/60'
                   }`}
                   title={item.title}
                 >
@@ -178,17 +185,21 @@ export default function AccountingView({ navigate }) {
             {rightColumnItems.map((item) => {
               const Icon = item.icon;
               const isCOA = item.id === 'chart-of-accounts';
+              const isAccountingRules = item.id === 'accounting-rules';
+              const isClickable = isCOA || isAccountingRules;
               return (
                 <div
                   key={item.id}
-                  id={isCOA ? "tour-coa-tile" : undefined}
+                  id={isCOA ? "tour-coa-tile" : isAccountingRules ? "tour-accounting-rules-tile" : undefined}
                   onClick={() => {
                     if (isCOA && navigate) {
                       navigate('accounting-coa');
+                    } else if (isAccountingRules && navigate) {
+                      navigate('accounting-rules');
                     }
                   }}
                   className={`flex items-center justify-between py-2 px-2 rounded-[2px] transition-colors ${
-                    isCOA ? 'cursor-pointer hover:bg-gray-100/70' : 'cursor-default hover:bg-gray-50/60'
+                    isClickable ? 'cursor-pointer hover:bg-gray-100/70' : 'cursor-default hover:bg-gray-50/60'
                   }`}
                   title={item.title}
                 >

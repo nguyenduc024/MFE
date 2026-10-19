@@ -2244,6 +2244,42 @@ export const EDU_MODULES = [
     subPath: "opening-balances"
   },
   {
+    id: "gl-part-7",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "7",
+    name: "Phần 7: Ghi Nhận Bút Toán Thủ Công (Manual Journal Entries)",
+    shortLabel: "Phần 7: Manual Journal Entries",
+    title: "Ghi Nhận Bút Toán Thủ Công Trực Tiếp Vào Sổ Cái (Manual Journal Entries)",
+    objective: "Ghi nhận nghiệp vụ kế toán thủ công trực tiếp vào sổ cái cho chi phí vận hành dồn tích (Nợ TK 530101 Operating Expense / Có TK 220301 Accrued Operating Expenses Payable: 2.000.000 VND), sau đó tra cứu và đối soát nhật ký trong Search Journal Entries.",
+    targetMenu: "accounting",
+    subPath: "create-journal"
+  },
+  {
+    id: "gl-part-8",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "8",
+    name: "Phần 8: Quy Tắc Định Khoản (Accounting Rules)",
+    shortLabel: "Phần 8: Accounting Rules",
+    title: "Thiết Lập Quy Tắc Định Khoản Nghiệp Vụ Mẫu (Accounting Rules)",
+    objective: "Thiết lập quy tắc định khoản tự động (Accounting Rule) cho nghiệp vụ trích trước chi phí vận hành (Operating Expense Accrual): Nợ TK 530101 (Ghi tăng chi phí hoạt động khi ngân hàng phát sinh chi phí) và Có TK 220301 (Ghi tăng nghĩa vụ phải trả do ngân hàng chưa thực hiện thanh toán), sau đó xem chi tiết quy tắc vừa tạo.",
+    targetMenu: "accounting",
+    subPath: "accounting-rules"
+  },
+  {
+    id: "gl-part-9",
+    moduleNumber: "01",
+    moduleTitle: "Phân hệ 01: Accounting / GL",
+    partNumber: "9",
+    name: "Phần 9: Định Khoản Thường Xuyên (Frequent Postings)",
+    shortLabel: "Phần 9: Frequent Postings",
+    title: "Ghi Nhận Bút Toán Thường Xuyên Theo Quy Tắc (Frequent Postings)",
+    objective: "Sử dụng quy tắc định khoản mẫu (Operating Expense Accrual) để ghi nhận chi phí bảo trì hệ thống CNTT phát sinh định kỳ (5.000.000 VND), sinh tự động bút toán Nợ TK 530101 / Có TK 220301 và kiểm tra giao dịch hoàn tất.",
+    targetMenu: "accounting",
+    subPath: "frequent-postings"
+  },
+  {
     id: "part-1",
     moduleNumber: "00",
     moduleTitle: "Foundation Setup: Thiết Lập Nền Tảng",

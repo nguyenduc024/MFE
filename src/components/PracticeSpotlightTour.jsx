@@ -23,10 +23,12 @@ export default function PracticeSpotlightTour({
   currencies = [],
   glAccounts = [],
   financialActivities = [],
+  accountingRules = [],
   contraAccountConfigEnabled = false,
   onToggleContraAccount,
   hasOpeningBalanceSubmitted = false,
   onSubmitOpeningBalances,
+  customJournalEntries = [],
   navigate,
   onLoadAllRoles,
   onLoadAllUsers,
@@ -81,13 +83,28 @@ export default function PracticeSpotlightTour({
   const [glPart6Popup, setGlPart6Popup] = useState(null);
   const [openingBalanceSubStep, setOpeningBalanceSubStep] = useState('vault'); // 'vault' | 'bank' | 'capital' | 'submit'
 
+  // GL Part 7 state (Manual Journal Entries)
+  const [manualJournalSubStep, setManualJournalSubStep] = useState('office'); // 'office' | 'currency' | 'debit-gl' | 'debit-amount' | 'credit-gl' | 'credit-amount' | 'ref-date' | 'submit'
+
+  // GL Part 8 state (Accounting Rules)
+  const [ruleSubStep, setRuleSubStep] = useState('name'); // 'name' | 'office' | 'debit' | 'credit' | 'desc' | 'submit'
+
+  // GL Part 9 state (Frequent Postings)
+  const [frequentSubStep, setFrequentSubStep] = useState('office'); // 'office' | 'rule' | 'currency' | 'debit' | 'credit' | 'ref-date' | 'comments' | 'submit'
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'gl-part-6') {
+      if (module === 'gl-part-9') {
+        setFrequentSubStep('office');
+      } else if (module === 'gl-part-8') {
+        setRuleSubStep('name');
+      } else if (module === 'gl-part-7') {
+        setManualJournalSubStep('office');
+      } else if (module === 'gl-part-6') {
         setGlPart6Popup(null);
         setOpeningBalanceSubStep('vault');
       } else if (module === 'gl-part-5') {
@@ -339,7 +356,203 @@ export default function PracticeSpotlightTour({
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'gl-part-6') {
+  if (module === 'gl-part-9') {
+    if (currentPath === 'accounting-view-transaction') {
+      currentStep = 6;
+      targetSelector = '#tour-view-transaction-screen';
+      stepTitle = 'Bước 6 / 6: Đối soát chi tiết giao dịch Frequent Posting (a2f68debe1a7)';
+      stepInstruction = 'Bút toán định khoản thường xuyên đã được tự động sinh và hạch toán thành công vào Sổ cái! Kiểm tra 2 dòng định khoản đối ứng: Có TK 220301 (Accrued Operating Expenses Payable: VND 5,000,000.00) và Nợ TK 530101 (Operating Expense: VND 5,000,000.00). Bấm nút "Hoàn thành phần thực hành" bên dưới để kết thúc bài học!';
+    } else if (currentPath === 'accounting-frequent-postings') {
+      if (frequentSubStep === 'office') {
+        currentStep = 3;
+        targetSelector = '#tour-frequent-office-select';
+        stepTitle = 'Bước 3 / 6: Chọn Office (Takashimaya Bank HO)';
+        stepInstruction = 'Chọn văn phòng phát sinh chi phí: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở TKB - HO ➔" bên dưới để điền nhanh.';
+      } else if (frequentSubStep === 'rule') {
+        currentStep = 3;
+        targetSelector = '#tour-frequent-rule-select';
+        stepTitle = 'Bước 3 / 6: Chọn Accounting Rule (Operating Expense Accrual)';
+        stepInstruction = 'Chọn quy tắc định khoản tự động: "Operating Expense Accrual". Hệ thống sẽ tự động gán cặp tài khoản Nợ 530101 và Có 220301.';
+      } else if (frequentSubStep === 'currency') {
+        currentStep = 3;
+        targetSelector = '#tour-frequent-currency-select';
+        stepTitle = 'Bước 3 / 6: Chọn Currency (Vietnamese Dong [VND])';
+        stepInstruction = 'Chọn loại tiền tệ giao dịch: "Vietnamese Dong [VND]". Bấm "Chọn VND ➔" bên dưới để tiếp tục.';
+      } else if (frequentSubStep === 'debit') {
+        currentStep = 4;
+        targetSelector = '#tour-frequent-debit-amount';
+        stepTitle = 'Bước 4 / 6: Nhập Debit Amount (5.000.000 VND)';
+        stepInstruction = 'Nhập số tiền Nợ phát sinh cho chi phí hoạt động TK 530101: 5000000 VND (5 triệu đồng).';
+      } else if (frequentSubStep === 'credit') {
+        currentStep = 4;
+        targetSelector = '#tour-frequent-credit-amount';
+        stepTitle = 'Bước 4 / 6: Nhập Credit Amount (5.000.000 VND)';
+        stepInstruction = 'Nhập số tiền Có phát sinh cho nghĩa vụ phải trả dồn tích TK 220301: 5000000 VND (5 triệu đồng) để cân bằng Nợ = Có.';
+      } else if (frequentSubStep === 'ref-date') {
+        currentStep = 5;
+        targetSelector = '#tour-frequent-ref-number';
+        stepTitle = 'Bước 5 / 6: Nhập Reference Number & Ngày giao dịch';
+        stepInstruction = 'Nhập Reference Number: "TKB-OPEX-202610-002" và Transaction Date: "10/12/2026".';
+      } else if (frequentSubStep === 'comments') {
+        currentStep = 5;
+        targetSelector = '#tour-frequent-comments';
+        stepTitle = 'Bước 5 / 6: Nhập Comments diễn giải';
+        stepInstruction = 'Nhập nội dung diễn giải: "Accrual of VND 5,000,000 for IT system maintenance services, pending supplier payment."';
+      } else {
+        currentStep = 5;
+        targetSelector = '#tour-frequent-submit-btn';
+        stepTitle = 'Bước 5 / 6: Bấm Submit để ghi nhận bút toán';
+        stepInstruction = 'Kiểm tra thông tin đã đầy đủ và bấm nút "Submit" màu xanh để ghi nhận giao dịch vào sổ cái và mở màn hình View Transaction!';
+      }
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      targetSelector = '#tour-frequent-postings-tile';
+      stepTitle = 'Bước 2 / 6: Chọn Frequent Postings';
+      stepInstruction = 'Trong danh mục Accounting, bấm vào ô "Frequent Postings" để mở biểu mẫu hạch toán bút toán định kỳ theo quy tắc kế toán đã thiết lập.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 6: Vào phân hệ Accounting';
+      stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng đầu trang để truy cập chức năng hạch toán kế toán.';
+    }
+  } else if (module === 'gl-part-8') {
+    if (currentPath === 'accounting-view-rule') {
+      currentStep = 7;
+      targetSelector = '#tour-view-rule-screen';
+      stepTitle = 'Bước 7 / 7: Xem chi tiết Quy tắc định khoản (View Accounting Rule)';
+      stepInstruction = 'Quy tắc định khoản mẫu Operating Expense Accrual đã được khởi tạo thành công với cặp định khoản: Nợ TK 530101 (Ghi tăng chi phí hoạt động khi ngân hàng phát sinh chi phí) và Có TK 220301 (Ghi tăng nghĩa vụ phải trả do ngân hàng chưa thực hiện thanh toán). Bấm "Hoàn thành phần thực hành" bên dưới để kết thúc bài học!';
+    } else if (currentPath === 'accounting-create-rule') {
+      if (ruleSubStep === 'name') {
+        currentStep = 4;
+        targetSelector = '#tour-rule-name-input';
+        stepTitle = 'Bước 4 / 7: Nhập Accounting Rule Name';
+        stepInstruction = 'Nhập tên quy tắc: "Operating Expense Accrual". Bấm "Điền tên quy tắc ➔" bên dưới để điền nhanh.';
+      } else if (ruleSubStep === 'office') {
+        currentStep = 4;
+        targetSelector = '#tour-rule-office-select';
+        stepTitle = 'Bước 4 / 7: Chọn Office áp dụng (TKB - HO)';
+        stepInstruction = 'Chọn văn phòng/hội sở áp dụng quy tắc: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở ➔" bên dưới.';
+      } else if (ruleSubStep === 'debit') {
+        currentStep = 5;
+        targetSelector = '#tour-rule-debit-account-select';
+        stepTitle = 'Bước 5 / 7: Chọn Account to Debit (530101)';
+        stepInstruction = 'Account to Debit (530101): Ghi tăng chi phí hoạt động khi ngân hàng phát sinh chi phí. Chọn tài khoản "Operating Expense (530101)".';
+      } else if (ruleSubStep === 'credit') {
+        currentStep = 6;
+        targetSelector = '#tour-rule-credit-account-select';
+        stepTitle = 'Bước 6 / 7: Chọn Account to Credit (220301)';
+        stepInstruction = 'Account to Credit (220301): Ghi tăng nghĩa vụ phải trả do ngân hàng chưa thực hiện thanh toán. Chọn tài khoản "Accrued Operating Expenses Payable (220301)".';
+      } else if (ruleSubStep === 'desc') {
+        currentStep = 6;
+        targetSelector = '#tour-rule-description-input';
+        stepTitle = 'Bước 6 / 7: Nhập Description';
+        stepInstruction = 'Nhập mô tả diễn giải: "Records operating expenses incurred but not yet paid, ensuring consistent accrual accounting entries."';
+      } else {
+        currentStep = 7;
+        targetSelector = '#tour-rule-submit-btn';
+        stepTitle = 'Bước 7 / 7: Bấm Submit để lưu quy tắc';
+        stepInstruction = 'Kiểm tra thông tin đã đầy đủ và bấm nút "Submit" màu xanh để tạo quy tắc kế toán mẫu và chuyển sang màn hình View Accounting Rule.';
+      }
+    } else if (currentPath === 'accounting-rules') {
+      currentStep = 3;
+      targetSelector = '#tour-add-rule-btn';
+      stepTitle = 'Bước 3 / 7: Bấm nút + Add Rule';
+      stepInstruction = 'Trong màn hình Accounting Rules, bấm vào nút "+ Add Rule" ở góc phải trên để mở form tạo mới quy tắc định khoản.';
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      targetSelector = '#tour-accounting-rules-tile';
+      stepTitle = 'Bước 2 / 7: Chọn Accounting Rules';
+      stepInstruction = 'Trong danh mục Accounting, bấm vào ô "Accounting Rules" để mở danh sách cấu hình quy tắc định khoản.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 7: Vào phân hệ Accounting';
+      stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng đầu trang để truy cập các chức năng kế toán ngân hàng.';
+    }
+  } else if (module === 'gl-part-7') {
+    const hasManualEntrySubmitted = (customJournalEntries && customJournalEntries.length > 0) || Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex'));
+
+    if (!hasManualEntrySubmitted) {
+      if (currentPath === 'accounting-create-journal') {
+        if (manualJournalSubStep === 'office') {
+          currentStep = 3;
+          targetSelector = '#tour-manual-office-select';
+          stepTitle = 'Bước 3 / 8: Chọn Office (Hội sở chính HO)';
+          stepInstruction = 'Chọn văn phòng phát sinh chi phí: Takashimaya Bank (TKB) - HO (Hội sở chính). Bấm "Chọn Hội sở (TKB - HO) ➔" bên dưới để điền nhanh.';
+        } else if (manualJournalSubStep === 'currency') {
+          currentStep = 4;
+          targetSelector = '#tour-manual-currency-select';
+          stepTitle = 'Bước 4 / 8: Chọn Currency (Vietnamese Dong [VND])';
+          stepInstruction = 'Chọn loại tiền tệ giao dịch: Vietnamese Dong [VND]. Bấm "Chọn VND ➔" bên dưới để tiếp tục.';
+        } else if (manualJournalSubStep === 'debit-gl') {
+          currentStep = 5;
+          targetSelector = '#tour-manual-debit-gl';
+          stepTitle = 'Bước 5 / 8: Chọn TK Nợ (530101 - Operating Expense)';
+          stepInstruction = 'Tại ô Affected GL Entry (Debit), chọn tài khoản chi phí hoạt động: (530101) Operating Expense.';
+        } else if (manualJournalSubStep === 'debit-amount') {
+          currentStep = 6;
+          targetSelector = '#tour-manual-debit-amount';
+          stepTitle = 'Bước 6 / 8: Nhập Debit Amount (2.000.000 VND)';
+          stepInstruction = 'Nhập số tiền Nợ phát sinh: 2000000 VND (2 triệu đồng).';
+        } else if (manualJournalSubStep === 'credit-gl') {
+          currentStep = 7;
+          targetSelector = '#tour-manual-credit-gl';
+          stepTitle = 'Bước 7 / 8: Chọn TK Có (220301 - Accrued Operating Expenses Payable)';
+          stepInstruction = 'Tại ô Affected GL Entry (Credit), chọn tài khoản chi phí phải trả dồn tích: (220301) Accrued Operating Expenses Payable.';
+        } else if (manualJournalSubStep === 'credit-amount') {
+          currentStep = 8;
+          targetSelector = '#tour-manual-credit-amount';
+          stepTitle = 'Bước 8 / 8: Nhập Credit Amount (2.000.000 VND)';
+          stepInstruction = 'Nhập số tiền Có: 2000000 VND (2 triệu đồng) để cân bằng Tổng Nợ = Tổng Có.';
+        } else if (manualJournalSubStep === 'ref-date') {
+          currentStep = 9;
+          targetSelector = '#tour-manual-ref-number';
+          stepTitle = 'Bước 9 / 8: Nhập Reference Number & Ngày giao dịch';
+          stepInstruction = 'Nhập mã tham chiếu: TKB-OPEX-202610-001 và Transaction Date: 9/1/2026.';
+        } else {
+          currentStep = 10;
+          targetSelector = '#tour-manual-submit-btn';
+          stepTitle = 'Bước 10 / 8: Bấm Submit để ghi nhận vào sổ cái';
+          stepInstruction = 'Bút toán chi phí vận hành trích trước đã cân đối hoàn hảo (Tổng Nợ 2 triệu = Tổng Có 2 triệu VND). Bấm nút Submit màu xanh để ghi nhận giao dịch!';
+        }
+      } else if (currentPath === 'accounting') {
+        currentStep = 2;
+        targetSelector = '#tour-create-journal-tile';
+        stepTitle = 'Bước 2 / 8: Chọn Create Journal Entries';
+        stepInstruction = 'Trong danh mục Accounting, bấm vào mục Create Journal Entries để mở biểu mẫu ghi nhận bút toán sổ cái thủ công.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-nav-accounting';
+        stepTitle = 'Bước 1 / 8: Vào phân hệ Accounting';
+        stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng đầu trang để truy cập các chức năng kế toán ngân hàng.';
+      }
+    } else {
+      if (currentPath === 'accounting-journal') {
+        const hasManualTarget = Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex'));
+        if (hasManualTarget) {
+          currentStep = 13;
+          targetSelector = '#tour-journal-entry-manual-opex';
+          stepTitle = 'Bước 13: Đối soát bút toán Manual Journal Entry';
+          stepInstruction = 'Ý nghĩa tài chính: Bút toán trích trước chi phí hoạt động trực tiếp vào sổ cái tại Hội sở chính Takashimaya Bank (TKB) - HO. Định khoản: Nợ TK 530101 (Operating Expense: 2.000.000 VND) / Có TK 220301 (Accrued Operating Expenses Payable: 2.000.000 VND). Ref: TKB-OPEX-202610-001. Tổng Nợ = Tổng Có = 2.000.000 VND hoàn toàn cân bằng!';
+        } else {
+          currentStep = 12;
+          targetSelector = '#tour-journal-filters-area';
+          stepTitle = 'Bước 12: Lọc ngày giao dịch phát sinh (9/1/2026)';
+          stepInstruction = 'Chỉnh "Transaction Date From.." và "Transaction Date To" bao gồm ngày phát sinh bút toán (01/01/2026 - 31/10/2026) để hiển thị giao dịch. Bấm nút "Lọc ngày giao dịch (01/01/2026 - 31/10/2026)" bên dưới để lọc ngay.';
+        }
+      } else if (currentPath === 'accounting') {
+        currentStep = 11;
+        targetSelector = '#tour-search-journal-tile';
+        stepTitle = 'Bước 11: Chọn Search Journal Entries';
+        stepInstruction = 'Giao dịch chi phí hoạt động trích trước đã được ghi nhận thành công vào sổ cái! Bấm vào Search Journal Entries để tra cứu và đối soát.';
+      } else {
+        currentStep = 11;
+        targetSelector = '#tour-nav-accounting';
+        stepTitle = 'Bước 11: Đến phân hệ Accounting để tra cứu Sổ cái';
+        stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng để mở chức năng tra cứu Sổ nhật ký chung.';
+      }
+    }
+  } else if (module === 'gl-part-6') {
     if (!contraAccountConfigEnabled) {
       if (currentPath === 'admin-configurations') {
         currentStep = 4;
@@ -840,8 +1053,58 @@ export default function PracticeSpotlightTour({
           }
         }
 
+        // Expand bounding box for manual journal dropdowns when open
+        if (targetSelector === '#tour-manual-office-select') {
+          const dropdown = document.getElementById('tour-manual-office-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+        if (targetSelector === '#tour-manual-currency-select') {
+          const dropdown = document.getElementById('tour-manual-currency-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+        if (targetSelector === '#tour-manual-debit-gl') {
+          const dropdown = document.getElementById('tour-manual-debit-gl-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+        if (targetSelector === '#tour-manual-credit-gl') {
+          const dropdown = document.getElementById('tour-manual-credit-gl-dropdown');
+          if (dropdown && dropdown.offsetParent !== null) {
+            const dropRect = dropdown.getBoundingClientRect();
+            left = Math.min(left, Math.round(dropRect.left));
+            top = Math.min(top, Math.round(dropRect.top));
+            right = Math.max(right, Math.round(dropRect.right));
+            bottom = Math.max(bottom, Math.round(dropRect.bottom));
+            width = right - left;
+            height = bottom - top;
+          }
+        }
+
         // Auto-scroll target into view if outside visible viewport
-        if (targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target') {
+        if (targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target' || targetSelector === '#tour-journal-entry-manual-opex' || targetSelector === '#tour-manual-submit-btn') {
           const inView = rect.top >= 60 && rect.bottom <= (window.innerHeight || 800) - 60;
           if (!inView) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1847,8 +2110,41 @@ export default function PracticeSpotlightTour({
     transform: 'translate(-50%, -50%)'
   };
 
+  // GL Part 9: Step 6 popup placed on the LEFT by default
+  if (module === 'gl-part-9' && (currentPath === 'accounting-view-transaction' || currentStep === 6)) {
+    tooltipStyle = {
+      position: 'fixed',
+      top: '100px',
+      left: '24px',
+      width: '350px'
+    };
+  }
+
   if (box) {
-    if (targetSelector === '#tour-gl-create-card' || targetSelector === '#tour-mapping-create-card') {
+    if (module === 'gl-part-9' && (currentPath === 'accounting-view-transaction' || targetSelector === '#tour-view-transaction-screen' || currentStep === 6)) {
+      // Step 6: popup strictly on the LEFT side of the screen
+      const tooltipWidth = 350;
+      tooltipStyle = {
+        position: 'fixed',
+        top: '100px',
+        left: '24px',
+        width: `${tooltipWidth}px`
+      };
+    } else if (module === 'gl-part-9' && (targetSelector === '#tour-frequent-submit-btn' || (currentPath === 'accounting-frequent-postings' && currentStep === 5))) {
+      // Step 5: popup strictly on the RIGHT side so Submit button is never blocked
+      const tooltipWidth = 350;
+      let tooltipLeft = Math.max(24, box.right + 24);
+      if (tooltipLeft + tooltipWidth > windowWidth - 16) {
+        tooltipLeft = Math.max(16, windowWidth - tooltipWidth - 24);
+      }
+      const tooltipTop = Math.max(20, Math.min(box.top - 120, windowHeight - 480));
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${tooltipTop}px`,
+        left: `${tooltipLeft}px`,
+        width: `${tooltipWidth}px`
+      };
+    } else if (targetSelector === '#tour-gl-create-card' || targetSelector === '#tour-mapping-create-card') {
       const tooltipWidth = 330;
       const tooltipLeft = Math.max(16, box.left - tooltipWidth - 20);
       const tooltipTop = Math.max(16, Math.min(box.top, windowHeight - 460));
@@ -2175,6 +2471,89 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Completion action button in tooltip card for GL Part 9 (Frequent Postings) */}
+        {module === 'gl-part-9' && currentPath === 'accounting-view-transaction' && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+              <div className="font-bold text-emerald-900 mb-1">
+                Ghi nhận bút toán Frequent Posting thành công (5.000.000 VND):
+              </div>
+              <div>• Mã giao dịch: a2f68debe1a7 | Quy tắc: Operating Expense Accrual</div>
+              <div>• Có TK 220301 (Accrued Operating Expenses Payable): VND 5,000,000.00</div>
+              <div>• Nợ TK 530101 (Operating Expense): VND 5,000,000.00</div>
+              <div>• Mã tham chiếu: TKB-OPEX-202610-002 | Ngày: 12 October 2026</div>
+              <div className="mt-1 font-semibold text-emerald-900">
+                Tổng Nợ (5 triệu) = Tổng Có (5 triệu). Bút toán hạch toán định kỳ hoàn tất!
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (navigate) navigate('accounting');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
+        {/* Completion action button in tooltip card for GL Part 8 (Accounting Rules) */}
+        {module === 'gl-part-8' && currentPath === 'accounting-view-rule' && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+              <div className="font-bold text-emerald-900 mb-1">
+                Thiết lập Accounting Rule thành công:
+              </div>
+              <div>Tên quy tắc: Operating Expense Accrual</div>
+              <div>Office: Takashimaya Bank (TKB) - HO</div>
+              <div>Nợ TK 530101 (Operating Expense): Ghi tăng chi phí hoạt động</div>
+              <div>Có TK 220301 (Accrued Operating Expenses Payable): Ghi tăng nghĩa vụ phải trả</div>
+              <div className="mt-1 font-semibold text-emerald-900">
+                Hoàn thành quy tắc định khoản mẫu cho các giao dịch trích trước chi phí.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (navigate) navigate('accounting-rules');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
+        {/* Completion action button in tooltip card for GL Part 7 (Manual Journal Entries) */}
+        {module === 'gl-part-7' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex')) && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+              <div className="font-bold text-emerald-900 mb-1">
+                Ghi nhận bút toán sổ cái thủ công thành công (2.000.000 VND):
+              </div>
+              <div>• Nợ TK 530101 (Operating Expense): 2.000.000 VND</div>
+              <div>• Có TK 220301 (Accrued Operating Expenses Payable): 2.000.000 VND</div>
+              <div>• Mã tham chiếu: TKB-OPEX-202610-001 | Ngày: 9/1/2026</div>
+              <div className="mt-1 font-semibold text-emerald-900">
+                ➔ Tổng Nợ (2 triệu) = Tổng Có (2 triệu). Bút toán thủ công cân đối và hoàn tất!
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (navigate) navigate('accounting-journal');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
         {/* Completion action button in tooltip card for GL Part 6 (Opening Balance Migration & Journal Entries) */}
         {module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target')) && (
           <div className="pt-2 space-y-2 border-t border-gray-100">
@@ -2387,7 +2766,7 @@ export default function PracticeSpotlightTour({
         )}
 
         {/* Quick autofill suggestion button for User creation */}
-        {currentStep === 8 && (
+        {module === 'part-1' && currentStep === 8 && (
           <div className="pt-1 flex items-center justify-between">
             <button
               type="button"
@@ -2522,6 +2901,361 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Sequential 'Tiếp tục' helper for GL Part 7: Create Journal Entries */}
+        {module === 'gl-part-7' && currentPath === 'accounting-create-journal' && (
+          <div className="pt-1 space-y-2">
+            {manualJournalSubStep === 'office' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-select-manual-office-ho'));
+                  setManualJournalSubStep('currency');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Hội sở (TKB - HO) & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'currency' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-select-manual-currency-vnd'));
+                  setManualJournalSubStep('debit-gl');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn VND & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'debit-gl' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-select-manual-debit-opex'));
+                  setManualJournalSubStep('debit-amount');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn TK 530101 (Operating Expense) & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'debit-amount' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-manual-debit-amount'));
+                  setManualJournalSubStep('credit-gl');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền 2.000.000đ & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'credit-gl' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-select-manual-credit-accrued'));
+                  setManualJournalSubStep('credit-amount');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn TK 220301 (Accrued Operating Exp) & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'credit-amount' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-manual-credit-amount'));
+                  setManualJournalSubStep('ref-date');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền 2.000.000đ & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'ref-date' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-manual-ref-date'));
+                  setManualJournalSubStep('submit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền mã tham chiếu & ngày & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            {manualJournalSubStep === 'submit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const submitBtn = document.getElementById('tour-manual-submit-btn');
+                  if (submitBtn) {
+                    submitBtn.click();
+                  }
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Bấm Submit ghi sổ cái & Tiếp tục ➔</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-manual-journal'));
+                setManualJournalSubStep('submit');
+              }}
+              className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Điền nhanh toàn bộ mẫu (2 triệu OPEX)
+            </button>
+          </div>
+        )}
+
+        {/* Quick helper for GL Part 9: Step-by-step Frequent Postings inputs */}
+        {module === 'gl-part-9' && currentPath === 'accounting-frequent-postings' && (
+          <div className="pt-2 space-y-1.5 border-t border-gray-100">
+            {frequentSubStep === 'office' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-office'));
+                  setFrequentSubStep('rule');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Hội sở: Takashimaya Bank (TKB) - HO</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'rule' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-rule'));
+                  setFrequentSubStep('currency');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Quy tắc: Operating Expense Accrual</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'currency' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-currency'));
+                  setFrequentSubStep('debit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Tiền tệ: Vietnamese Dong [VND]</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'debit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-debit'));
+                  setFrequentSubStep('credit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền Nợ: 5.000.000 VND</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'credit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-credit'));
+                  setFrequentSubStep('ref-date');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền Có: 5.000.000 VND</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'ref-date' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-ref-date'));
+                  setFrequentSubStep('comments');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền Ref (TKB-OPEX-202610-002) & Ngày (10/12/2026)</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'comments' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-frequent-comments'));
+                  setFrequentSubStep('submit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền Diễn giải Comments</span>
+              </button>
+            )}
+
+            {frequentSubStep === 'submit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const submitBtn = document.getElementById('tour-frequent-submit-btn');
+                  if (submitBtn) {
+                    submitBtn.click();
+                  }
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Bấm Submit ghi nhận giao dịch và Xem kết quả</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-fill-frequent-all'));
+                setFrequentSubStep('submit');
+              }}
+              className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Điền nhanh toàn bộ mẫu (5 triệu IT maintenance)
+            </button>
+          </div>
+        )}
+
+        {/* Quick helper for GL Part 8: Step-by-step Accounting Rule inputs */}
+        {module === 'gl-part-8' && currentPath === 'accounting-create-rule' && (
+          <div className="pt-2 space-y-1.5 border-t border-gray-100">
+            {ruleSubStep === 'name' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-name'));
+                  setRuleSubStep('office');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền tên: Operating Expense Accrual</span>
+              </button>
+            )}
+
+            {ruleSubStep === 'office' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-office'));
+                  setRuleSubStep('debit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Hội sở: Takashimaya Bank (TKB) - HO</span>
+              </button>
+            )}
+
+            {ruleSubStep === 'debit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-debit'));
+                  setRuleSubStep('credit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Nợ TK 530101 (Operating Expense)</span>
+              </button>
+            )}
+
+            {ruleSubStep === 'credit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-credit'));
+                  setRuleSubStep('desc');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Chọn Có TK 220301 (Accrued Operating Expenses Payable)</span>
+              </button>
+            )}
+
+            {ruleSubStep === 'desc' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-desc'));
+                  setRuleSubStep('submit');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Điền mô tả Description</span>
+              </button>
+            )}
+
+            {ruleSubStep === 'submit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const submitBtn = document.getElementById('tour-rule-submit-btn');
+                  if (submitBtn) {
+                    submitBtn.click();
+                  }
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+              >
+                <span>Bấm Submit lưu quy tắc và Xem kết quả</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-fill-accounting-rule-all'));
+                setRuleSubStep('submit');
+              }}
+              className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Điền nhanh toàn bộ form mẫu
+            </button>
+          </div>
+        )}
+
+        {/* Quick helper for GL Part 7: Filter Journal Entries Date */}
+        {module === 'gl-part-7' && currentPath === 'accounting-journal' && !Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex')) && (
+          <div className="pt-1 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-filter-manual-journal-dates'));
+              }}
+              className="py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 rounded-[2px] text-[11px] font-semibold cursor-pointer transition-colors"
+            >
+              Lọc ngày giao dịch (01/01/2026 - 31/10/2026)
+            </button>
+          </div>
+        )}
+
         {/* Quick helper for GL Part 6: Filter Journal Entries Date */}
         {module === 'gl-part-6' && currentPath === 'accounting-journal' && !Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target')) && (
           <div className="pt-1 flex items-center justify-between">
@@ -2539,14 +3273,17 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target'))) ||
+            {(module === 'gl-part-9' && currentPath === 'accounting-view-transaction') ||
+             (module === 'gl-part-8' && currentPath === 'accounting-view-rule') ||
+             (module === 'gl-part-7' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex'))) ||
+             (module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target'))) ||
              (module === 'gl-part-5' && (completedActivityCodes.length >= 6 || financialActivities.length >= 6)) ||
              (module === 'gl-part-4' && (detailCompletedSampleCodes.length >= 5 || totalDetailsCreated >= 54)) ||
              (module === 'gl-part-3' && (level2CompletedSampleCodes.length >= 5 || totalLevel2Created >= 11)) ||
              (module === 'gl-part-2' && glCompletedCodes.length >= 5) ||
              (module === 'gl-part-1' && currencies.length >= 5)
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
-              : (currentStep === 5 && !isRoleFormFilled) || (currentStep === 8 && !isUserFormFilled)
+              : (module === 'part-1' && currentStep === 5 && !isRoleFormFilled) || (module === 'part-1' && currentStep === 8 && !isUserFormFilled)
               ? 'Nhập vào ô phía trên hoặc chọn điền nhanh' 
               : 'Nhấn trực tiếp vào vùng phát sáng để tiếp tục'}
           </span>

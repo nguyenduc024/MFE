@@ -1,218 +1,270 @@
-import React, { useState } from 'react';
-import { 
-  BookOpen, Plus, Shield, CheckCircle2, AlertCircle, 
-  Lock, ArrowRight, ArrowRightLeft, FileSpreadsheet
-} from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, ChevronDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 
-export default function AccountingRulesView({ 
-  activities = [], 
-  rules = [], 
-  closures = [],
-  defaultTab = 'activities'
+export default function AccountingRulesView({
+  rules = [],
+  navigate,
+  onNavigateCreateRule
 }) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [filterText, setFilterText] = useState('');
+  const [isFilterFocused, setIsFilterFocused] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Default initial rule if none provided
+  const ruleList = useMemo(() => {
+    if (rules && rules.length > 0) return rules;
+    return [
+      {
+        id: '1',
+        name: 'Operating Expense Accrual',
+        officeName: 'Takashimaya Bank (TKB) - HO',
+        debitTags: '',
+        debitAccount: 'Operating Expense',
+        creditTags: '',
+        creditAccount: 'Accrued Operating Expenses Payable'
+      }
+    ];
+  }, [rules]);
+
+  // Filtered rows
+  const filteredRules = useMemo(() => {
+    if (!filterText.trim()) return ruleList;
+    const query = filterText.toLowerCase().trim();
+    return ruleList.filter((r) => {
+      const name = (r.name || '').toLowerCase();
+      const office = (r.officeName || '').toLowerCase();
+      const debitTags = (r.debitTags || '').toLowerCase();
+      const debitAcc = (r.debitAccount || '').toLowerCase();
+      const creditTags = (r.creditTags || '').toLowerCase();
+      const creditAcc = (r.creditAccount || '').toLowerCase();
+
+      return (
+        name.includes(query) ||
+        office.includes(query) ||
+        debitTags.includes(query) ||
+        debitAcc.includes(query) ||
+        creditTags.includes(query) ||
+        creditAcc.includes(query)
+      );
+    });
+  }, [ruleList, filterText]);
+
+  const totalCount = filteredRules.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const displayedRules = filteredRules.slice(startIndex, startIndex + pageSize);
+
+  const handleAddRuleClick = () => {
+    if (onNavigateCreateRule) {
+      onNavigateCreateRule();
+    } else if (navigate) {
+      navigate('accounting-create-rule');
+    }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
-        <div>
-          <h1 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-sky-700" />
-            <span>Accounting Configurations & Rules (Cấu Hình Kế Toán & Quy Tắc Định Khoản)</span>
+    <div className="max-w-6xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
+      {/* 1. Top Bar: Title & Breadcrumbs on left, [+ Add Rule] button on right */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center space-x-2.5">
+          <h1 className="text-xl font-normal text-[#212529]">
+            Accounting Rules
           </h1>
-          <p className="text-xs text-gray-500">
-            Ánh xạ hoạt động tài chính tự động (Financial Activities), quy tắc trích trước (Accruals) và khóa sổ (GL Closure)
-          </p>
+          <span className="text-gray-300 font-light text-base">|</span>
+          <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5">
+            <span
+              onClick={() => navigate && navigate('home')}
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Home
+            </span>
+            <span className="text-gray-400">/</span>
+            <span
+              onClick={() => navigate && navigate('accounting')}
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Accounting
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-500">Accounting Rules</span>
+          </div>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 space-x-6 text-xs font-semibold">
-        <button
-          onClick={() => setActiveTab('activities')}
-          className={`pb-2.5 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
-            activeTab === 'activities'
-              ? 'border-sky-600 text-sky-800 font-bold'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <span>Financial Activity Mappings ({activities.length})</span>
-        </button>
 
         <button
-          onClick={() => setActiveTab('rules')}
-          className={`pb-2.5 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
-            activeTab === 'rules'
-              ? 'border-sky-600 text-sky-800 font-bold'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
+          id="tour-add-rule-btn"
+          onClick={handleAddRuleClick}
+          className="bg-[#1072ba] hover:bg-[#0e63a3] text-white text-xs font-medium px-4 py-2 rounded-[3px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] flex items-center space-x-1.5 transition-colors self-start sm:self-auto cursor-pointer"
         >
-          <span>Accounting Rules ({rules.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('closure')}
-          className={`pb-2.5 px-1 border-b-2 transition-colors flex items-center gap-1.5 ${
-            activeTab === 'closure'
-              ? 'border-sky-600 text-sky-800 font-bold'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>Closing Entries (Khóa Sổ - {closures.length})</span>
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <span>Add Rule</span>
         </button>
       </div>
 
-      {/* Tab 1: Financial Activity Mappings */}
-      {activeTab === 'activities' && (
-        <div className="space-y-3">
-          <div className="bg-sky-50 border border-sky-100 p-3 rounded text-xs text-sky-900 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-sky-700 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong>Ý nghĩa nghiệp vụ:</strong> Ánh xạ tự động định hướng các giao dịch hệ thống đặc thù (như nạp số dư đầu kỳ, chuyển quỹ tiền mặt giữa các chi nhánh, điều chuyển kho tiền...) đến đúng tài khoản GL tương ứng trong sổ cái mà không cần kế toán viên phải tự hạch toán thủ công từng bút toán.
+      {/* 2. Filter input (Material underline style matching screenshot) */}
+      <div className="mb-6">
+        <div
+          className={`relative pt-3 pb-1 border-b transition-colors ${
+            isFilterFocused ? 'border-[#1072ba]' : 'border-gray-400/80'
+          }`}
+        >
+          <label
+            className={`absolute left-0 transition-all duration-200 pointer-events-none select-none ${
+              isFilterFocused || filterText
+                ? '-top-0.5 text-[10px] text-[#1072ba] font-medium'
+                : 'top-3 text-xs text-gray-500'
+            }`}
+          >
+            Filter
+          </label>
+          <input
+            type="text"
+            value={filterText}
+            onChange={(e) => {
+              setFilterText(e.target.value);
+              setCurrentPage(1);
+            }}
+            onFocus={() => setIsFilterFocused(true)}
+            onBlur={() => setIsFilterFocused(false)}
+            className="w-full bg-transparent text-xs text-gray-800 outline-none pt-0.5"
+          />
+        </div>
+      </div>
+
+      {/* 3. Table Card */}
+      <div id="tour-accounting-rules-table" className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Name
+                </th>
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Office
+                </th>
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Debit Tags
+                </th>
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Debit Account
+                </th>
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Credit Tags
+                </th>
+                <th className="text-xs font-normal text-gray-600 px-6 py-4 whitespace-nowrap">
+                  Credit Account
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayedRules.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="text-center py-8 text-xs text-gray-500 italic"
+                  >
+                    No accounting rules found.
+                  </td>
+                </tr>
+              ) : (
+                displayedRules.map((rule, idx) => (
+                  <tr
+                    key={rule.id || idx}
+                    onClick={() => {
+                      if (navigate) navigate('accounting-view-rule', { rule });
+                    }}
+                    className="border-b border-gray-100 hover:bg-black/[0.04] transition-colors cursor-pointer"
+                  >
+                    <td className="text-xs text-gray-900 px-6 py-4 whitespace-nowrap">
+                      {rule.name}
+                    </td>
+                    <td className="text-xs text-gray-800 px-6 py-4 whitespace-nowrap">
+                      {rule.officeName}
+                    </td>
+                    <td className="text-xs text-gray-700 px-6 py-4 whitespace-nowrap">
+                      {rule.debitTags || ''}
+                    </td>
+                    <td className="text-xs text-gray-800 px-6 py-4 whitespace-nowrap">
+                      {rule.debitAccount || ''}
+                    </td>
+                    <td className="text-xs text-gray-700 px-6 py-4 whitespace-nowrap">
+                      {rule.creditTags || ''}
+                    </td>
+                    <td className="text-xs text-gray-800 px-6 py-4 whitespace-nowrap">
+                      {rule.creditAccount || ''}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 4. Table Footer / Paginator matching screenshot */}
+        <div className="flex items-center justify-end px-6 py-3 border-t border-gray-100 text-xs text-gray-600 space-x-6">
+          <div className="flex items-center space-x-2">
+            <span>Items per page:</span>
+            <div className="relative inline-flex items-center">
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="appearance-none bg-transparent pr-5 pl-1 py-0.5 border-b border-gray-400 outline-none text-xs text-gray-700 cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <ChevronDown className="w-3 h-3 absolute right-0 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
-          <div className="mifos-panel overflow-hidden">
-            <table className="w-full text-left mifos-table">
-              <thead>
-                <tr>
-                  <th>Financial Activity (Hoạt Động Tài Chính)</th>
-                  <th>Mapped GL Account (Tài Khoản GL Đã Ánh Xạ)</th>
-                  <th>Activity Type ID</th>
-                  <th>Trạng Thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activities.map((act) => (
-                  <tr key={act.id}>
-                    <td className="font-bold text-gray-900 text-xs">
-                      {act.activityName}
-                    </td>
-                    <td>
-                      <span className="font-mono text-xs text-sky-800 font-bold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-                        {act.glCode} - {act.glName}
-                      </span>
-                    </td>
-                    <td className="font-mono text-xs text-gray-500">
-                      Type #{act.type}
-                    </td>
-                    <td>
-                      <span className="text-xs text-emerald-700 font-bold">
-                        Mapped (Đã liên kết)
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            {totalCount === 0
+              ? '0 - 0 of 0'
+              : `${startIndex + 1} - ${Math.min(startIndex + pageSize, totalCount)} of ${totalCount}`}
+          </div>
+
+          <div className="flex items-center space-x-2 text-gray-500">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage <= 1}
+              className="p-1 hover:text-gray-800 disabled:opacity-30 disabled:hover:text-gray-500 cursor-pointer disabled:cursor-default"
+              title="First Page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              className="p-1 hover:text-gray-800 disabled:opacity-30 disabled:hover:text-gray-500 cursor-pointer disabled:cursor-default"
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+              className="p-1 hover:text-gray-800 disabled:opacity-30 disabled:hover:text-gray-500 cursor-pointer disabled:cursor-default"
+              title="Next Page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage >= totalPages}
+              className="p-1 hover:text-gray-800 disabled:opacity-30 disabled:hover:text-gray-500 cursor-pointer disabled:cursor-default"
+              title="Last Page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
-
-      {/* Tab 2: Accounting Rules */}
-      {activeTab === 'rules' && (
-        <div className="space-y-3">
-          <div className="bg-sky-50 border border-sky-100 p-3 rounded text-xs text-sky-900 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-sky-700 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong>Quy tắc hạch toán mẫu:</strong> Cho phép định sẵn cặp tài khoản Nợ (Debit) và Có (Credit) cho các giao dịch nghiệp vụ thường ngày (như trích trước chi phí quản lý vận hành, chi trả lương...).
-            </div>
-          </div>
-
-          <div className="mifos-panel overflow-hidden">
-            <table className="w-full text-left mifos-table">
-              <thead>
-                <tr>
-                  <th>Rule Name (Tên Quy Tắc)</th>
-                  <th>Office (Áp Dụng)</th>
-                  <th>Debit Account (Ghi Nợ)</th>
-                  <th>Credit Account (Ghi Có)</th>
-                  <th>Description (Mô Tả Nghiệp Vụ)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rules.map((r) => (
-                  <tr key={r.id}>
-                    <td className="font-bold text-gray-900 text-xs">
-                      {r.name}
-                    </td>
-                    <td className="text-gray-700 text-xs font-medium">
-                      {r.officeName}
-                    </td>
-                    <td>
-                      <span className="font-mono text-xs text-rose-700 font-bold">
-                        Dr: {r.debitAccount}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="font-mono text-xs text-emerald-700 font-bold">
-                        Cr: {r.creditAccount}
-                      </span>
-                    </td>
-                    <td className="text-xs text-gray-600 max-w-xs">
-                      {r.description}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: Closing Entries (GL Closure) */}
-      {activeTab === 'closure' && (
-        <div className="space-y-3">
-          <div className="bg-amber-50 border border-amber-200 p-3 rounded text-xs text-amber-900 flex items-start gap-2">
-            <Lock className="w-4 h-4 text-amber-700 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong>Quy định khóa sổ kế toán (GL Closure):</strong> Sau ngày khóa sổ, hệ thống nghiêm cấm mọi thao tác ghi sổ, hạch toán bù hoặc sửa đổi số liệu vào các ngày trước hoặc bằng ngày khóa sổ.
-            </div>
-          </div>
-
-          <div className="mifos-panel overflow-hidden">
-            <table className="w-full text-left mifos-table">
-              <thead>
-                <tr>
-                  <th>Office (Chi Nhánh Khóa Sổ)</th>
-                  <th>Closing Date (Ngày Chốt Khóa Sổ)</th>
-                  <th>Comments (Ghi Chú Khóa Sổ)</th>
-                  <th>Closed By (Người Thực Hiện)</th>
-                  <th>Trạng Thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {closures.map((c) => (
-                  <tr key={c.id}>
-                    <td className="font-bold text-gray-900 text-xs">
-                      {c.officeName}
-                    </td>
-                    <td>
-                      <span className="font-mono text-xs font-bold text-amber-800">
-                        {c.closingDate}
-                      </span>
-                    </td>
-                    <td className="text-xs text-gray-700 max-w-sm leading-relaxed">
-                      {c.comments}
-                    </td>
-                    <td className="text-xs text-gray-600 font-mono">
-                      {c.closedBy}
-                    </td>
-                    <td>
-                      <span className="text-xs text-rose-700 font-bold flex items-center gap-1 w-max">
-                        <Lock className="w-3.5 h-3.5" />
-                        Đã khóa sổ
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronDown, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Plus } from 'lucide-react';
 
 export const SCREENSHOT_SAMPLE_JOURNAL_ENTRIES = [
   {
@@ -201,6 +201,7 @@ export default function JournalEntriesView({
   offices = [],
   glAccounts = [],
   hasOpeningBalanceSubmitted = false,
+  customJournalEntries = [],
   navigate
 }) {
   // Filter form states
@@ -259,9 +260,18 @@ export default function JournalEntriesView({
       setTxDateTo('10/31/2026');
       setIsFiltered(true);
     };
+    const handleFilterManualDates = () => {
+      setTxDateFrom('01/01/2026');
+      setTxDateTo('10/31/2026');
+      setIsFiltered(true);
+    };
 
     window.addEventListener('practice-filter-journal-dates', handleFilterDates);
-    return () => window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
+    window.addEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
+    return () => {
+      window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
+      window.removeEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
+    };
   }, []);
 
   // Computed displayed entries
@@ -271,37 +281,88 @@ export default function JournalEntriesView({
       return [];
     }
 
+    const customFlattened = (customJournalEntries || []).flatMap((rec) => {
+      const rows = [];
+      const isManualOpex = rec.referenceNumber === 'TKB-OPEX-202610-001' || String(rec.id).includes('OPEX') || rec.comments?.includes('OPEX');
+      (rec.debits || []).forEach((d, dIdx) => {
+        rows.push({
+          id: `${rec.id}-${dIdx}`,
+          office: rec.office,
+          txId: rec.referenceNumber || `TX-${rec.id}`,
+          txDate: rec.txDate,
+          type: d.type || 'ASSET',
+          createdBy: 'mifos',
+          submittedDate: rec.submittedDate || rec.txDate,
+          glCode: d.glCode,
+          glName: d.name,
+          currency: rec.currency,
+          debit: d.amount,
+          credit: null,
+          isManualTarget: isManualOpex
+        });
+      });
+      (rec.credits || []).forEach((c, cIdx) => {
+        rows.push({
+          id: `${rec.id}-cr-${cIdx}`,
+          office: rec.office,
+          txId: rec.referenceNumber || `TX-${rec.id}`,
+          txDate: rec.txDate,
+          type: c.type || 'LIABILITY',
+          createdBy: 'mifos',
+          submittedDate: rec.submittedDate || rec.txDate,
+          glCode: c.glCode,
+          glName: c.name,
+          currency: rec.currency,
+          debit: null,
+          credit: c.amount,
+          isManualTarget: isManualOpex
+        });
+      });
+      return rows;
+    });
+
     return [
+      ...customFlattened,
       ...OPENING_BALANCE_MIGRATION_ENTRIES,
       ...SCREENSHOT_SAMPLE_JOURNAL_ENTRIES
     ];
-  }, [isFiltered, txDateFrom, txDateTo]);
+  }, [isFiltered, txDateFrom, txDateTo, customJournalEntries]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
       {/* 1. Header: Journal Entries | Home / Accounting / Journal Entries */}
-      <div className="flex items-center space-x-2.5 mb-6">
-        <h1 className="text-xl font-normal text-[#212529]">
-          Journal Entries
-        </h1>
-        <span className="text-gray-300 font-light text-base">|</span>
-        <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5">
-          <span
-            onClick={() => navigate && navigate('home')}
-            className="text-[#1072ba] hover:underline cursor-pointer"
-          >
-            Home
-          </span>
-          <span className="text-gray-400">/</span>
-          <span
-            onClick={() => navigate && navigate('accounting')}
-            className="text-[#1072ba] hover:underline cursor-pointer"
-          >
-            Accounting
-          </span>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-500">Journal Entries</span>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-2.5">
+          <h1 className="text-xl font-normal text-[#212529]">
+            Journal Entries
+          </h1>
+          <span className="text-gray-300 font-light text-base">|</span>
+          <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5">
+            <span
+              onClick={() => navigate && navigate('home')}
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Home
+            </span>
+            <span className="text-gray-400">/</span>
+            <span
+              onClick={() => navigate && navigate('accounting')}
+              className="text-[#1072ba] hover:underline cursor-pointer"
+            >
+              Accounting
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="text-gray-500">Journal Entries</span>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={() => navigate && navigate('accounting-create-journal')}
+          className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Journal Entry</span>
+        </button>
       </div>
 
       {/* 2. Main Container Card matching screenshot */}
@@ -592,9 +653,38 @@ export default function JournalEntriesView({
                   ))}
                 </tbody>
 
+                {/* Manual Journal Entry Target Entries (Phần 7: Manual Journal Entries) */}
+                {displayedEntries.some(item => item.txId === 'TKB-OPEX-202610-001' || item.isManualTarget) && (
+                  <tbody id="tour-journal-entry-manual-opex" className="border-b-2 border-amber-400">
+                    {displayedEntries.filter(item => item.txId === 'TKB-OPEX-202610-001' || item.isManualTarget).map((item, index) => (
+                      <tr
+                        key={`manual-${item.id}-${item.glCode}-${index}`}
+                        className="border-b border-amber-100 bg-amber-50/60 hover:bg-amber-50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px] font-semibold text-amber-900">{item.txId}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glCode}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.glName}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-medium">
+                          {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-medium">
+                          {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
+
                 {/* Other standard screenshot journal entries */}
                 <tbody>
-                  {displayedEntries.filter(item => !item.isTarget).map((item, index) => (
+                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001').map((item, index) => (
                     <tr
                       key={`${item.id}-${item.glCode}-${index}`}
                       className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"

@@ -20,9 +20,14 @@ export default function EduGuideDrawer({
   onResetFinancialActivities,
   contraAccountConfigEnabled = false,
   hasOpeningBalanceSubmitted = false,
-  onResetOpeningBalances
+  onResetOpeningBalances,
+  customJournalEntries = [],
+  onResetManualJournal,
+  accountingRules = [],
+  onResetAccountingRules,
+  onResetFrequentPostings
 }) {
-  const [activePartId, setActivePartId] = useState('gl-part-6');
+  const [activePartId, setActivePartId] = useState('gl-part-8');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -94,6 +99,31 @@ export default function EduGuideDrawer({
     return score;
   };
 
+  // Tính toán tiến độ Phân hệ 01 - Phần 7: Ghi Nhận Bút Toán Thủ Công (Manual Journal Entries)
+  const calculateGlPart7Progress = () => {
+    const hasManualEntry = (customJournalEntries || []).some(
+      e => e.referenceNumber === 'TKB-OPEX-202610-001' || String(e.id).includes('OPEX') || e.comments?.includes('OPEX') ||
+      (e.debits?.some(d => d.glCode === '530101') && e.credits?.some(c => c.glCode === '220301'))
+    );
+    return hasManualEntry ? 100 : 0;
+  };
+
+  // Tính toán tiến độ Phân hệ 01 - Phần 8: Thiết Lập Quy Tắc Định Khoản (Accounting Rules)
+  const calculateGlPart8Progress = () => {
+    const hasRule = (accountingRules || []).some(
+      r => r.name === 'Operating Expense Accrual' || r.debitAccount?.includes('Operating Expense') || r.debitAccountId === '530101'
+    );
+    return hasRule ? 100 : 0;
+  };
+
+  // Tính toán tiến độ Phân hệ 01 - Phần 9: Định Khoản Thường Xuyên (Frequent Postings)
+  const calculateGlPart9Progress = () => {
+    const hasFrequentEntry = (customJournalEntries || []).some(
+      e => e.entryType === 'FREQUENT_POSTING' || e.referenceNumber?.includes('TKB-OPEX-202610-002') || e.comments?.includes('IT system maintenance') || e.id === 'a2f68debe1a7'
+    );
+    return hasFrequentEntry ? 100 : 0;
+  };
+
   // Tính toán tiến độ Foundation 1: User & Access Management (4 mốc x 25% = 100%)
   const calculatePart1Progress = () => {
     let score = 0;
@@ -141,9 +171,13 @@ export default function EduGuideDrawer({
   const glPart4Progress = calculateGlPart4Progress();
   const glPart5Progress = calculateGlPart5Progress();
   const glPart6Progress = calculateGlPart6Progress();
+  const glPart7Progress = calculateGlPart7Progress();
   const part1Progress = calculatePart1Progress();
   const part2Progress = calculatePart2Progress();
   
+  const glPart8Progress = calculateGlPart8Progress();
+  const glPart9Progress = calculateGlPart9Progress();
+
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
     activePartId === 'gl-part-2' ? glPart2Progress :
@@ -151,6 +185,9 @@ export default function EduGuideDrawer({
     activePartId === 'gl-part-4' ? glPart4Progress :
     activePartId === 'gl-part-5' ? glPart5Progress :
     activePartId === 'gl-part-6' ? glPart6Progress :
+    activePartId === 'gl-part-7' ? glPart7Progress :
+    activePartId === 'gl-part-8' ? glPart8Progress :
+    activePartId === 'gl-part-9' ? glPart9Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -159,6 +196,9 @@ export default function EduGuideDrawer({
   const isGlPart4Complete = glPart4Progress === 100;
   const isGlPart5Complete = glPart5Progress === 100;
   const isGlPart6Complete = glPart6Progress === 100;
+  const isGlPart7Complete = glPart7Progress === 100;
+  const isGlPart8Complete = glPart8Progress === 100;
+  const isGlPart9Complete = glPart9Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -211,7 +251,10 @@ export default function EduGuideDrawer({
                   item.id === 'gl-part-2' ? glPart2Progress : 
                   item.id === 'gl-part-3' ? glPart3Progress : 
                   item.id === 'gl-part-4' ? glPart4Progress : 
-                  item.id === 'gl-part-5' ? glPart5Progress : glPart6Progress;
+                  item.id === 'gl-part-5' ? glPart5Progress : 
+                  item.id === 'gl-part-6' ? glPart6Progress : 
+                  item.id === 'gl-part-7' ? glPart7Progress : 
+                  item.id === 'gl-part-8' ? glPart8Progress : glPart9Progress;
 
                 return (
                   <div
@@ -232,7 +275,8 @@ export default function EduGuideDrawer({
                          item.id === 'gl-part-3' ? 'Thiết lập 11 tài khoản GL Header cấp 2' :
                          item.id === 'gl-part-4' ? 'Thiết lập 54 tài khoản GL Chi tiết (Detail)' :
                          item.id === 'gl-part-5' ? 'Ánh xạ 6 hoạt động tài chính tự động (Financial Activities)' :
-                         'Khởi tạo số dư đầu kỳ (1 tỷ) & tra cứu Journal Entries'}
+                         item.id === 'gl-part-6' ? 'Khởi tạo số dư đầu kỳ (1 tỷ) & tra cứu Journal Entries' :
+                         'Ghi nhận bút toán thủ công (2 triệu OPEX) & tra cứu Journal Entries'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -1450,6 +1494,333 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 7: GHI NHẬN BÚT TOÁN THỦ CÔNG (MANUAL JOURNAL ENTRIES)
+            ========================================================== */}
+        {activePartId === 'gl-part-7' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Khung lý thuyết nghiệp vụ */}
+            <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-2">
+              <h4 className="text-xs font-bold text-[#1072ba] flex items-center gap-1.5">
+                <span>Kiến thức cốt lõi: Nghiệp vụ Manual Journal Entries</span>
+              </h4>
+              <p className="text-xs text-gray-700 leading-relaxed">
+                Trong vận hành ngân hàng Core Banking, đa số bút toán được tự động hạch toán thông qua các phân hệ nghiệp vụ (như gửi tiền Savings, giải ngân/thu nợ Loans). Tuy nhiên, nhân viên kế toán (Maker) cần ghi nhận các giao dịch tài chính phát sinh nội bộ (như chi phí vận hành, trích lập chi phí phải trả dồn tích, phân bổ chi phí, điều chỉnh sai sót) trực tiếp vào sổ cái tổng hợp GL thông qua chức năng <strong>Create Journal Entries</strong>.
+              </p>
+              <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1">
+                <div>• <strong>Nguyên tắc ghi sổ kép (Double-Entry Bookkeeping):</strong> Tổng số tiền ghi Nợ (Total Debit) luôn luôn phải bằng Tổng số tiền ghi Có (Total Credit). Nút Submit chỉ được kích hoạt khi trạng thái cân đối đạt được.</div>
+                <div>• <strong>Mã tham chiếu (Reference Number):</strong> Mã chứng từ hạch toán nội bộ phục vụ đối soát, kiểm toán nội bộ và truy vết giao dịch.</div>
+              </div>
+            </div>
+
+            {/* Danh mục kiểm tra checklist */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Tiêu chuẩn kiểm tra hoàn thành (3 Tiêu chí)
+              </h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {isGlPart7Complete ? '✓' : '1'}
+                    </span>
+                    <span className="text-gray-900">Tạo bút toán tại Create Journal Entries (Office TKB - HO, VND)</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${isGlPart7Complete ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {isGlPart7Complete ? 'Đã hoàn tất' : 'Chưa tạo'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {isGlPart7Complete ? '✓' : '2'}
+                    </span>
+                    <span className="text-gray-900">Định khoản: Nợ TK 530101 (2 tr) = Có TK 220301 (2 tr) (Ref: TKB-OPEX-202610-001)</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${isGlPart7Complete ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {isGlPart7Complete ? 'Đã cân bằng' : 'Chưa ghi nhận'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 px-2 rounded bg-white border border-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {isGlPart7Complete ? '✓' : '3'}
+                    </span>
+                    <span className="text-gray-900">Đối soát bút toán sổ cái tại Search Journal Entries (01/01/2026 - 31/10/2026)</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${isGlPart7Complete ? 'text-emerald-600' : 'text-gray-400'}`}>
+                    {isGlPart7Complete ? 'Đã ghi sổ' : 'Chưa kiểm tra'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn (4 Thao tác)
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-gray-700">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span>Accounting → Create Journal Entries</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Trong phân hệ Accounting, bấm vào mục <strong className="text-gray-900">Create Journal Entries</strong> để mở biểu mẫu ghi nhận bút toán thủ công.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span>Chọn Office & Currency</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Chọn Office: <strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong> và Currency: <strong className="text-gray-900">Vietnamese Dong [VND]</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    <span>Nhập định khoản Nợ/Có cân đối & Submit</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Nợ: <strong className="text-gray-900">(530101) Operating Expense</strong> - 2.000.000 VND.<br />
+                    Có: <strong className="text-gray-900">(220301) Accrued Operating Expenses Payable</strong> - 2.000.000 VND.<br />
+                    Mã tham chiếu: <strong className="text-gray-900">TKB-OPEX-202610-001</strong>, Ngày: <strong className="text-gray-900">9/1/2026</strong>. Sau đó nhấn <strong className="text-[#1072ba]">Submit</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
+                  <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                    <span>Accounting → Search Journal Entries</span>
+                  </div>
+                  <p className="text-gray-700 pl-6">
+                    Truy cập màn hình tra cứu bút toán sổ cái, chỉnh khoảng ngày lọc (01/01/2026 - 31/10/2026) để kiểm tra giao dịch chi phí vận hành trích trước đã được ghi sổ an toàn và chính xác.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bảng đối chiếu số liệu mẫu */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Bảng thông số bút toán thủ công mẫu
+              </h4>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-[11px]">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                    <tr>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2">GL Code</th>
+                      <th className="py-1.5 px-2">Tên tài khoản</th>
+                      <th className="py-1.5 px-2 text-right">Debit (Nợ)</th>
+                      <th className="py-1.5 px-2 text-right">Credit (Có)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-amber-700">EXPENSE</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">530101</td>
+                      <td className="py-1.5 px-2 font-medium">Operating Expense</td>
+                      <td className="py-1.5 px-2 text-right font-mono font-bold text-emerald-700">2,000,000</td>
+                      <td className="py-1.5 px-2 text-right font-mono text-gray-400">—</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-rose-700">LIABILITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">220301</td>
+                      <td className="py-1.5 px-2 font-medium">Accrued Operating Expenses Payable</td>
+                      <td className="py-1.5 px-2 text-right font-mono text-gray-400">—</td>
+                      <td className="py-1.5 px-2 text-right font-mono font-bold text-rose-700">2,000,000</td>
+                    </tr>
+                    <tr className="bg-gray-50 font-bold">
+                      <td colSpan={3} className="py-1.5 px-2 text-right">Tổng cộng cân đối:</td>
+                      <td className="py-1.5 px-2 text-right text-emerald-700">2,000,000</td>
+                      <td className="py-1.5 px-2 text-right text-rose-700">2,000,000</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 8: ACCOUNTING RULES
+            ========================================================== */}
+        {activePartId === 'gl-part-8' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Chi tiết giải thích từng ô theo đúng yêu cầu nghiệp vụ ngân hàng */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                Ý Nghĩa Nghiệp Vụ Từng Ô Trong Accounting Rule
+              </h4>
+
+              <div className="p-3 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-1.5 text-xs text-gray-700">
+                <div className="font-bold text-sky-900">1. Accounting Rule Name *</div>
+                <p className="text-gray-600">
+                  Tên định danh quy tắc kế toán mẫu (ví dụ: <strong className="text-gray-900">Operating Expense Accrual</strong>). Giúp kế toán viên dễ dàng áp dụng mẫu khi thực hiện Frequent Postings hoặc chuẩn hóa luồng định khoản.
+                </p>
+              </div>
+
+              <div className="p-3 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-1.5 text-xs text-gray-700">
+                <div className="font-bold text-sky-900">2. Office *</div>
+                <p className="text-gray-600">
+                  Chi nhánh hoặc đơn vị áp dụng quy tắc. Ở đây chọn <strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong> (Hội sở chính).
+                </p>
+              </div>
+
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-[2px] space-y-1.5 text-xs text-gray-800">
+                <div className="font-bold text-emerald-900">
+                  Account to Debit (530101):
+                </div>
+                <p className="text-emerald-950 font-medium leading-relaxed">
+                  Ghi tăng chi phí hoạt động khi ngân hàng phát sinh chi phí. (Tài khoản 530101 - Operating Expense, thuộc nhóm Chi phí loại 5).
+                </p>
+              </div>
+
+              <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-[2px] space-y-1.5 text-xs text-gray-800">
+                <div className="font-bold text-rose-900">
+                  Account to Credit (220301):
+                </div>
+                <p className="text-rose-950 font-medium leading-relaxed">
+                  Ghi tăng nghĩa vụ phải trả do ngân hàng chưa thực hiện thanh toán. (Tài khoản 220301 - Accrued Operating Expenses Payable, thuộc nhóm Nợ phải trả loại 2).
+                </p>
+              </div>
+
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5 text-xs text-gray-700">
+                <div className="font-bold text-gray-900">Description</div>
+                <p className="text-gray-600 italic">
+                  "Records operating expenses incurred but not yet paid, ensuring consistent accrual accounting entries." — Diễn giải chi tiết cho bút toán dồn tích (Accrual Basis).
+                </p>
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-[2px] space-y-2 text-xs text-amber-900">
+              <div className="font-bold text-amber-950">
+                Quy trình thực hành:
+              </div>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
+                <li>Vào <strong>Accounting → Accounting Rules</strong>.</li>
+                <li>Bấm nút <strong>+ Add Rule</strong>.</li>
+                <li>Nhập <em>Operating Expense Accrual</em> và chọn <em>Takashimaya Bank (TKB) - HO</em>.</li>
+                <li>Chọn Account to Debit: <em>Operating Expense (530101)</em>.</li>
+                <li>Chọn Account to Credit: <em>Accrued Operating Expenses Payable (220301)</em>.</li>
+                <li>Nhập Description và nhấn <strong>Submit</strong>.</li>
+                <li>Hệ thống chuyển sang màn hình <strong>View Accounting Rule</strong> xem lại toàn bộ cấu hình quy tắc vừa tạo.</li>
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 9: FREQUENT POSTINGS
+            ========================================================== */}
+        {activePartId === 'gl-part-9' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Khung lý thuyết nghiệp vụ */}
+            <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-2">
+              <h4 className="text-xs font-bold text-[#1072ba]">
+                Kiến thức cốt lõi: Nghiệp vụ Frequent Postings
+              </h4>
+              <p className="text-xs text-gray-700 leading-relaxed">
+                Trong vận hành ngân hàng Core Banking, nghiệp vụ Frequent Postings cho phép nhân viên kế toán sử dụng các quy tắc kế toán đã được phê duyệt sẵn (Accounting Rules) để ghi nhận nhanh các giao dịch định kỳ (như chi phí bảo trì hệ thống định kỳ, trích trước chi phí hàng tháng) mà không cần phải chọn thủ công từng tài khoản kế toán, giảm thiểu tối đa sai sót và tiết kiệm thời gian hạch toán.
+              </p>
+              <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1">
+                <div>• Khi chọn quy tắc Operating Expense Accrual, hệ thống tự động tải cặp tài khoản: Nợ TK 530101 (Operating Expense) và Có TK 220301 (Accrued Operating Expenses Payable).</div>
+                <div>• Sau khi bấm Submit, hệ thống tự động ghi sổ cái và điều hướng trực tiếp sang màn hình chi tiết giao dịch (mã tham chiếu hệ thống: a2f68debe1a7) để kế toán viên kiểm tra đối soát hai bút toán 57 và 58.</div>
+              </div>
+            </div>
+
+            {/* Bảng thông số giao dịch thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                Thông Số Giao Dịch Thực Hành Mẫu
+              </h4>
+
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5 text-xs text-gray-700">
+                <div>Office: <strong>Takashimaya Bank (TKB) - HO</strong></div>
+                <div>Accounting Rule: <strong>Operating Expense Accrual</strong></div>
+                <div>Currency: <strong>Vietnamese Dong [VND]</strong></div>
+                <div>Affected GL Entry (Debit): <strong>Operating Expense (530101)</strong> — <strong>5.000.000 VND</strong></div>
+                <div>Affected GL Entry (Credit): <strong>Accrued Operating Expenses Payable (220301)</strong> — <strong>5.000.000 VND</strong></div>
+                <div>Reference Number: <strong>TKB-OPEX-202610-002</strong></div>
+                <div>Transaction Date: <strong>10/12/2026</strong> (Hiển thị 12 October 2026)</div>
+                <div>Comments: <em>"Accrual of VND 5,000,000 for IT system maintenance services, pending supplier payment."</em></div>
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-[2px] space-y-2 text-xs text-amber-900">
+              <div className="font-bold text-amber-950">
+                Quy trình thực hành:
+              </div>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
+                <li>Vào <strong>Accounting → Frequent Postings</strong>.</li>
+                <li>Chọn <strong>Office</strong>: <em>Takashimaya Bank (TKB) - HO</em>.</li>
+                <li>Chọn <strong>Accounting Rule</strong>: <em>Operating Expense Accrual</em>.</li>
+                <li>Chọn <strong>Currency</strong>: <em>Vietnamese Dong [VND]</em>.</li>
+                <li>Nhập <strong>Debit Amount</strong>: <em>5000000</em> và <strong>Credit Amount</strong>: <em>5000000</em>.</li>
+                <li>Nhập <strong>Reference Number</strong>: <em>TKB-OPEX-202610-002</em> và <strong>Transaction Date</strong>: <em>10/12/2026</em>.</li>
+                <li>Nhập <strong>Comments</strong>: <em>Accrual of VND 5,000,000 for IT system maintenance services, pending supplier payment.</em></li>
+                <li>Nhấn <strong>Submit</strong> để ghi sổ cái và hệ thống chuyển sang màn hình <strong>a2f68debe1a7</strong> xem chi tiết hai bút toán đối ứng 57 và 58.</li>
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
             BÀI HỌC: FOUNDATION 1: USER & ROLES
             ========================================================== */}
         {activePartId === 'part-1' && (
@@ -1734,6 +2105,13 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
+                  onClick={() => setActivePartId('gl-part-6')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: Opening Balance Migration →
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (onResetFinancialActivities) {
                       onResetFinancialActivities();
@@ -1778,6 +2156,13 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
+                  onClick={() => setActivePartId('gl-part-7')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: Manual Journal Entries →
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (onResetOpeningBalances) {
                       onResetOpeningBalances();
@@ -1811,6 +2196,150 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu thực hành Opening Balance Migration
+              </button>
+            )
+          ) : activePartId === 'gl-part-7' ? (
+            isGlPart7Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                  <span>✓</span>
+                  <span>Đã hoàn thành xuất sắc Ghi nhận bút toán thủ công & Đối soát Journal Entries (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePartId('gl-part-8')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: Accounting Rules →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetManualJournal) {
+                      onResetManualJournal();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-7');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Manual Journal Entries
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetManualJournal) {
+                    onResetManualJournal();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-7');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Manual Journal Entries
+              </button>
+            )
+          ) : activePartId === 'gl-part-8' ? (
+            isGlPart8Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành xuất sắc Thiết lập Quy tắc định khoản Accounting Rules (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePartId('gl-part-9')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: Frequent Postings →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetAccountingRules) {
+                      onResetAccountingRules();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-8');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Accounting Rules
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetAccountingRules) {
+                    onResetAccountingRules();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-8');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Accounting Rules
+              </button>
+            )
+          ) : activePartId === 'gl-part-9' ? (
+            isGlPart9Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành xuất sắc Ghi nhận bút toán Frequent Postings (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetFrequentPostings) {
+                      onResetFrequentPostings();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-9');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Frequent Postings
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetFrequentPostings) {
+                    onResetFrequentPostings();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-9');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành Frequent Postings
               </button>
             )
           ) : activePartId === 'part-1' ? (
