@@ -27,7 +27,7 @@ export default function EduGuideDrawer({
   onResetAccountingRules,
   onResetFrequentPostings
 }) {
-  const [activePartId, setActivePartId] = useState('gl-part-8');
+  const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -294,14 +294,14 @@ export default function EduGuideDrawer({
                 );
               })}
 
-              {/* Foundation Setup */}
-              <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-b border-gray-100 my-1 bg-gray-50">
-                Foundation Setup (Thiết Lập Nền Tảng)
+              {/* User & Access Management (Không phải phân hệ) */}
+              <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1072ba] bg-sky-50/70 border-t border-b border-sky-100 my-1">
+                User & Access Management
               </div>
 
-              {EDU_MODULES.filter(m => m.moduleNumber === "00").map((item) => {
+              {EDU_MODULES.filter(m => m.moduleNumber === "user-access" || m.id === "part-1").map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = item.id === 'part-1' ? part1Progress : part2Progress;
+                const itemProgress = part1Progress;
 
                 return (
                   <div
@@ -317,7 +317,48 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        {item.id === 'part-1' ? 'Thiết lập Role & User ngân hàng' : 'Hội sở, Khu vực, Chi nhánh, PGD (TO)'}
+                        Thiết lập vai trò tác nghiệp (Roles) & nhân viên làm việc (Users)
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        itemProgress === 100 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : itemProgress > 0 
+                          ? 'bg-sky-100 text-[#1072ba]' 
+                          : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {itemProgress}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Organization Setup */}
+              <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-b border-gray-100 my-1 bg-gray-50">
+                Cơ Cấu Tổ Chức (Organization Setup)
+              </div>
+
+              {EDU_MODULES.filter(m => m.moduleNumber === "00" && m.id !== "part-1").map((item) => {
+                const isSelected = item.id === activePartId;
+                const itemProgress = part2Progress;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setActivePartId(item.id);
+                      setDropdownOpen(false);
+                    }}
+                    className={`px-3.5 py-2.5 flex items-center justify-between cursor-pointer transition-colors ${
+                      isSelected ? 'bg-sky-50 text-[#1072ba] font-semibold' : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <div className="pr-2 truncate">
+                      <div className="text-xs truncate font-medium">{item.name}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5 truncate">
+                        Hội sở, Khu vực, Chi nhánh, PGD (TO)
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -1821,13 +1862,14 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
-            BÀI HỌC: FOUNDATION 1: USER & ROLES
+            BÀI HỌC: USER & ACCESS MANAGEMENT (KHÔNG PHẢI PHÂN HỆ)
             ========================================================== */}
         {activePartId === 'part-1' && (
           <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Header thông tin bài học */}
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Foundation Setup
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                User & Access Management
               </span>
               <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
                 {currentModule.title}
@@ -1837,19 +1879,68 @@ export default function EduGuideDrawer({
               </p>
             </div>
 
-            <div className="space-y-3 text-xs text-gray-700 leading-relaxed">
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px]">
-                <div className="font-semibold text-gray-900">Bước 1: Thiết lập vai trò tác nghiệp (Roles)</div>
-                <p className="text-gray-600 mt-1">Truy cập Admin → System → Manage Roles and Permissions, nhấn Add Role để khởi tạo vai trò nghiệp vụ (VD: TKB_TELLER_CASHIER).</p>
+            {/* Khung lý thuyết nghiệp vụ */}
+            <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-2">
+              <h4 className="text-xs font-bold text-[#1072ba]">
+                Kiến thức cốt lõi: Quản trị người dùng & Phân quyền trong Ngân hàng
+              </h4>
+              <p className="text-xs text-gray-700 leading-relaxed">
+                Trong hệ thống Core Banking, phân quyền tác nghiệp và quản lý định danh người dùng là lớp bảo vệ tối quan trọng nhằm ngăn chặn rủi ro gian lận, xung đột lợi ích và đảm bảo tính toàn vẹn dữ liệu tài chính.
+              </p>
+              <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1.5 leading-relaxed">
+                <div>• <strong>Roles (Vai trò nghiệp vụ)</strong>: Đại diện cho chức danh và phạm vi quyền hạn trong ngân hàng (như Giao dịch viên - Teller, Kiểm soát viên - Checker, Cán bộ tín dụng - Loan Officer, Kế toán tổng hợp, Quản trị viên). Mỗi Role tập hợp danh mục các quyền hạn (Permissions) được phép thao tác.</div>
+                <div>• <strong>Permissions (Quyền hạn chi tiết)</strong>: Hệ thống Mifos quản lý chi tiết quyền theo từng phân hệ tác nghiệp (Read, Create, Update, Delete) cho các đối tượng Khách hàng, Tiền gửi, Tín dụng, Kế toán sổ cái...</div>
+                <div>• <strong>Users (Tài khoản người dùng)</strong>: Đại diện cho từng nhân sự cụ thể làm việc tại ngân hàng, được cấp Username định danh, gắn với Chi nhánh / Phòng giao dịch trực thuộc (Office) và được phân bổ các Roles tương ứng với công việc.</div>
+                <div>• <strong>Nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker)</strong>: Cán bộ khởi tạo giao dịch (Maker) không được phép tự phê duyệt giao dịch của chính mình; các nghiệp vụ tài chính phát sinh vượt hạn mức bắt buộc phải do một cán bộ độc lập có thẩm quyền (Checker) phê duyệt.</div>
               </div>
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px]">
-                <div className="font-semibold text-gray-900">Bước 2: Cấu hình phân quyền chi tiết (Permissions)</div>
-                <p className="text-gray-600 mt-1">Thiết lập quyền hạn cụ thể đảm bảo nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker).</p>
+            </div>
+
+            {/* Hai trụ cột thiết lập */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                Hai Trụ Cột Quản Trị Hệ Thống
+              </h4>
+
+              <div className="grid grid-cols-1 gap-2.5">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-xs text-gray-900">
+                    Trụ cột 1: Thiết lập vai trò tác nghiệp (Roles & Permissions)
+                  </div>
+                  <div className="text-[11px] text-gray-500">
+                    Đường dẫn: <strong>Admin → System → Manage Roles and Permissions</strong>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed pt-1">
+                    Nhấn <strong>+ Add Role</strong> để khởi tạo vai trò tác nghiệp mới. Sau đó cấu hình ma trận phân quyền chi tiết cho từng nhóm nghiệp vụ theo nguyên tắc đặc quyền tối thiểu (Least Privilege).
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-xs text-gray-900">
+                    Trụ cột 2: Khởi tạo tài khoản nhân viên (Users Management)
+                  </div>
+                  <div className="text-[11px] text-gray-500">
+                    Đường dẫn: <strong>Admin → Users → Manage Users</strong>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed pt-1">
+                    Nhấn <strong>+ Create User</strong> để cấp tài khoản cá nhân cho cán bộ nhân sự. Điền thông tin nhân viên, lựa chọn Office làm việc, gán các Roles phù hợp và thiết lập mật khẩu đăng nhập ban đầu.
+                  </p>
+                </div>
               </div>
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px]">
-                <div className="font-semibold text-gray-900">Bước 3: Khởi tạo tài khoản nhân viên (Users)</div>
-                <p className="text-gray-600 mt-1">Truy cập Admin → Users, nhấn Create User để tạo tài khoản nhân viên (VD: tkb.teller01) gắn với vai trò tương ứng.</p>
+            </div>
+
+            {/* Quy trình thực hành chuẩn bị */}
+            <div className="p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-[2px] space-y-2 text-xs text-amber-900">
+              <div className="font-bold text-amber-950">
+                Quy trình thực hành tổng quan:
               </div>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
+                <li>Truy cập <strong>Admin → System → Manage Roles and Permissions</strong>.</li>
+                <li>Nhấn <strong>+ Add Role</strong> để tạo vai trò tác nghiệp mới với tên và mô tả chức danh.</li>
+                <li>Cấu hình phân quyền chi tiết cho vai trò tác nghiệp.</li>
+                <li>Truy cập <strong>Admin → Users → Manage Users</strong>.</li>
+                <li>Nhấn <strong>+ Create User</strong> để tạo tài khoản nhân viên làm việc, gán văn phòng và vai trò tương ứng.</li>
+                <li>Kiểm tra trạng thái tài khoản kích hoạt thành công trên danh sách Users.</li>
+              </ol>
             </div>
           </div>
         )}
@@ -2307,6 +2398,13 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
+                  onClick={() => setActivePartId('part-1')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến phần kế tiếp: User & Access Management →
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (onResetFrequentPostings) {
                       onResetFrequentPostings();
@@ -2344,13 +2442,22 @@ export default function EduGuideDrawer({
             )
           ) : activePartId === 'part-1' ? (
             isPart1Complete ? (
-              <button
-                type="button"
-                onClick={() => setActivePartId('part-2')}
-                className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-              >
-                Đến bài học kế tiếp →
-              </button>
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành xuất sắc Thiết lập Quyền & Nhân viên làm việc (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onStartPractice) {
+                      onStartPractice('part-1');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại User & Access Management
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
@@ -2361,7 +2468,7 @@ export default function EduGuideDrawer({
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
-                Bắt đầu thực hành
+                Bắt đầu thực hành User & Access Management
               </button>
             )
           ) : (
