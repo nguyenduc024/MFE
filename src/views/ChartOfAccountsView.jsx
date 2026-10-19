@@ -88,6 +88,205 @@ export const ROOT_GL_HEADERS_SAMPLES = [
   }
 ];
 
+/**
+ * 5 Representative GL Level 2 Accounts across 5 categories with Parent linked to Level 1
+ */
+export const SAMPLE_GL_LEVEL_2 = [
+  {
+    step: 1,
+    type: 'ASSET',
+    name: 'CASH AND BANK BALANCES',
+    usage: 'HEADER',
+    glCode: '110000',
+    parentGlCode: '100000',
+    parentName: 'TOTAL ASSETS',
+    manualEntriesAllowed: false,
+    description: 'Groups cash holdings, vault and teller balances, and funds maintained with banks and settlement institutions.'
+  },
+  {
+    step: 2,
+    type: 'LIABILITY',
+    name: 'CUSTOMER DEPOSITS',
+    usage: 'HEADER',
+    glCode: '210000',
+    parentGlCode: '200000',
+    parentName: 'TOTAL LIABILITIES',
+    manualEntriesAllowed: false,
+    description: 'Groups customer savings, current and term deposits, and related interest payable obligations.'
+  },
+  {
+    step: 3,
+    type: 'EQUITY',
+    name: 'CAPITAL AND RESERVES',
+    usage: 'HEADER',
+    glCode: '310000',
+    parentGlCode: '300000',
+    parentName: 'TOTAL EQUITY',
+    manualEntriesAllowed: false,
+    description: 'Groups contributed capital, retained earnings, reserves, and accumulated financial results.'
+  },
+  {
+    step: 4,
+    type: 'INCOME',
+    name: 'INTEREST INCOME',
+    usage: 'HEADER',
+    glCode: '410000',
+    parentGlCode: '400000',
+    parentName: 'TOTAL INCOME',
+    manualEntriesAllowed: false,
+    description: 'Groups interest income earned from lending, interbank placements, and other interest-bearing assets.'
+  },
+  {
+    step: 5,
+    type: 'EXPENSE',
+    name: 'INTEREST EXPENSES',
+    usage: 'HEADER',
+    glCode: '510000',
+    parentGlCode: '500000',
+    parentName: 'TOTAL EXPENSES',
+    manualEntriesAllowed: false,
+    description: 'Groups interest expenses incurred on customer deposits and other funding sources.'
+  }
+];
+
+/**
+ * Full 11 GL Level 2 Accounts of Takashimaya Bank
+ */
+export const FULL_GL_LEVEL_2_ACCOUNTS = [
+  {
+    id: "6",
+    glCode: "110000",
+    name: "CASH AND BANK BALANCES",
+    typeId: "1",
+    typeName: "Asset",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "1",
+    parentGlCode: "100000",
+    description: "Groups cash holdings, vault and teller balances, and funds maintained with banks and settlement institutions."
+  },
+  {
+    id: "7",
+    glCode: "120000",
+    name: "LOAN ASSETS",
+    typeId: "1",
+    typeName: "Asset",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "1",
+    parentGlCode: "100000",
+    description: "Groups outstanding loan principal, accrued loan receivables, and related valuation allowances."
+  },
+  {
+    id: "8",
+    glCode: "130000",
+    name: "OTHER ASSETS",
+    typeId: "1",
+    typeName: "Asset",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "1",
+    parentGlCode: "100000",
+    description: "Groups clearing receivables, interbranch receivables, and other financial or operating assets."
+  },
+  {
+    id: "9",
+    glCode: "210000",
+    name: "CUSTOMER DEPOSITS",
+    typeId: "2",
+    typeName: "Liability",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "2",
+    parentGlCode: "200000",
+    description: "Groups customer savings, current and term deposits, and related interest payable obligations."
+  },
+  {
+    id: "10",
+    glCode: "220000",
+    name: "FUNDING AND CLEARING",
+    typeId: "2",
+    typeName: "Liability",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "2",
+    parentGlCode: "200000",
+    description: "Groups interbank funding liabilities, clearing payables, and other settlement obligations."
+  },
+  {
+    id: "11",
+    glCode: "310000",
+    name: "CAPITAL AND RESERVES",
+    typeId: "3",
+    typeName: "Equity",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "3",
+    parentGlCode: "300000",
+    description: "Groups contributed capital, retained earnings, reserves, and accumulated financial results."
+  },
+  {
+    id: "12",
+    glCode: "410000",
+    name: "INTEREST INCOME",
+    typeId: "4",
+    typeName: "Income",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "4",
+    parentGlCode: "400000",
+    description: "Groups interest income earned from lending, interbank placements, and other interest-bearing assets."
+  },
+  {
+    id: "13",
+    glCode: "420000",
+    name: "FEE AND OTHER INCOME",
+    typeId: "4",
+    typeName: "Income",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "4",
+    parentGlCode: "400000",
+    description: "Groups service fees, loan processing fees, penalties, and other non-interest income."
+  },
+  {
+    id: "14",
+    glCode: "510000",
+    name: "INTEREST EXPENSES",
+    typeId: "5",
+    typeName: "Expense",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "5",
+    parentGlCode: "500000",
+    description: "Groups interest expenses incurred on customer deposits and other funding sources."
+  },
+  {
+    id: "15",
+    glCode: "520000",
+    name: "CREDIT LOSS EXPENSES",
+    typeId: "5",
+    typeName: "Expense",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "5",
+    parentGlCode: "500000",
+    description: "Groups credit impairment charges, credit loss expenses, and related adjustments."
+  },
+  {
+    id: "16",
+    glCode: "530000",
+    name: "OPERATING EXPENSES",
+    typeId: "5",
+    typeName: "Expense",
+    usage: "Header",
+    manualEntriesAllowed: false,
+    parentId: "5",
+    parentGlCode: "500000",
+    description: "Groups personnel, administrative, technology, and other operating expenses."
+  }
+];
+
 export default function ChartOfAccountsView({ 
   glAccounts = [], 
   onAddAccount, 
@@ -115,12 +314,17 @@ export default function ChartOfAccountsView({
   useEffect(() => {
     const handleAutofillGl = (e) => {
       if (e.detail) {
+        let parentId = e.detail.parentId || '';
+        if (!parentId && e.detail.parentGlCode) {
+          const parentAcc = glAccounts.find(a => a.glCode === e.detail.parentGlCode);
+          if (parentAcc) parentId = parentAcc.id;
+        }
         setFormData({
           type: e.detail.type || 'ASSET',
           name: e.detail.name || '',
           usage: e.detail.usage || 'HEADER',
           glCode: e.detail.glCode || '',
-          parentId: e.detail.parentId || '',
+          parentId: parentId,
           tagId: e.detail.tagId || '',
           manualEntriesAllowed: Boolean(e.detail.manualEntriesAllowed),
           description: e.detail.description || ''

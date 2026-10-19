@@ -17,7 +17,11 @@ import TellersView from './views/TellersView';
 import UsersView from './views/UsersView';
 import RolesView from './views/RolesView';
 import AddRoleView from './views/AddRoleView';
-import ChartOfAccountsView from './views/ChartOfAccountsView';
+import ChartOfAccountsView, { 
+  ROOT_GL_HEADERS_SAMPLES, 
+  SAMPLE_GL_LEVEL_2, 
+  FULL_GL_LEVEL_2_ACCOUNTS 
+} from './views/ChartOfAccountsView';
 import AccountingView from './views/AccountingView';
 import CurrencyConfigView from './views/CurrencyConfigView';
 import AccountingRulesView from './views/AccountingRulesView';
@@ -528,6 +532,10 @@ export default function App() {
           const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
           setGlAccounts(prev => prev.filter(a => !rootCodes.includes(a.glCode)));
         }}
+        onResetGlLevel2={() => {
+          const level2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
+          setGlAccounts(prev => prev.filter(a => !level2Codes.includes(a.glCode)));
+        }}
         onStartPractice={(mod) => {
           setEduGuideOpen(false);
           const targetModule = mod || 'gl-part-2';
@@ -539,6 +547,24 @@ export default function App() {
           if (targetModule === 'gl-part-2') {
             const rootCodes = ['100000', '200000', '300000', '400000', '500000'];
             setGlAccounts(prev => prev.filter(a => !rootCodes.includes(a.glCode)));
+            setCurrentPath('home');
+          }
+          if (targetModule === 'gl-part-3') {
+            // Ensure 5 root headers exist
+            const missingRoots = ROOT_GL_HEADERS_SAMPLES.filter(r => !glAccounts.some(a => a.glCode === r.glCode)).map(r => ({
+              id: r.step === 1 ? "1" : r.step === 2 ? "2" : r.step === 3 ? "3" : r.step === 4 ? "4" : "5",
+              glCode: r.glCode,
+              name: r.name,
+              typeId: String(r.step),
+              typeName: r.type === 'ASSET' ? 'Asset' : r.type === 'LIABILITY' ? 'Liability' : r.type === 'EQUITY' ? 'Equity' : r.type === 'INCOME' ? 'Income' : 'Expense',
+              usage: 'Header',
+              manualEntriesAllowed: false,
+              parentId: null,
+              description: r.description
+            }));
+
+            const level2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
+            setGlAccounts(prev => [...missingRoots, ...prev.filter(a => !level2Codes.includes(a.glCode))]);
             setCurrentPath('home');
           }
           setPracticeActive(true);
@@ -575,6 +601,27 @@ export default function App() {
         }}
         onLoadAllCurrencies={() => {
           setCurrencies([...INITIAL_CONFIGURED_CURRENCIES]);
+        }}
+        onLoadAllGlLevel2={() => {
+          setGlAccounts(prev => {
+            const rootAsset = prev.find(a => a.glCode === '100000');
+            const rootLiability = prev.find(a => a.glCode === '200000');
+            const rootEquity = prev.find(a => a.glCode === '300000');
+            const rootIncome = prev.find(a => a.glCode === '400000');
+            const rootExpense = prev.find(a => a.glCode === '500000');
+
+            const existingCodes = new Set(prev.map(a => a.glCode));
+            const newItems = FULL_GL_LEVEL_2_ACCOUNTS.filter(a => !existingCodes.has(a.glCode)).map(item => {
+              let parentId = item.parentId;
+              if (item.typeName === 'Asset' && rootAsset) parentId = rootAsset.id;
+              if (item.typeName === 'Liability' && rootLiability) parentId = rootLiability.id;
+              if (item.typeName === 'Equity' && rootEquity) parentId = rootEquity.id;
+              if (item.typeName === 'Income' && rootIncome) parentId = rootIncome.id;
+              if (item.typeName === 'Expense' && rootExpense) parentId = rootExpense.id;
+              return { ...item, parentId };
+            });
+            return [...newItems, ...prev];
+          });
         }}
       />
     </div>

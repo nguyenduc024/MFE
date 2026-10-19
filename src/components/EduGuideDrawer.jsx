@@ -13,7 +13,8 @@ export default function EduGuideDrawer({
   currencies = [],
   glAccounts = [],
   onResetCurrencies,
-  onResetGlHeaders
+  onResetGlHeaders,
+  onResetGlLevel2
 }) {
   const [activePartId, setActivePartId] = useState('gl-part-2');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -52,6 +53,15 @@ export default function EduGuideDrawer({
       glAccounts.some(a => a.glCode === code && (a.usage || '').toLowerCase() === 'header')
     );
     return matched.length * 20;
+  };
+
+  // Tính toán tiến độ Phân hệ 01 - Phần 3: Thiết Lập GL Cấp 2 (11 tài khoản = 100%)
+  const calculateGlPart3Progress = () => {
+    const allLevel2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
+    const matched = allLevel2Codes.filter(code => 
+      glAccounts.some(a => a.glCode === code && (a.usage || '').toLowerCase() === 'header')
+    );
+    return Math.round((matched.length / allLevel2Codes.length) * 100);
   };
 
   // Tính toán tiến độ Foundation 1: User & Access Management (4 mốc x 25% = 100%)
@@ -97,16 +107,19 @@ export default function EduGuideDrawer({
   const currentModule = EDU_MODULES.find(m => m.id === activePartId) || EDU_MODULES[0];
   const glPart1Progress = calculateGlPart1Progress();
   const glPart2Progress = calculateGlPart2Progress();
+  const glPart3Progress = calculateGlPart3Progress();
   const part1Progress = calculatePart1Progress();
   const part2Progress = calculatePart2Progress();
   
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
     activePartId === 'gl-part-2' ? glPart2Progress :
+    activePartId === 'gl-part-3' ? glPart3Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
   const isGlPart2Complete = glPart2Progress === 100;
+  const isGlPart3Complete = glPart3Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -154,7 +167,9 @@ export default function EduGuideDrawer({
 
               {EDU_MODULES.filter(m => m.moduleNumber === "01").map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = item.id === 'gl-part-1' ? glPart1Progress : glPart2Progress;
+                const itemProgress = 
+                  item.id === 'gl-part-1' ? glPart1Progress : 
+                  item.id === 'gl-part-2' ? glPart2Progress : glPart3Progress;
 
                 return (
                   <div
@@ -170,7 +185,9 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        {item.id === 'gl-part-1' ? 'Cấu hình đơn vị tiền tệ VND, USD, JPY...' : 'Thiết lập 5 tài khoản GL Header cấp 1'}
+                        {item.id === 'gl-part-1' ? 'Cấu hình đơn vị tiền tệ VND, USD, JPY...' : 
+                         item.id === 'gl-part-2' ? 'Thiết lập 5 tài khoản GL Header cấp 1' :
+                         'Thiết lập 11 tài khoản GL Header cấp 2'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -594,6 +611,193 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 01 - PHẦN 3: GL CẤP 2 (CHART OF ACCOUNTS LEVEL 2)
+            ========================================================== */}
+        {activePartId === 'gl-part-3' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 01: Accounting / GL
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            {/* Tiến độ chi tiết 11 GL Cấp 2 */}
+            <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-[2px] space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gray-800">Tiến độ thiết lập 11 GL Cấp 2:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-[#1072ba]">{glPart3Progress}%</span>
+                  {glAccounts.some(a => ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'].includes(a.glCode)) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onResetGlLevel2) onResetGlLevel2();
+                      }}
+                      className="text-[10px] text-red-600 hover:text-red-700 font-medium underline cursor-pointer"
+                      title="Xoá các tài khoản GL Cấp 2 để thực hành lại"
+                    >
+                      Đặt lại
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1.5 text-[11px] max-h-60 overflow-y-auto pr-1">
+                {[
+                  { code: '110000', name: 'CASH AND BANK BALANCES', type: 'ASSET', parent: '100000' },
+                  { code: '120000', name: 'LOAN ASSETS', type: 'ASSET', parent: '100000' },
+                  { code: '130000', name: 'OTHER ASSETS', type: 'ASSET', parent: '100000' },
+                  { code: '210000', name: 'CUSTOMER DEPOSITS', type: 'LIABILITY', parent: '200000' },
+                  { code: '220000', name: 'FUNDING AND CLEARING', type: 'LIABILITY', parent: '200000' },
+                  { code: '310000', name: 'CAPITAL AND RESERVES', type: 'EQUITY', parent: '300000' },
+                  { code: '410000', name: 'INTEREST INCOME', type: 'INCOME', parent: '400000' },
+                  { code: '420000', name: 'FEE AND OTHER INCOME', type: 'INCOME', parent: '400000' },
+                  { code: '510000', name: 'INTEREST EXPENSES', type: 'EXPENSE', parent: '500000' },
+                  { code: '520000', name: 'CREDIT LOSS EXPENSES', type: 'EXPENSE', parent: '500000' },
+                  { code: '530000', name: 'OPERATING EXPENSES', type: 'EXPENSE', parent: '500000' },
+                ].map((item, idx) => {
+                  const isDone = glAccounts.some(a => a.glCode === item.code && (a.usage || '').toLowerCase() === 'header');
+                  return (
+                    <div key={item.code} className="flex items-center justify-between py-1 px-2 rounded bg-white border border-gray-100">
+                      <div className="flex items-center space-x-2 truncate pr-2">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                          isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
+                        }`}>
+                          {isDone ? '✓' : idx + 1}
+                        </span>
+                        <span className="font-mono font-bold text-gray-900 shrink-0">{item.code}</span>
+                        <span className="text-gray-700 truncate">{item.name}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">({item.type} ➔ {item.parent})</span>
+                      </div>
+                      <span className={`text-[10px] font-semibold shrink-0 ${isDone ? 'text-emerald-600' : 'text-gray-400'}`}>
+                        {isDone ? 'Đã tạo' : 'Chưa tạo'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quy trình thực hành */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Luồng thao tác thực hành chuẩn (4 Thao tác)
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-gray-700">
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span>Truy cập menu Accounting</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Nhấn vào tab <strong className="text-gray-900">Accounting</strong> trên thanh điều hướng chính ở đầu trang.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span>Chọn Chart of Accounts</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Trong bảng danh mục nghiệp vụ kế toán, nhấn vào mục <strong className="text-gray-900">Chart of Accounts</strong>.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
+                  <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                    <span>Nhấn nút + Add Account</span>
+                  </div>
+                  <p className="text-gray-600 pl-6">
+                    Ở góc trên bên phải màn hình Chart of Accounts, nhấn nút màu xanh <strong className="text-[#1072ba]">+ Add Account</strong> để mở biểu mẫu Create GL Account.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
+                  <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                    <span>Nhập 5 tài khoản GL Cấp 2 mẫu ở 5 nhóm và gắn Parent</span>
+                  </div>
+                  <p className="text-gray-700 pl-6 leading-relaxed">
+                    Bạn sẽ thực hành tạo 5 tài khoản GL Cấp 2 đại diện cho 5 nhóm tài khoản. Điểm mấu chốt: trường <strong className="text-gray-900">Parent</strong> phải được chọn đúng tài khoản Header Cấp 1 tương ứng (100000, 200000, 300000, 400000, 500000). Sau khi hoàn thành 5 tài khoản, bạn có thể nhập tự động toàn bộ 11 tài khoản vào hệ thống.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bảng đối chiếu 5 tài khoản mẫu đại diện */}
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                Bảng thông số 5 tài khoản GL Cấp 2 mẫu thực hành
+              </h4>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-[11px]">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                    <tr>
+                      <th className="py-1.5 px-2">Nhóm</th>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2">GL Code</th>
+                      <th className="py-1.5 px-2">Tên tài khoản</th>
+                      <th className="py-1.5 px-2">Parent Header</th>
+                      <th className="py-1.5 px-2">Usage</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 1</td>
+                      <td className="py-1.5 px-2">ASSET</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">110000</td>
+                      <td className="py-1.5 px-2">CASH AND BANK BALANCES</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">100000 TOTAL ASSETS</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 2</td>
+                      <td className="py-1.5 px-2">LIABILITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">210000</td>
+                      <td className="py-1.5 px-2">CUSTOMER DEPOSITS</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">200000 TOTAL LIABILITIES</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 3</td>
+                      <td className="py-1.5 px-2">EQUITY</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">310000</td>
+                      <td className="py-1.5 px-2">CAPITAL AND RESERVES</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">300000 TOTAL EQUITY</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 4</td>
+                      <td className="py-1.5 px-2">INCOME</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">410000</td>
+                      <td className="py-1.5 px-2">INTEREST INCOME</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">400000 TOTAL INCOME</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 5</td>
+                      <td className="py-1.5 px-2">EXPENSE</td>
+                      <td className="py-1.5 px-2 font-mono font-bold">510000</td>
+                      <td className="py-1.5 px-2">INTEREST EXPENSES</td>
+                      <td className="py-1.5 px-2 font-medium text-gray-900">500000 TOTAL EXPENSES</td>
+                      <td className="py-1.5 px-2 font-semibold">HEADER</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
             BÀI HỌC: FOUNDATION 1: USER & ROLES
             ========================================================== */}
         {activePartId === 'part-1' && (
@@ -729,6 +933,13 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
+                  onClick={() => setActivePartId('gl-part-3')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến bài học kế tiếp: GL Cấp 2 →
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     if (onResetGlHeaders) {
                       onResetGlHeaders();
@@ -762,6 +973,50 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu thực hành Phần 2 (5 GL Headers)
+              </button>
+            )
+          ) : activePartId === 'gl-part-3' ? (
+            isGlPart3Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
+                  <span>✓</span>
+                  <span>Đã thiết lập hoàn tất danh mục GL Cấp 2 (100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetGlLevel2) {
+                      onResetGlLevel2();
+                    }
+                    if (navigate) {
+                      navigate('home');
+                    }
+                    if (onStartPractice) {
+                      onStartPractice('gl-part-3');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại tạo GL Cấp 2
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onResetGlLevel2) {
+                    onResetGlLevel2();
+                  }
+                  if (navigate) {
+                    navigate('home');
+                  }
+                  if (onStartPractice) {
+                    onStartPractice('gl-part-3');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu thực hành GL Cấp 2 (5 nhóm)
               </button>
             )
           ) : activePartId === 'part-1' ? (

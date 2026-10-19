@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ROOT_GL_HEADERS_SAMPLES } from '../views/ChartOfAccountsView';
+import { ROOT_GL_HEADERS_SAMPLES, SAMPLE_GL_LEVEL_2, FULL_GL_LEVEL_2_ACCOUNTS } from '../views/ChartOfAccountsView';
 
 /**
  * PracticeSpotlightTour - Guided interactive walkthrough for:
@@ -7,6 +7,7 @@ import { ROOT_GL_HEADERS_SAMPLES } from '../views/ChartOfAccountsView';
  * 2. Foundation: 4-Tier Organization (HO, Region, Branch, TO)
  * 3. GL Part 1: Currency Configuration (VND & 5 Database Currencies)
  * 4. GL Part 2: 5 Root GL Headers (100000 TOTAL ASSETS -> 500000 TOTAL EXPENSES)
+ * 5. GL Part 3: GL Level 2 Headers across 5 categories
  */
 export default function PracticeSpotlightTour({
   isActive,
@@ -23,7 +24,8 @@ export default function PracticeSpotlightTour({
   onLoadAllUsers,
   onLoadAllOffices,
   onLoadRegionalOffices,
-  onLoadAllCurrencies
+  onLoadAllCurrencies,
+  onLoadAllGlLevel2
 }) {
   const [targetRect, setTargetRect] = useState(null);
   const [roleCreated, setRoleCreated] = useState(false);
@@ -47,13 +49,22 @@ export default function PracticeSpotlightTour({
   const [lastHeaderCreated, setLastHeaderCreated] = useState(null);
   const prevGlAccountsRef = useRef(glAccounts);
 
+  // GL Part 3 state (GL Level 2 Headers)
+  const [glLevel2Popup, setGlLevel2Popup] = useState(null); // null, 'sample-created', 'samples-completed', 'all-imported'
+  const [glLevel2Imported, setGlLevel2Imported] = useState(false);
+  const [lastLevel2Created, setLastLevel2Created] = useState(null);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'gl-part-2') {
+      if (module === 'gl-part-3') {
+        setGlLevel2Popup(null);
+        setGlLevel2Imported(false);
+        prevGlAccountsRef.current = glAccounts;
+      } else if (module === 'gl-part-2') {
         setGlPopup(null);
         prevGlAccountsRef.current = glAccounts;
       } else if (module === 'gl-part-1') {
@@ -103,6 +114,34 @@ export default function PracticeSpotlightTour({
       prevGlAccountsRef.current = glAccounts;
     }
   }, [glAccounts, isActive, module, glPopup]);
+
+  // Track if GL Level 2 Headers were submitted / created (GL Part 3)
+  useEffect(() => {
+    if (isActive && module === 'gl-part-3') {
+      if (glAccounts.length > prevGlAccountsRef.current.length) {
+        const level2SampleCodes = ['110000', '210000', '310000', '410000', '510000'];
+        const newlyAdded = glAccounts[0];
+        prevGlAccountsRef.current = glAccounts;
+
+        if (newlyAdded && level2SampleCodes.includes(newlyAdded.glCode) && !glLevel2Popup) {
+          setLastLevel2Created(newlyAdded);
+          const completedCount = level2SampleCodes.filter(c => 
+            glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header')
+          ).length;
+
+          if (completedCount >= 5) {
+            setGlLevel2Popup('samples-completed');
+          } else {
+            setGlLevel2Popup('sample-created');
+          }
+        }
+      } else {
+        prevGlAccountsRef.current = glAccounts;
+      }
+    } else {
+      prevGlAccountsRef.current = glAccounts;
+    }
+  }, [glAccounts, isActive, module, glLevel2Popup]);
 
   // Track if currencies were submitted / added (GL Part 1)
   useEffect(() => {
@@ -183,13 +222,64 @@ export default function PracticeSpotlightTour({
   const isGlFormOpen = Boolean(submitGlBtn);
   const isGlFormFilled = Boolean(submitGlBtn && !submitGlBtn.disabled);
 
+  // Check form status for GL Level 2 Accounts (GL Part 3)
+  const level2SampleCodes = ['110000', '210000', '310000', '410000', '510000'];
+  const allLevel2Codes = ['110000', '120000', '130000', '210000', '220000', '310000', '410000', '420000', '510000', '520000', '530000'];
+  const level2CompletedSampleCodes = level2SampleCodes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header'));
+  const nextLevel2Sample = SAMPLE_GL_LEVEL_2.find(s => !level2CompletedSampleCodes.includes(s.glCode)) || SAMPLE_GL_LEVEL_2[0];
+  const totalLevel2Created = allLevel2Codes.filter(c => glAccounts.some(a => a.glCode === c && (a.usage || '').toLowerCase() === 'header')).length;
+
   // Determine active step & target element
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'gl-part-2') {
+  if (module === 'gl-part-3') {
+    if (glLevel2Popup) {
+      targetSelector = null;
+    } else if (currentPath === 'accounting-coa') {
+      if (isGlFormOpen) {
+        if (isGlFormFilled) {
+          currentStep = 5;
+          targetSelector = '#tour-submit-gl-btn';
+          stepTitle = `Bước 5: Nhấn Submit để lưu GL Cấp 2 (${nextLevel2Sample.glCode})`;
+          stepInstruction = `Thông tin tài khoản GL Cấp 2 ${nextLevel2Sample.name} (${nextLevel2Sample.glCode}) thuộc ${nextLevel2Sample.type} (Parent: ${nextLevel2Sample.parentName}) đã hợp lệ. Nhấn nút Submit để lưu vào cây tài khoản!`;
+        } else {
+          currentStep = 4;
+          targetSelector = '#tour-gl-create-card';
+          stepTitle = `Bước 4: Nhập tài khoản GL Cấp 2 (${level2CompletedSampleCodes.length + 1}/5)`;
+          stepInstruction = `Biểu mẫu Create GL Account đã mở. Xem thông tin GL Cấp 2 ${level2CompletedSampleCodes.length + 1}/5: ${nextLevel2Sample.name} (${nextLevel2Sample.glCode}) và bấm "Nhập dữ liệu mẫu" bên trái để điền tự động.`;
+        }
+      } else {
+        if (level2CompletedSampleCodes.length >= 5 || totalLevel2Created >= 11) {
+          currentStep = 6;
+          targetSelector = null;
+          stepTitle = totalLevel2Created >= 11 
+            ? 'Hoàn thành 100% GL Cấp 2!' 
+            : 'Đã hoàn thành 5 GL Cấp 2 mẫu!';
+          stepInstruction = totalLevel2Created >= 11
+            ? 'Bạn đã thiết lập toàn bộ 11 tài khoản GL Cấp 2 trong hệ thống. Nhấn nút "Hoàn thành phần thực hành" bên dưới để kết thúc.'
+            : 'Bạn đã tạo xong 5 tài khoản GL Cấp 2 thuộc 5 nhóm tài khoản. Bạn có thể nạp toàn bộ 11 tài khoản hoặc nhấn "Hoàn thành phần thực hành" bên dưới.';
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-btn-add-account';
+          stepTitle = `Bước 3: Nhấn + Add Account (${level2CompletedSampleCodes.length + 1}/5)`;
+          stepInstruction = `Nhấn nút + Add Account ở góc phải trên để tạo tài khoản GL Cấp 2 tiếp theo: ${nextLevel2Sample.name} (${nextLevel2Sample.glCode}) thuộc nhóm ${nextLevel2Sample.type}.`;
+        }
+      }
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      targetSelector = '#tour-coa-tile';
+      stepTitle = 'Bước 2 / 5: Chọn Chart of Accounts';
+      stepInstruction = 'Bấm vào mục Chart of Accounts để mở danh mục cây tài khoản kế toán của ngân hàng.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 5: Vào phân hệ Accounting';
+      stepInstruction = 'Bấm vào menu Accounting trên thanh điều hướng ở đầu trang.';
+    }
+  } else if (module === 'gl-part-2') {
     if (glPopup) {
       targetSelector = null;
     } else if (currentPath === 'accounting-coa') {
@@ -569,14 +659,159 @@ export default function PracticeSpotlightTour({
             </div>
             <div className="pt-2 flex items-center justify-end space-x-3">
               <button
+                type="button"
                 onClick={() => {
                   setGlPopup(null);
                   onClose();
                   if (navigate) navigate('accounting-coa');
                 }}
-                className="py-2 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                className="py-2.5 px-5 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Xem danh sách Chart of Accounts (100%)
+                Hoàn thành phần thực hành
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Pop-up modals for GL Part 3: GL Level 2 Flow
+  if (module === 'gl-part-3' && glLevel2Popup) {
+    if (glLevel2Popup === 'sample-created') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-md w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Tiến độ: {level2CompletedSampleCodes.length}/5 GL Cấp 2 mẫu
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Tạo thành công GL Cấp 2: {lastLevel2Created?.name || 'Tài khoản'} ({lastLevel2Created?.glCode})!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Tài khoản GL Cấp 2 <strong className="text-gray-900">{lastLevel2Created?.name}</strong> đã được lưu thành công vào cây tài khoản dưới tài khoản Header cha tương ứng.
+            </p>
+            {nextLevel2Sample && (
+              <div className="py-2.5 px-3 bg-sky-50 border-l-2 border-[#1072ba] text-xs text-sky-900">
+                <strong>Thao tác tiếp theo ({level2CompletedSampleCodes.length + 1}/5):</strong> Nhấn nút <strong>+ Add Account</strong> để tạo tiếp tài khoản <strong>{nextLevel2Sample.name} ({nextLevel2Sample.glCode})</strong> thuộc nhóm <strong>{nextLevel2Sample.type}</strong> (Parent: <strong>{nextLevel2Sample.parentName}</strong>).
+              </div>
+            )}
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setGlLevel2Popup(null);
+                  if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Tiếp tục tạo GL Cấp 2 tiếp theo
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (glLevel2Popup === 'samples-completed') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+              Hoàn thành 5/5 GL Cấp 2 đại diện
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Đã tạo thành công 5 GL Cấp 2 ở 5 nhóm khác nhau!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Bạn đã thành thạo quy trình khai báo tài khoản GL Cấp 2 và liên kết chính xác Parent Header theo từng nhóm tài khoản:
+            </p>
+            <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
+              <div className="flex items-center justify-between font-mono">
+                <span>[1] 110000 CASH AND BANK BALANCES (➔ 100000)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>[2] 210000 CUSTOMER DEPOSITS (➔ 200000)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">LIABILITY - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>[3] 310000 CAPITAL AND RESERVES (➔ 300000)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">EQUITY - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>[4] 410000 INTEREST INCOME (➔ 400000)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">INCOME - Đạt</span>
+              </div>
+              <div className="flex items-center justify-between font-mono">
+                <span>[5] 510000 INTEREST EXPENSES (➔ 500000)</span>
+                <span className="text-[11px] text-emerald-700 font-semibold font-sans">EXPENSE - Đạt</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Bây giờ, bạn có thể nạp toàn bộ danh mục 11 tài khoản GL Cấp 2 chuẩn vào cơ sở dữ liệu để hoàn thành phân hệ.
+            </p>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setGlLevel2Popup(null);
+                  onClose();
+                  if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-[2px] transition-colors cursor-pointer"
+              >
+                Hoàn thành phần thực hành
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onLoadAllGlLevel2) {
+                    onLoadAllGlLevel2();
+                  }
+                  setGlLevel2Imported(true);
+                  setGlLevel2Popup('all-imported');
+                }}
+                className="py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Nhập toàn bộ danh sách GL Cấp 2 vào database
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (glLevel2Popup === 'all-imported') {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Hoàn thành xuất sắc Phân hệ 01 - Phần 3
+            </div>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">
+              Đã nhập toàn bộ 11 tài khoản GL Cấp 2 vào database!
+            </h3>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Cây tài khoản kế toán của ngân hàng Takashimaya Bank đã được thiết lập đầy đủ 11 tài khoản GL Cấp 2 thuộc cả 5 nhóm tài khoản:
+            </p>
+            <div className="space-y-1 text-[11px] text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 max-h-52 overflow-y-auto font-mono">
+              <div>ASSET: 110000 CASH AND BANK BALANCES, 120000 LOAN ASSETS, 130000 OTHER ASSETS</div>
+              <div>LIABILITY: 210000 CUSTOMER DEPOSITS, 220000 FUNDING AND CLEARING</div>
+              <div>EQUITY: 310000 CAPITAL AND RESERVES</div>
+              <div>INCOME: 410000 INTEREST INCOME, 420000 FEE AND OTHER INCOME</div>
+              <div>EXPENSE: 510000 INTEREST EXPENSES, 520000 CREDIT LOSS EXPENSES, 530000 OPERATING EXPENSES</div>
+            </div>
+            <div className="pt-2 flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setGlLevel2Popup(null);
+                  onClose();
+                  if (navigate) navigate('accounting-coa');
+                }}
+                className="py-2.5 px-5 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Hoàn thành phần thực hành
               </button>
             </div>
           </div>
@@ -1256,6 +1491,108 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Quick autofill suggestion popup card for GL Level 2 creation (GL Part 3) */}
+        {module === 'gl-part-3' && isGlFormOpen && !isGlFormFilled && (
+          <div className="p-3 bg-slate-50 border border-slate-300 rounded-[2px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
+            <div className="text-gray-900 font-bold text-xs border-b border-gray-200 pb-1">
+              Nhập dữ liệu mẫu GL Cấp 2 ({level2CompletedSampleCodes.length + 1}/5): {nextLevel2Sample.name}
+            </div>
+            <div className="text-[11px] text-gray-700 space-y-1 bg-white p-2.5 rounded border border-gray-200 font-mono">
+              <div>Account Type: <strong className="text-gray-900">{nextLevel2Sample.type}</strong></div>
+              <div>GL Code: <strong className="text-gray-900">{nextLevel2Sample.glCode}</strong></div>
+              <div>Account Name: <strong className="text-gray-900">{nextLevel2Sample.name}</strong></div>
+              <div>Parent: <strong className="text-gray-900">{nextLevel2Sample.parentGlCode} - {nextLevel2Sample.parentName}</strong></div>
+              <div>Account Usage: <strong className="text-gray-900">{nextLevel2Sample.usage}</strong></div>
+              <div>Manual Entries Allowed: <strong className="text-gray-900">Không chọn (Unchecked)</strong></div>
+              <div className="text-gray-500 font-sans text-[10px] pt-0.5">{nextLevel2Sample.description}</div>
+            </div>
+            <p className="text-[11px] text-gray-600 leading-relaxed">
+              Nhấn nút bên dưới để tự động điền toàn bộ thông tin chuẩn cho GL Cấp 2 {nextLevel2Sample.name} ({nextLevel2Sample.glCode}):
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const parentAcc = glAccounts.find(a => a.glCode === nextLevel2Sample.parentGlCode);
+                window.dispatchEvent(new CustomEvent('practice-autofill-gl', {
+                  detail: {
+                    ...nextLevel2Sample,
+                    parentId: parentAcc ? parentAcc.id : ''
+                  }
+                }));
+              }}
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
+            >
+              <span>Nhập dữ liệu mẫu ({nextLevel2Sample.name} - {nextLevel2Sample.glCode})</span>
+            </button>
+          </div>
+        )}
+
+        {/* Completion action buttons in tooltip card for GL Part 3 (GL Level 2) */}
+        {module === 'gl-part-3' && (level2CompletedSampleCodes.length >= 5 || totalLevel2Created >= 11) && !isGlFormOpen && (
+          <div className="pt-2 space-y-2 border-t border-gray-100">
+            {totalLevel2Created < 11 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onLoadAllGlLevel2) {
+                    onLoadAllGlLevel2();
+                  }
+                  setGlLevel2Imported(true);
+                  setGlLevel2Popup('all-imported');
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Nhập toàn bộ danh sách GL Cấp 2 vào database (11 tài khoản)
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setGlLevel2Popup(null);
+                onClose();
+                if (navigate) navigate('accounting-coa');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
+        {/* Completion action button in tooltip card for GL Part 2 (5 Headers) */}
+        {module === 'gl-part-2' && glCompletedCodes.length >= 5 && !isGlFormOpen && (
+          <div className="pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setGlPopup(null);
+                onClose();
+                if (navigate) navigate('accounting-coa');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
+        {/* Completion action button in tooltip card for GL Part 1 (Currencies) */}
+        {module === 'gl-part-1' && currencies.length >= 5 && (
+          <div className="pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setCurrencyPopup(false);
+                onClose();
+                if (navigate) navigate('admin-currency-config');
+              }}
+              className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Hoàn thành phần thực hành
+            </button>
+          </div>
+        )}
+
         {/* Quick autofill suggestion button for Role creation (Part 1) */}
         {module === 'part-1' && currentStep === 5 && (
           <div className="pt-1 flex items-center justify-between">
@@ -1340,7 +1677,11 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(currentStep === 5 && !isRoleFormFilled) || (currentStep === 8 && !isUserFormFilled)
+            {(module === 'gl-part-3' && (level2CompletedSampleCodes.length >= 5 || totalLevel2Created >= 11)) ||
+             (module === 'gl-part-2' && glCompletedCodes.length >= 5) ||
+             (module === 'gl-part-1' && currencies.length >= 5)
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (currentStep === 5 && !isRoleFormFilled) || (currentStep === 8 && !isUserFormFilled)
               ? 'Nhập vào ô phía trên hoặc chọn điền nhanh' 
               : 'Nhấn trực tiếp vào vùng phát sáng để tiếp tục'}
           </span>
