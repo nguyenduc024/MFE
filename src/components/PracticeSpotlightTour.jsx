@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { ROOT_GL_HEADERS_SAMPLES, SAMPLE_GL_LEVEL_2, FULL_GL_LEVEL_2_ACCOUNTS, SAMPLE_GL_DETAILS } from '../views/ChartOfAccountsView';
 import { SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS } from '../views/FinancialActivityMappingsView';
 import { ALL_REMAINING_ROLES, BANK_DEPARTMENTS_CONFIG, ALL_DEMO_ROLES } from '../data/mifosPermissions';
@@ -418,37 +419,37 @@ export default function PracticeSpotlightTour({
         targetSelector = '#tour-casa-form-accounting';
         stepTitle = 'Bước 7 / 8: Cấu hình Liên kết kế toán (ACCOUNTING)';
         stepSubtitle = 'Hạch toán theo phương pháp Cash: Ghi nhận đối ứng tài sản thanh toán và nghĩa vụ nợ đối với tiền gửi của khách hàng.';
-        stepInstruction = 'Chọn Cash, sau đó liên kết 9 tài khoản Sổ cái (GL Accounts): Nợ TK 110201 Settlement Bank Account và Có TK 210102 Current Account Deposits. Bấm "Điền mẫu Accounting (Cash) ➔" bên dưới để tự động điền đầy đủ theo chuẩn thiết kế!';
+        stepInstruction = 'Chọn Cash, sau đó liên kết 9 tài khoản Sổ cái (GL Accounts): Nợ TK 110201 Settlement Bank Account và Có TK 210102 Current Account Deposits. Bấm "Điền mẫu Accounting (Cash)" bên dưới để tự động điền đầy đủ theo chuẩn thiết kế!';
       } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-charges')) {
         currentStep = 6;
         targetSelector = '#tour-casa-form-charges';
         stepTitle = 'Bước 6 / 8: Cấu hình Biểu phí dịch vụ (CHARGES)';
         stepSubtitle = 'Tùy chọn gán các khoản phí dịch vụ, duy trì định kỳ. Sản phẩm CASA cơ bản này mở miễn phí.';
-        stepInstruction = 'Sản phẩm CASA cơ bản chưa áp dụng phí định kỳ bắt buộc. Bấm nút "Next ➔" ở bên dưới để chuyển tiếp sang Tab ACCOUNTING.';
+        stepInstruction = 'Sản phẩm CASA cơ bản chưa áp dụng phí định kỳ bắt buộc. Bấm nút "Next" ở bên dưới để chuyển tiếp sang Tab ACCOUNTING.';
       } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-settings')) {
         currentStep = 5;
         targetSelector = '#tour-casa-form-settings';
         stepTitle = 'Bước 5 / 8: Cấu hình Quy tắc hoạt động (SETTINGS)';
         stepSubtitle = 'Tài khoản CASA mở tự do không yêu cầu số dư tối thiểu ban đầu (0 VND) và không kích hoạt hạn mức thấu chi.';
-        stepInstruction = 'Cấu hình Minimum Opening Balance: 0 VND, để trống Lock-in Period và không kích hoạt Overdraft. Bấm "Điền mẫu Settings ➔" bên dưới để hoàn thành nhanh.';
+        stepInstruction = 'Cấu hình Minimum Opening Balance: 0 VND, để trống Lock-in Period và không kích hoạt Overdraft. Bấm "Điền mẫu Settings" bên dưới để hoàn thành nhanh.';
       } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-terms')) {
         currentStep = 4;
         targetSelector = '#tour-casa-form-terms';
         stepTitle = 'Bước 4 / 8: Thiết lập Điều khoản tính lãi (TERMS)';
         stepSubtitle = 'Tài khoản thanh toán lãi suất 0%, chu kỳ tính dồn theo số dư cuối ngày (Daily Balance) trên chuẩn 365 ngày/năm.';
-        stepInstruction = 'Cấu hình Nominal Annual Interest: 0%, Compounding Period: Daily, Posting Period: Monthly, Calculated using: Daily Balance, Days in Year: 365 Days. Bấm "Điền mẫu Terms ➔" bên dưới để hoàn thành và mở khóa Tab PREVIEW!';
+        stepInstruction = 'Cấu hình Nominal Annual Interest: 0%, Compounding Period: Daily, Posting Period: Monthly, Calculated using: Daily Balance, Days in Year: 365 Days. Bấm "Điền mẫu Terms" bên dưới để hoàn thành và mở khóa Tab PREVIEW!';
       } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-currency')) {
         currentStep = 3;
         targetSelector = '#tour-casa-form-currency';
         stepTitle = 'Bước 3 / 8: Thiết lập Loại tiền tệ (CURRENCY)';
         stepSubtitle = 'Đồng Việt Nam (VND) không dùng số thập phân hào/xu lẻ (Decimal = 0) và làm tròn theo bội số 1 VND.';
-        stepInstruction = 'Chọn Currency: Vietnamese Dong (VND), Decimal Places: 0, Currency in multiples of: 1. Bấm "Điền mẫu Currency ➔" bên dưới để tiếp tục sang Tab TERMS.';
+        stepInstruction = 'Chọn Currency: Vietnamese Dong (VND), Decimal Places: 0, Currency in multiples of: 1. Bấm "Điền mẫu Currency" bên dưới để tiếp tục sang Tab TERMS.';
       } else {
         currentStep = 2;
         targetSelector = '#tour-casa-form-details';
         stepTitle = 'Bước 2 / 8: Nhập Thông tin chung sản phẩm (DETAILS)';
         stepSubtitle = 'Tiền gửi không kỳ hạn phục vụ thanh toán (CASA), nhận diện bằng tên "TKB Current Account" và mã định danh "TKCA".';
-        stepInstruction = 'Nhập Product Name: "TKB Current Account", Short Name: "TKCA", Description: "Basic VND CASA Product · Demo". Bấm "Điền mẫu Details ➔" bên dưới để điền nhanh và chuyển sang Tab CURRENCY.';
+        stepInstruction = 'Nhập Product Name: "TKB Current Account", Short Name: "TKCA", Description: "Basic VND CASA Product · Demo". Bấm "Điền mẫu Details" bên dưới để điền nhanh và chuyển sang Tab CURRENCY.';
       }
     } else if (currentPath === 'admin-savings-products') {
       if (hasTkcaCreated) {
@@ -473,7 +474,7 @@ export default function PracticeSpotlightTour({
     } else {
       currentStep = 1;
       targetSelector = '#tour-admin-products';
-      stepTitle = 'Bước 1 / 8: Vào menu Admin ➔ Products';
+      stepTitle = 'Bước 1 / 8: Vào menu Admin > Products';
       stepSubtitle = 'Truy cập trung tâm quản trị cấu hình sản phẩm nghiệp vụ ngân hàng.';
       stepInstruction = 'Di chuột hoặc bấm vào menu Admin trên thanh điều hướng, sau đó chọn mục "Products".';
     }
@@ -488,7 +489,7 @@ export default function PracticeSpotlightTour({
         currentStep = 3;
         targetSelector = '#tour-frequent-office-select';
         stepTitle = 'Bước 3 / 6: Chọn Office (Takashimaya Bank HO)';
-        stepInstruction = 'Chọn văn phòng phát sinh chi phí: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở TKB - HO ➔" bên dưới để điền nhanh.';
+        stepInstruction = 'Chọn văn phòng phát sinh chi phí: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở TKB - HO" bên dưới để điền nhanh.';
       } else if (frequentSubStep === 'rule') {
         currentStep = 3;
         targetSelector = '#tour-frequent-rule-select';
@@ -498,7 +499,7 @@ export default function PracticeSpotlightTour({
         currentStep = 3;
         targetSelector = '#tour-frequent-currency-select';
         stepTitle = 'Bước 3 / 6: Chọn Currency (Vietnamese Dong [VND])';
-        stepInstruction = 'Chọn loại tiền tệ giao dịch: "Vietnamese Dong [VND]". Bấm "Chọn VND ➔" bên dưới để tiếp tục.';
+        stepInstruction = 'Chọn loại tiền tệ giao dịch: "Vietnamese Dong [VND]". Bấm "Chọn VND" bên dưới để tiếp tục.';
       } else if (frequentSubStep === 'debit') {
         currentStep = 4;
         targetSelector = '#tour-frequent-debit-amount';
@@ -547,12 +548,12 @@ export default function PracticeSpotlightTour({
         currentStep = 4;
         targetSelector = '#tour-rule-name-input';
         stepTitle = 'Bước 4 / 7: Nhập Accounting Rule Name';
-        stepInstruction = 'Nhập tên quy tắc: "Operating Expense Accrual". Bấm "Điền tên quy tắc ➔" bên dưới để điền nhanh.';
+        stepInstruction = 'Nhập tên quy tắc: "Operating Expense Accrual". Bấm "Điền tên quy tắc" bên dưới để điền nhanh.';
       } else if (ruleSubStep === 'office') {
         currentStep = 4;
         targetSelector = '#tour-rule-office-select';
         stepTitle = 'Bước 4 / 7: Chọn Office áp dụng (TKB - HO)';
-        stepInstruction = 'Chọn văn phòng/hội sở áp dụng quy tắc: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở ➔" bên dưới.';
+        stepInstruction = 'Chọn văn phòng/hội sở áp dụng quy tắc: "Takashimaya Bank (TKB) - HO". Bấm "Chọn Hội sở" bên dưới.';
       } else if (ruleSubStep === 'debit') {
         currentStep = 5;
         targetSelector = '#tour-rule-debit-account-select';
@@ -599,12 +600,12 @@ export default function PracticeSpotlightTour({
           currentStep = 3;
           targetSelector = '#tour-manual-office-select';
           stepTitle = 'Bước 3 / 8: Chọn Office (Hội sở chính HO)';
-          stepInstruction = 'Chọn văn phòng phát sinh chi phí: Takashimaya Bank (TKB) - HO (Hội sở chính). Bấm "Chọn Hội sở (TKB - HO) ➔" bên dưới để điền nhanh.';
+          stepInstruction = 'Chọn văn phòng phát sinh chi phí: Takashimaya Bank (TKB) - HO (Hội sở chính). Bấm "Chọn Hội sở (TKB - HO)" bên dưới để điền nhanh.';
         } else if (manualJournalSubStep === 'currency') {
           currentStep = 4;
           targetSelector = '#tour-manual-currency-select';
           stepTitle = 'Bước 4 / 8: Chọn Currency (Vietnamese Dong [VND])';
-          stepInstruction = 'Chọn loại tiền tệ giao dịch: Vietnamese Dong [VND]. Bấm "Chọn VND ➔" bên dưới để tiếp tục.';
+          stepInstruction = 'Chọn loại tiền tệ giao dịch: Vietnamese Dong [VND]. Bấm "Chọn VND" bên dưới để tiếp tục.';
         } else if (manualJournalSubStep === 'debit-gl') {
           currentStep = 5;
           targetSelector = '#tour-manual-debit-gl';
@@ -1382,7 +1383,7 @@ export default function PracticeSpotlightTour({
           </div>
 
           <p className="text-xs text-gray-600 leading-relaxed">
-            Bạn đã hoàn thành xuất sắc luồng thiết lập phân quyền thực tế: <strong className="text-gray-900">Vào Roles & Permissions ➔ Chọn Role ➔ Nhấn Edit Role ➔ Vào các tab tick chọn permissions ➔ Nhấn Submit</strong>.
+            Bạn đã hoàn thành xuất sắc luồng thiết lập phân quyền thực tế: <strong className="text-gray-900">Vào Roles & Permissions &gt; Chọn Role &gt; Nhấn Edit Role &gt; Vào các tab tick chọn permissions &gt; Nhấn Submit</strong>.
           </p>
 
           {/* Section: Danh sách quyền của các Role còn lại theo 8 phòng ban */}
@@ -1463,8 +1464,7 @@ export default function PracticeSpotlightTour({
                   Tự động nạp vào Database
                 </button>
               ) : (
-                <div className="flex items-center space-x-1.5 text-emerald-700 font-bold text-xs bg-emerald-100 px-3 py-1.5 rounded-[2px]">
-                  <span>✓</span>
+                <div className="flex items-center text-emerald-700 font-bold text-xs bg-emerald-100 px-3 py-1.5 rounded-[2px]">
                   <span>Đã nạp toàn bộ quyền vào Database</span>
                 </div>
               )}
@@ -1601,7 +1601,7 @@ export default function PracticeSpotlightTour({
               Tiến độ: {completedActivityCodes.length}/6 liên kết Financial Activities
             </div>
             <h3 className="text-base font-bold text-gray-900 leading-snug">
-              Liên kết thành công: {lastMappingCreated?.activityName || 'Hoạt động'} ({lastMappingCreated?.activityCode}) ➔ {lastMappingCreated?.accountCode} - {lastMappingCreated?.accountName}!
+              Liên kết thành công: {lastMappingCreated?.activityName || 'Hoạt động'} ({lastMappingCreated?.activityCode}) sang {lastMappingCreated?.accountCode} - {lastMappingCreated?.accountName}!
             </h3>
             <p className="text-xs text-gray-600 leading-relaxed">
               Hoạt động tài chính <strong className="text-gray-900">{lastMappingCreated?.activityName}</strong> đã được liên kết chính xác tới tài khoản kế toán chi tiết <strong className="text-[#1072ba]">{lastMappingCreated?.accountCode} - {lastMappingCreated?.accountName}</strong> ({lastMappingCreated?.accountType}).
@@ -1642,27 +1642,27 @@ export default function PracticeSpotlightTour({
             </p>
             <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200 font-mono">
               <div className="flex items-center justify-between">
-                <span>[1] (300) Opening Balances Transfer Contra ➔ 310199</span>
+                <span>[1] (300) Opening Balances Transfer Contra: TK 310199</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">EQUITY - Đạt</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>[2] (101) Cash At Main Vault ➔ 110101</span>
+                <span>[2] (101) Cash At Main Vault: TK 110101</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>[3] (102) Cash At Teller ➔ 110102</span>
+                <span>[3] (102) Cash At Teller: TK 110102</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>[4] (103) Fund Source ➔ 110201</span>
+                <span>[4] (103) Fund Source: TK 110201</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>[5] (100) Asset Transfer ➔ 130101</span>
+                <span>[5] (100) Asset Transfer: TK 130101</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>[6] (200) Liability Transfer ➔ 220201</span>
+                <span>[6] (200) Liability Transfer: TK 220201</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">LIABILITY - Đạt</span>
               </div>
             </div>
@@ -1736,23 +1736,23 @@ export default function PracticeSpotlightTour({
             </p>
             <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
               <div className="flex items-center justify-between font-mono">
-                <span>[1] 110101 Cash at Vault (➔ 110000)</span>
+                <span>[1] 110101 Cash at Vault (thuộc 110000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - DETAIL</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[2] 210101 Savings Deposits (➔ 210000)</span>
+                <span>[2] 210101 Savings Deposits (thuộc 210000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">LIABILITY - DETAIL</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[3] 310101 Contributed Capital (➔ 310000)</span>
+                <span>[3] 310101 Contributed Capital (thuộc 310000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">EQUITY - DETAIL</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[4] 410101 Loan Interest Income (➔ 410000)</span>
+                <span>[4] 410101 Loan Interest Income (thuộc 410000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">INCOME - DETAIL</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[5] 510101 Savings Interest Expense (➔ 510000)</span>
+                <span>[5] 510101 Savings Interest Expense (thuộc 510000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">EXPENSE - DETAIL</span>
               </div>
             </div>
@@ -1880,23 +1880,23 @@ export default function PracticeSpotlightTour({
             </p>
             <div className="space-y-1.5 text-xs text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
               <div className="flex items-center justify-between font-mono">
-                <span>[1] 110000 CASH AND BANK BALANCES (➔ 100000)</span>
+                <span>[1] 110000 CASH AND BANK BALANCES (thuộc 100000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">ASSET - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[2] 210000 CUSTOMER DEPOSITS (➔ 200000)</span>
+                <span>[2] 210000 CUSTOMER DEPOSITS (thuộc 200000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">LIABILITY - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[3] 310000 CAPITAL AND RESERVES (➔ 300000)</span>
+                <span>[3] 310000 CAPITAL AND RESERVES (thuộc 300000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">EQUITY - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[4] 410000 INTEREST INCOME (➔ 400000)</span>
+                <span>[4] 410000 INTEREST INCOME (thuộc 400000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">INCOME - Đạt</span>
               </div>
               <div className="flex items-center justify-between font-mono">
-                <span>[5] 510000 INTEREST EXPENSES (➔ 500000)</span>
+                <span>[5] 510000 INTEREST EXPENSES (thuộc 500000)</span>
                 <span className="text-[11px] text-emerald-700 font-semibold font-sans">EXPENSE - Đạt</span>
               </div>
             </div>
@@ -2008,7 +2008,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Tiếp tục tạo VP Khu vực →
+                Tiếp tục tạo VP Khu vực
               </button>
             </div>
           </div>
@@ -2040,7 +2040,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Tiếp tục tạo Chi nhánh →
+                Tiếp tục tạo Chi nhánh
               </button>
             </div>
           </div>
@@ -2072,7 +2072,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Tiếp tục tạo Phòng giao dịch (TO) →
+                Tiếp tục tạo Phòng giao dịch (TO)
               </button>
             </div>
           </div>
@@ -2098,10 +2098,10 @@ export default function PracticeSpotlightTour({
                   Bạn đã thực hành chính xác trọn vẹn luồng phân cấp:
                 </p>
                 <div className="py-2.5 px-3 bg-gray-50 border-l-2 border-[#28a745] text-xs text-gray-700 space-y-1">
-                  <div>✓ Cấp 1: Hội sở chính (Head Office)</div>
-                  <div>✓ Cấp 2: Văn phòng khu vực (Bắc, Trung, Nam có parent là Hội sở)</div>
-                  <div>✓ Cấp 3: Chi nhánh (có parent là Văn phòng khu vực)</div>
-                  <div>✓ Cấp 4: Phòng giao dịch (có parent là Chi nhánh)</div>
+                  <div>Cấp 1: Hội sở chính (Head Office)</div>
+                  <div>Cấp 2: Văn phòng khu vực (Bắc, Trung, Nam có parent là Hội sở)</div>
+                  <div>Cấp 3: Chi nhánh (có parent là Văn phòng khu vực)</div>
+                  <div>Cấp 4: Phòng giao dịch (có parent là Chi nhánh)</div>
                 </div>
                 <div className="pt-2 flex items-center justify-end space-x-3">
                   <button
@@ -2382,10 +2382,10 @@ export default function PracticeSpotlightTour({
           </p>
 
           <div className="py-2.5 px-3 bg-gray-50 border-l-2 border-[#1072ba] text-xs text-gray-700 space-y-1.5">
-            <div>✓ Thiết lập hệ thống vai trò tác nghiệp (Roles) chuẩn ngân hàng.</div>
-            <div>✓ Tạo tài khoản người dùng nhân viên (Users) và phân quyền nghiệp vụ.</div>
-            <div>✓ Nạp toàn bộ dữ liệu 26 nhân sự ngân hàng từ cơ sở dữ liệu.</div>
-            <div>✓ Bảo vệ nghiêm ngặt 2 tài khoản và 2 vai trò hệ thống mặc định.</div>
+            <div>Thiết lập hệ thống vai trò tác nghiệp (Roles) chuẩn ngân hàng.</div>
+            <div>Tạo tài khoản người dùng nhân viên (Users) và phân quyền nghiệp vụ.</div>
+            <div>Nạp toàn bộ dữ liệu 26 nhân sự ngân hàng từ cơ sở dữ liệu.</div>
+            <div>Bảo vệ nghiêm ngặt 2 tài khoản và 2 vai trò hệ thống mặc định.</div>
           </div>
 
           <div className="pt-2 flex items-center justify-end space-x-3">
@@ -2408,13 +2408,13 @@ export default function PracticeSpotlightTour({
         <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
-              ✓ Khởi tạo sản phẩm thành công
+              Khởi tạo sản phẩm thành công
             </span>
             <button
               onClick={() => setCasaProductPopup(false)}
-              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer"
+              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -2470,7 +2470,7 @@ export default function PracticeSpotlightTour({
               }}
               className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
             >
-              Tiếp tục: Tạo CIF Khách Hàng ➔
+              Tiếp tục: Tạo CIF Khách Hàng
             </button>
           </div>
         </div>
@@ -2747,7 +2747,7 @@ export default function PracticeSpotlightTour({
           </h4>
           {stepSubtitle && (
             <div className="text-[11px] font-semibold text-[#1072ba] mt-1 leading-snug">
-              💡 {stepSubtitle}
+              {stepSubtitle}
             </div>
           )}
           <p className="text-gray-600 text-[11px] mt-1.5 leading-relaxed">
@@ -2777,7 +2777,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Details & Sang Currency ➔
+                      Điền mẫu Details và Sang Currency
                     </button>
                   </div>
                 )}
@@ -2799,7 +2799,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Currency & Sang Terms ➔
+                      Điền mẫu Currency và Sang Terms
                     </button>
                   </div>
                 )}
@@ -2822,7 +2822,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Terms & Mở Preview ➔
+                      Điền mẫu Terms và Mở Preview
                     </button>
                   </div>
                 )}
@@ -2844,7 +2844,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Settings & Sang Charges ➔
+                      Điền mẫu Settings và Sang Charges
                     </button>
                   </div>
                 )}
@@ -2865,7 +2865,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Tiếp tục sang Tab ACCOUNTING ➔
+                      Tiếp tục sang Tab ACCOUNTING
                     </button>
                   </div>
                 )}
@@ -2889,7 +2889,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Accounting (Cash) & Sang Preview ➔
+                      Điền mẫu Accounting (Cash) và Sang Preview
                     </button>
                   </div>
                 )}
@@ -2909,7 +2909,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Bấm Submit tạo sản phẩm CASA ➔
+                      Bấm Submit tạo sản phẩm CASA
                     </button>
                   </div>
                 )}
@@ -2922,7 +2922,7 @@ export default function PracticeSpotlightTour({
                     }}
                     className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
                   >
-                    ⚡ Điền nhanh toàn bộ & đến Preview
+                    Điền nhanh toàn bộ và đến Preview
                   </button>
                 </div>
               </>
@@ -2934,7 +2934,7 @@ export default function PracticeSpotlightTour({
                   <div className="space-y-2 pt-1 border-t border-gray-100">
                     <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
                       <div className="font-bold text-emerald-900 mb-0.5">
-                        ✓ Đã tạo thành công sản phẩm TKB Current Account (TKCA)!
+                        Đã tạo thành công sản phẩm TKB Current Account (TKCA)!
                       </div>
                       <div>Sản phẩm CASA đã sẵn sàng trên hệ thống core banking.</div>
                     </div>
@@ -2946,7 +2946,7 @@ export default function PracticeSpotlightTour({
                       }}
                       className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Tiếp tục: Tạo CIF Khách Hàng (Phần 2) ➔
+                      Tiếp tục: Tạo CIF Khách Hàng (Phần 2)
                     </button>
                   </div>
                 ) : (
@@ -2957,7 +2957,7 @@ export default function PracticeSpotlightTour({
                     }}
                     className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                   >
-                    Mở biểu mẫu + Create Savings Product ➔
+                    Mở biểu mẫu Create Savings Product
                   </button>
                 )}
               </>
@@ -2971,7 +2971,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Chọn Savings Products ➔
+                Chọn Savings Products
               </button>
             )}
 
@@ -2983,7 +2983,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
               >
-                Đến trang Quản lý Products ➔
+                Đến trang Quản lý Products
               </button>
             )}
           </div>
@@ -3040,7 +3040,7 @@ export default function PracticeSpotlightTour({
               }}
               className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center active:scale-[0.98]"
             >
-              <span>Nhập dữ liệu mẫu ({nextMappingSample.activityCode} ➔ {nextMappingSample.accountCode})</span>
+              <span>Nhập dữ liệu mẫu ({nextMappingSample.activityCode} sang {nextMappingSample.accountCode})</span>
             </button>
           </div>
         )}
@@ -3155,10 +3155,10 @@ export default function PracticeSpotlightTour({
               <div className="font-bold text-emerald-900 mb-1">
                 Ghi nhận bút toán Frequent Posting thành công (5.000.000 VND):
               </div>
-              <div>• Mã giao dịch: a2f68debe1a7 | Quy tắc: Operating Expense Accrual</div>
-              <div>• Có TK 220301 (Accrued Operating Expenses Payable): VND 5,000,000.00</div>
-              <div>• Nợ TK 530101 (Operating Expense): VND 5,000,000.00</div>
-              <div>• Mã tham chiếu: TKB-OPEX-202610-002 | Ngày: 12 October 2026</div>
+              <div>Mã giao dịch: a2f68debe1a7 | Quy tắc: Operating Expense Accrual</div>
+              <div>Có TK 220301 (Accrued Operating Expenses Payable): VND 5,000,000.00</div>
+              <div>Nợ TK 530101 (Operating Expense): VND 5,000,000.00</div>
+              <div>Mã tham chiếu: TKB-OPEX-202610-002 | Ngày: 12 October 2026</div>
               <div className="mt-1 font-semibold text-emerald-900">
                 Tổng Nợ (5 triệu) = Tổng Có (5 triệu). Bút toán hạch toán định kỳ hoàn tất!
               </div>
@@ -3211,11 +3211,11 @@ export default function PracticeSpotlightTour({
               <div className="font-bold text-emerald-900 mb-1">
                 Ghi nhận bút toán sổ cái thủ công thành công (2.000.000 VND):
               </div>
-              <div>• Nợ TK 530101 (Operating Expense): 2.000.000 VND</div>
-              <div>• Có TK 220301 (Accrued Operating Expenses Payable): 2.000.000 VND</div>
-              <div>• Mã tham chiếu: TKB-OPEX-202610-001 | Ngày: 9/1/2026</div>
+              <div>Nợ TK 530101 (Operating Expense): 2.000.000 VND</div>
+              <div>Có TK 220301 (Accrued Operating Expenses Payable): 2.000.000 VND</div>
+              <div>Mã tham chiếu: TKB-OPEX-202610-001 | Ngày: 9/1/2026</div>
               <div className="mt-1 font-semibold text-emerald-900">
-                ➔ Tổng Nợ (2 triệu) = Tổng Có (2 triệu). Bút toán thủ công cân đối và hoàn tất!
+                Tổng Nợ (2 triệu) = Tổng Có (2 triệu). Bút toán thủ công cân đối và hoàn tất!
               </div>
             </div>
             <button
@@ -3238,11 +3238,11 @@ export default function PracticeSpotlightTour({
               <div className="font-bold text-emerald-900 mb-1">
                 Đối soát cân đối kế toán thành công (1 tỷ VND):
               </div>
-              <div>• Nợ TK 110101 (Cash at Vault): 200.000.000 VND</div>
-              <div>• Nợ TK 110201 (Settlement Bank Account): 800.000.000 VND</div>
-              <div>• Có TK 310101 (Contributed Capital): 1.000.000.000 VND</div>
+              <div>Nợ TK 110101 (Cash at Vault): 200.000.000 VND</div>
+              <div>Nợ TK 110201 (Settlement Bank Account): 800.000.000 VND</div>
+              <div>Có TK 310101 (Contributed Capital): 1.000.000.000 VND</div>
               <div className="mt-1 font-semibold text-emerald-900">
-                ➔ Tổng Nợ (1 tỷ) = Tổng Có (1 tỷ). Sổ cái Mifos hoàn toàn cân bằng!
+                Tổng Nợ (1 tỷ) = Tổng Có (1 tỷ). Sổ cái Mifos hoàn toàn cân bằng!
               </div>
             </div>
             <button
@@ -3380,8 +3380,8 @@ export default function PracticeSpotlightTour({
               <div className="font-bold text-[#1072ba] mb-1">
                 Gợi ý mẫu quyền Role biểu diễn: TKB_ACCOUNTING_MAKER
               </div>
-              <div>• Tab <strong>Accounting</strong>: READ GLACCOUNT, READ JOURNALENTRY, CREATE JOURNALENTRY, READ ACCOUNTINGRULE</div>
-              <div>• Tab <strong>Organisation</strong>: READ OFFICE</div>
+              <div>Tab <strong>Accounting</strong>: READ GLACCOUNT, READ JOURNALENTRY, CREATE JOURNALENTRY, READ ACCOUNTINGRULE</div>
+              <div>Tab <strong>Organisation</strong>: READ OFFICE</div>
             </div>
             <button
               type="button"
@@ -3514,7 +3514,7 @@ export default function PracticeSpotlightTour({
               }}
               className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
             >
-              <span>Chọn Hội sở (TKB - HO) & Tiếp tục ➔</span>
+              <span>Chọn Hội sở (TKB - HO) và Tiếp tục</span>
             </button>
           </div>
         )}
@@ -3529,7 +3529,7 @@ export default function PracticeSpotlightTour({
               }}
               className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
             >
-              <span>Tải danh mục (Retrieve) & Tiếp tục ➔</span>
+              <span>Tải danh mục (Retrieve) và Tiếp tục</span>
             </button>
           </div>
         )}
@@ -3552,7 +3552,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền 200.000.000đ & Tiếp tục (Settlement Bank) ➔</span>
+                <span>Điền 200.000.000đ và Tiếp tục (Settlement Bank)</span>
               </button>
             )}
 
@@ -3571,7 +3571,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền 800.000.000đ & Tiếp tục (Contributed Capital) ➔</span>
+                <span>Điền 800.000.000đ và Tiếp tục (Contributed Capital)</span>
               </button>
             )}
 
@@ -3590,7 +3590,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền 1.000.000.000đ & Tiếp tục đến Submit ➔</span>
+                <span>Điền 1.000.000.000đ và Tiếp tục đến Submit</span>
               </button>
             )}
 
@@ -3605,7 +3605,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Bấm Submit ghi sổ cái & Tiếp tục ➔</span>
+                <span>Bấm Submit ghi sổ cái và Tiếp tục</span>
               </button>
             )}
           </div>
@@ -3623,7 +3623,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Chọn Hội sở (TKB - HO) & Tiếp tục ➔</span>
+                <span>Chọn Hội sở (TKB - HO) và Tiếp tục</span>
               </button>
             )}
 
@@ -3636,7 +3636,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Chọn VND & Tiếp tục ➔</span>
+                <span>Chọn VND và Tiếp tục</span>
               </button>
             )}
 
@@ -3649,7 +3649,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Chọn TK 530101 (Operating Expense) & Tiếp tục ➔</span>
+                <span>Chọn TK 530101 (Operating Expense) và Tiếp tục</span>
               </button>
             )}
 
@@ -3662,7 +3662,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền 2.000.000đ & Tiếp tục ➔</span>
+                <span>Điền 2.000.000đ và Tiếp tục</span>
               </button>
             )}
 
@@ -3675,7 +3675,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Chọn TK 220301 (Accrued Operating Exp) & Tiếp tục ➔</span>
+                <span>Chọn TK 220301 (Accrued Operating Exp) và Tiếp tục</span>
               </button>
             )}
 
@@ -3688,7 +3688,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền 2.000.000đ & Tiếp tục ➔</span>
+                <span>Điền 2.000.000đ và Tiếp tục</span>
               </button>
             )}
 
@@ -3701,7 +3701,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Điền mã tham chiếu & ngày & Tiếp tục ➔</span>
+                <span>Điền mã tham chiếu và ngày rồi Tiếp tục</span>
               </button>
             )}
 
@@ -3716,7 +3716,7 @@ export default function PracticeSpotlightTour({
                 }}
                 className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0d5d99] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
               >
-                <span>Bấm Submit ghi sổ cái & Tiếp tục ➔</span>
+                <span>Bấm Submit ghi sổ cái và Tiếp tục</span>
               </button>
             )}
 

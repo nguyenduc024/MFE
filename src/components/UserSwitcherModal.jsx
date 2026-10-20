@@ -133,7 +133,7 @@ export default function UserSwitcherModal({ isOpen, onClose, users = [], current
                       </div>
                       <div className="text-[11px] text-gray-600 flex items-center gap-2 mt-0.5">
                         <span>{user.firstname} {user.lastname}</span>
-                        <span>•</span>
+                        <span className="text-gray-300">-</span>
                         <span className="text-gray-400 flex items-center gap-1">
                           <Building className="w-3 h-3" />
                           {user.officeName}

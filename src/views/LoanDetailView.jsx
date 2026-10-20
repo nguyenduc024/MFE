@@ -48,12 +48,13 @@ export default function LoanDetailView({ loan, onBack, onMakeRepayment }) {
                 <h1 className="text-xl font-bold text-gray-900">
                   {loan.productName} #{loan.accountNo}
                 </h1>
-                <span className="text-xs text-emerald-700 font-bold">
-                  ● {loan.status}
+                <span className="text-xs text-emerald-700 font-bold inline-flex items-center">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-1.5" />
+                  {loan.status}
                 </span>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">
-                Khách hàng: <strong className="text-sky-900">{loan.clientName}</strong> • Giải ngân ngày: <strong>{loan.disbursementDate}</strong>
+                Khách hàng: <strong className="text-sky-900">{loan.clientName}</strong>, Giải ngân ngày: <strong>{loan.disbursementDate}</strong>
               </div>
             </div>
           </div>
@@ -92,7 +93,7 @@ export default function LoanDetailView({ loan, onBack, onMakeRepayment }) {
           <div>
             <div className="text-gray-400 text-[11px]">Lãi suất & Thời hạn</div>
             <div className="font-bold text-gray-800 text-xs mt-0.5">
-              {loan.annualInterestRate}%/năm • {loan.termMonths} tháng
+              {loan.annualInterestRate}%/năm, {loan.termMonths} tháng
             </div>
           </div>
         </div>
@@ -140,7 +141,7 @@ export default function LoanDetailView({ loan, onBack, onMakeRepayment }) {
                           ? 'text-emerald-700' 
                           : 'text-amber-700'
                       }`}>
-                        {isPaid ? '✓ Đã thanh toán' : 'Chờ đến hạn'}
+                        {isPaid ? 'Đã thanh toán' : 'Chờ đến hạn'}
                       </span>
                     </td>
                   </tr>

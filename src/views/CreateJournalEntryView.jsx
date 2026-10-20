@@ -913,7 +913,7 @@ export default function CreateJournalEntryView({
               </div>
               <div>
                 {totalDebit === totalCredit ? (
-                  <span className="text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded">✓ Balanced</span>
+                  <span className="text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded">Balanced</span>
                 ) : (
                   <span className="text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded">
                     Difference: {Math.abs(totalDebit - totalCredit).toLocaleString()} {selectedCurrency?.code || ''}

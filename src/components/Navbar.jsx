@@ -120,7 +120,7 @@ export default function Navbar({
                   onClick={() => handleItemClick('reports')}
                 >
                   <span>Reports</span>
-                  <span className="text-gray-500 text-xs">▸</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
 
                   {activeSubmenu === 'inst-reports' && (
                     <div className="absolute left-full top-0 w-36 bg-white text-gray-800 rounded shadow-md py-1.5 z-50 text-[13px]">
@@ -144,7 +144,7 @@ export default function Navbar({
                   onClick={() => handleItemClick('admin')}
                 >
                   <span>Admin</span>
-                  <span className="text-gray-500 text-xs">▸</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
 
                   {activeSubmenu === 'inst-admin' && (
                     <div className="absolute left-full top-0 w-40 bg-white text-gray-800 rounded shadow-md py-1.5 z-50 text-[13px]">
@@ -164,7 +164,7 @@ export default function Navbar({
                   onClick={() => handleItemClick('admin-users')}
                 >
                   <span>Self Service</span>
-                  <span className="text-gray-500 text-xs">▸</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
 
                   {activeSubmenu === 'inst-self' && (
                     <div className="absolute left-full top-0 w-48 bg-white text-gray-800 rounded shadow-md py-1.5 z-50 text-[13px]">

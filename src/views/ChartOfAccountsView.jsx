@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, List, ChevronRight, ChevronDown, ChevronLeft, 
-  ChevronsLeft, ChevronsRight, Check
+  ChevronsLeft, ChevronsRight, Check, X
 } from 'lucide-react';
 
 /**
@@ -1005,12 +1005,12 @@ export default function ChartOfAccountsView({
                               <td className="py-3 px-6 text-center">
                                 {/* Manual Entries Allowed Status: Red circle with X if false, green with check if true */}
                                 {isManualAllowed ? (
-                                  <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#28a745] text-white text-[9px] font-bold">
-                                    ✓
+                                  <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#28a745] text-white">
+                                    <Check className="w-2.5 h-2.5 stroke-[3]" />
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#e53935] text-white text-[9px] font-bold">
-                                    ✕
+                                  <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#e53935] text-white">
+                                    <X className="w-2.5 h-2.5 stroke-[3]" />
                                   </span>
                                 )}
                               </td>

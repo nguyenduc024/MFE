@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, RotateCcw } from 'lucide-react';
+import { ChevronDown, RotateCcw, Check } from 'lucide-react';
 import { EDU_MODULES } from '../data/mifosData';
 import { BANK_DEPARTMENTS_CONFIG, ALL_DEMO_ROLES, ALL_REMAINING_ROLES } from '../data/mifosPermissions';
 
@@ -516,7 +516,7 @@ export default function EduGuideDrawer({
                     <span>Truy cập Cấu hình Tiền tệ</span>
                   </div>
                   <p className="text-gray-600 pl-6">
-                    Đường dẫn: <strong className="text-gray-900">Admin ➔ Organization ➔ Currency Configuration</strong>.
+                    Đường dẫn: <strong className="text-gray-900">Admin &gt; Organization &gt; Currency Configuration</strong>.
                   </p>
                 </div>
 
@@ -697,7 +697,7 @@ export default function EduGuideDrawer({
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                           isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                         }`}>
-                          {isDone ? '✓' : idx + 1}
+                          {isDone ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
                         </span>
                         <span className="font-mono font-bold text-gray-900">{item.code}</span>
                         <span className="text-gray-700">{item.name}</span>
@@ -785,7 +785,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2 font-mono font-bold">100000</td>
                       <td className="py-1.5 px-2">TOTAL ASSETS</td>
                       <td className="py-1.5 px-2 font-semibold">HEADER</td>
-                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-semibold text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Hình 2</td>
@@ -793,7 +793,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2 font-mono font-bold">200000</td>
                       <td className="py-1.5 px-2">TOTAL LIABILITIES</td>
                       <td className="py-1.5 px-2 font-semibold">HEADER</td>
-                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-semibold text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Hình 3</td>
@@ -801,7 +801,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2 font-mono font-bold">300000</td>
                       <td className="py-1.5 px-2">TOTAL EQUITY</td>
                       <td className="py-1.5 px-2 font-semibold">HEADER</td>
-                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-semibold text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Hình 4</td>
@@ -809,7 +809,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2 font-mono font-bold">400000</td>
                       <td className="py-1.5 px-2">TOTAL INCOME</td>
                       <td className="py-1.5 px-2 font-semibold">HEADER</td>
-                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-semibold text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Hình 5</td>
@@ -817,7 +817,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2 font-mono font-bold">500000</td>
                       <td className="py-1.5 px-2">TOTAL EXPENSES</td>
                       <td className="py-1.5 px-2 font-semibold">HEADER</td>
-                      <td className="py-1.5 px-2 text-center text-red-500 font-bold">✕</td>
+                      <td className="py-1.5 px-2 text-center text-red-500 font-semibold text-[11px]">Không</td>
                     </tr>
                   </tbody>
                 </table>
@@ -887,11 +887,11 @@ export default function EduGuideDrawer({
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
                           isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                         }`}>
-                          {isDone ? '✓' : idx + 1}
+                          {isDone ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
                         </span>
                         <span className="font-mono font-bold text-gray-900 shrink-0">{item.code}</span>
                         <span className="text-gray-700 truncate">{item.name}</span>
-                        <span className="text-[10px] text-gray-400 shrink-0">({item.type} ➔ {item.parent})</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">({item.type} thuộc {item.parent})</span>
                       </div>
                       <span className={`text-[10px] font-semibold shrink-0 ${isDone ? 'text-emerald-600' : 'text-gray-400'}`}>
                         {isDone ? 'Đã tạo' : 'Chưa tạo'}
@@ -1077,11 +1077,11 @@ export default function EduGuideDrawer({
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
                           isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                         }`}>
-                          {isDone ? '✓' : idx + 1}
+                          {isDone ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : idx + 1}
                         </span>
                         <span className="font-mono font-bold text-gray-900 shrink-0">{item.code}</span>
                         <span className="text-gray-700 truncate">{item.name}</span>
-                        <span className="text-[10px] text-gray-400 shrink-0">({item.type} ➔ {item.parent})</span>
+                        <span className="text-[10px] text-gray-400 shrink-0">({item.type} thuộc {item.parent})</span>
                       </div>
                       <span className={`text-[10px] font-semibold shrink-0 ${isDone ? 'text-emerald-600' : 'text-gray-400'}`}>
                         {isDone ? 'Đã tạo' : 'Chưa tạo'}
@@ -1167,7 +1167,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2">Cash at Vault</td>
                       <td className="py-1.5 px-2 font-medium text-gray-900">110000 CASH AND BANK BALANCES</td>
                       <td className="py-1.5 px-2 font-semibold text-emerald-700">DETAIL</td>
-                      <td className="py-1.5 px-2 text-center font-bold text-emerald-600">✓</td>
+                      <td className="py-1.5 px-2 text-center font-semibold text-emerald-600 text-[11px]">Có</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 2</td>
@@ -1176,7 +1176,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2">Savings Deposits</td>
                       <td className="py-1.5 px-2 font-medium text-gray-900">210000 CUSTOMER DEPOSITS</td>
                       <td className="py-1.5 px-2 font-semibold text-emerald-700">DETAIL</td>
-                      <td className="py-1.5 px-2 text-center font-bold text-red-500">✕</td>
+                      <td className="py-1.5 px-2 text-center font-semibold text-red-500 text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 3</td>
@@ -1185,7 +1185,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2">Contributed Capital</td>
                       <td className="py-1.5 px-2 font-medium text-gray-900">310000 CAPITAL AND RESERVES</td>
                       <td className="py-1.5 px-2 font-semibold text-emerald-700">DETAIL</td>
-                      <td className="py-1.5 px-2 text-center font-bold text-emerald-600">✓</td>
+                      <td className="py-1.5 px-2 text-center font-semibold text-emerald-600 text-[11px]">Có</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 4</td>
@@ -1194,7 +1194,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2">Loan Interest Income</td>
                       <td className="py-1.5 px-2 font-medium text-gray-900">410000 INTEREST INCOME</td>
                       <td className="py-1.5 px-2 font-semibold text-emerald-700">DETAIL</td>
-                      <td className="py-1.5 px-2 text-center font-bold text-red-500">✕</td>
+                      <td className="py-1.5 px-2 text-center font-semibold text-red-500 text-[11px]">Không</td>
                     </tr>
                     <tr>
                       <td className="py-1.5 px-2 font-bold text-sky-700">Mẫu 5</td>
@@ -1203,7 +1203,7 @@ export default function EduGuideDrawer({
                       <td className="py-1.5 px-2">Savings Interest Expense</td>
                       <td className="py-1.5 px-2 font-medium text-gray-900">510000 INTEREST EXPENSES</td>
                       <td className="py-1.5 px-2 font-semibold text-emerald-700">DETAIL</td>
-                      <td className="py-1.5 px-2 text-center font-bold text-red-500">✕</td>
+                      <td className="py-1.5 px-2 text-center font-semibold text-red-500 text-[11px]">Không</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1287,11 +1287,11 @@ export default function EduGuideDrawer({
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
                           isDone ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                         }`}>
-                          {isDone ? '✓' : item.step}
+                          {isDone ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : item.step}
                         </span>
                         <span className="font-mono font-bold text-gray-900 shrink-0">({item.code})</span>
                         <span className="text-gray-800 truncate">{item.name}</span>
-                        <span className="text-gray-400 shrink-0">➔</span>
+                        <span className="text-gray-400 shrink-0">:</span>
                         <span className="font-mono text-[#1072ba] shrink-0">{item.accCode}</span>
                         <span className="text-[10px] text-gray-400 shrink-0">({item.type})</span>
                       </div>
@@ -1485,7 +1485,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       contraAccountConfigEnabled ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {contraAccountConfigEnabled ? '✓' : '1'}
+                      {contraAccountConfigEnabled ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '1'}
                     </span>
                     <span className="font-mono font-medium text-gray-900">office-opening-balances-contra-account</span>
                   </div>
@@ -1499,7 +1499,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       hasOpeningBalanceSubmitted ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {hasOpeningBalanceSubmitted ? '✓' : '2'}
+                      {hasOpeningBalanceSubmitted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '2'}
                     </span>
                     <span className="text-gray-900">Khởi tạo số dư Hội sở (TKB - HO) 1.000.000.000 VND</span>
                   </div>
@@ -1513,7 +1513,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       hasOpeningBalanceSubmitted ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {hasOpeningBalanceSubmitted ? '✓' : '3'}
+                      {hasOpeningBalanceSubmitted ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '3'}
                     </span>
                     <span className="text-gray-900">Đối soát bút toán sổ cái tại Search Journal Entries</span>
                   </div>
@@ -1534,7 +1534,7 @@ export default function EduGuideDrawer({
                 <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
                   <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                    <span>Admin → System → Configurations</span>
+                    <span>Admin &gt; System &gt; Configurations</span>
                   </div>
                   <p className="text-gray-600 pl-6">
                     Tìm dòng <strong className="text-gray-900">office-opening-balances-contra-account</strong> và bấm công tắc chuyển sang <strong className="text-emerald-600">Enabled</strong> để mở khóa tính năng nhập số dư đầu kỳ.
@@ -1544,7 +1544,7 @@ export default function EduGuideDrawer({
                 <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
                   <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                    <span>Accounting → Migrate Opening Balances</span>
+                    <span>Accounting &gt; Migrate Opening Balances</span>
                   </div>
                   <p className="text-gray-600 pl-6">
                     Chọn văn phòng <strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong> (Hội sở) rồi nhấn nút <strong className="text-[#1072ba]">Retrieve</strong> để truy xuất bảng tài khoản kế toán.
@@ -1564,7 +1564,7 @@ export default function EduGuideDrawer({
                 <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
                   <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
-                    <span>Accounting → Search Journal Entries</span>
+                    <span>Accounting &gt; Search Journal Entries</span>
                   </div>
                   <p className="text-gray-700 pl-6">
                     Truy cập màn hình tra cứu bút toán, chỉnh khoảng ngày lọc bao gồm ngày giao dịch 12/10/2026 để xem hệ thống tự động sinh bút toán sổ cái cân đối Nợ = Có hoàn chỉnh.
@@ -1650,8 +1650,8 @@ export default function EduGuideDrawer({
                 Trong vận hành ngân hàng Core Banking, đa số bút toán được tự động hạch toán thông qua các phân hệ nghiệp vụ (như gửi tiền Savings, giải ngân/thu nợ Loans). Tuy nhiên, nhân viên kế toán (Maker) cần ghi nhận các giao dịch tài chính phát sinh nội bộ (như chi phí vận hành, trích lập chi phí phải trả dồn tích, phân bổ chi phí, điều chỉnh sai sót) trực tiếp vào sổ cái tổng hợp GL thông qua chức năng <strong>Create Journal Entries</strong>.
               </p>
               <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1">
-                <div>• <strong>Nguyên tắc ghi sổ kép (Double-Entry Bookkeeping):</strong> Tổng số tiền ghi Nợ (Total Debit) luôn luôn phải bằng Tổng số tiền ghi Có (Total Credit). Nút Submit chỉ được kích hoạt khi trạng thái cân đối đạt được.</div>
-                <div>• <strong>Mã tham chiếu (Reference Number):</strong> Mã chứng từ hạch toán nội bộ phục vụ đối soát, kiểm toán nội bộ và truy vết giao dịch.</div>
+                <div><strong>Nguyên tắc ghi sổ kép (Double-Entry Bookkeeping):</strong> Tổng số tiền ghi Nợ (Total Debit) luôn luôn phải bằng Tổng số tiền ghi Có (Total Credit). Nút Submit chỉ được kích hoạt khi trạng thái cân đối đạt được.</div>
+                <div><strong>Mã tham chiếu (Reference Number):</strong> Mã chứng từ hạch toán nội bộ phục vụ đối soát, kiểm toán nội bộ và truy vết giao dịch.</div>
               </div>
             </div>
 
@@ -1666,7 +1666,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {isGlPart7Complete ? '✓' : '1'}
+                      {isGlPart7Complete ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '1'}
                     </span>
                     <span className="text-gray-900">Tạo bút toán tại Create Journal Entries (Office TKB - HO, VND)</span>
                   </div>
@@ -1680,7 +1680,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {isGlPart7Complete ? '✓' : '2'}
+                      {isGlPart7Complete ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '2'}
                     </span>
                     <span className="text-gray-900">Định khoản: Nợ TK 530101 (2 tr) = Có TK 220301 (2 tr) (Ref: TKB-OPEX-202610-001)</span>
                   </div>
@@ -1694,7 +1694,7 @@ export default function EduGuideDrawer({
                     <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       isGlPart7Complete ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                      {isGlPart7Complete ? '✓' : '3'}
+                      {isGlPart7Complete ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : '3'}
                     </span>
                     <span className="text-gray-900">Đối soát bút toán sổ cái tại Search Journal Entries (01/01/2026 - 31/10/2026)</span>
                   </div>
@@ -1715,7 +1715,7 @@ export default function EduGuideDrawer({
                 <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1">
                   <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                    <span>Accounting → Create Journal Entries</span>
+                    <span>Accounting &gt; Create Journal Entries</span>
                   </div>
                   <p className="text-gray-600 pl-6">
                     Trong phân hệ Accounting, bấm vào mục <strong className="text-gray-900">Create Journal Entries</strong> để mở biểu mẫu ghi nhận bút toán thủ công.
@@ -1747,7 +1747,7 @@ export default function EduGuideDrawer({
                 <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] space-y-2">
                   <div className="font-semibold text-[#1072ba] flex items-center gap-1.5">
                     <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
-                    <span>Accounting → Search Journal Entries</span>
+                    <span>Accounting &gt; Search Journal Entries</span>
                   </div>
                   <p className="text-gray-700 pl-6">
                     Truy cập màn hình tra cứu bút toán sổ cái, chỉnh khoảng ngày lọc (01/01/2026 - 31/10/2026) để kiểm tra giao dịch chi phí vận hành trích trước đã được ghi sổ an toàn và chính xác.
@@ -1869,7 +1869,7 @@ export default function EduGuideDrawer({
                 Quy trình thực hành:
               </div>
               <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
-                <li>Vào <strong>Accounting → Accounting Rules</strong>.</li>
+                <li>Vào <strong>Accounting &gt; Accounting Rules</strong>.</li>
                 <li>Bấm nút <strong>+ Add Rule</strong>.</li>
                 <li>Nhập <em>Operating Expense Accrual</em> và chọn <em>Takashimaya Bank (TKB) - HO</em>.</li>
                 <li>Chọn Account to Debit: <em>Operating Expense (530101)</em>.</li>
@@ -1908,8 +1908,8 @@ export default function EduGuideDrawer({
                 Trong vận hành ngân hàng Core Banking, nghiệp vụ Frequent Postings cho phép nhân viên kế toán sử dụng các quy tắc kế toán đã được phê duyệt sẵn (Accounting Rules) để ghi nhận nhanh các giao dịch định kỳ (như chi phí bảo trì hệ thống định kỳ, trích trước chi phí hàng tháng) mà không cần phải chọn thủ công từng tài khoản kế toán, giảm thiểu tối đa sai sót và tiết kiệm thời gian hạch toán.
               </p>
               <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1">
-                <div>• Khi chọn quy tắc Operating Expense Accrual, hệ thống tự động tải cặp tài khoản: Nợ TK 530101 (Operating Expense) và Có TK 220301 (Accrued Operating Expenses Payable).</div>
-                <div>• Sau khi bấm Submit, hệ thống tự động ghi sổ cái và điều hướng trực tiếp sang màn hình chi tiết giao dịch (mã tham chiếu hệ thống: a2f68debe1a7) để kế toán viên kiểm tra đối soát hai bút toán 57 và 58.</div>
+                <div>Khi chọn quy tắc Operating Expense Accrual, hệ thống tự động tải cặp tài khoản: Nợ TK 530101 (Operating Expense) và Có TK 220301 (Accrued Operating Expenses Payable).</div>
+                <div>Sau khi bấm Submit, hệ thống tự động ghi sổ cái và điều hướng trực tiếp sang màn hình chi tiết giao dịch (mã tham chiếu hệ thống: a2f68debe1a7) để kế toán viên kiểm tra đối soát hai bút toán 57 và 58.</div>
               </div>
             </div>
 
@@ -1937,7 +1937,7 @@ export default function EduGuideDrawer({
                 Quy trình thực hành:
               </div>
               <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
-                <li>Vào <strong>Accounting → Frequent Postings</strong>.</li>
+                <li>Vào <strong>Accounting &gt; Frequent Postings</strong>.</li>
                 <li>Chọn <strong>Office</strong>: <em>Takashimaya Bank (TKB) - HO</em>.</li>
                 <li>Chọn <strong>Accounting Rule</strong>: <em>Operating Expense Accrual</em>.</li>
                 <li>Chọn <strong>Currency</strong>: <em>Vietnamese Dong [VND]</em>.</li>
@@ -1977,10 +1977,10 @@ export default function EduGuideDrawer({
                 Trong hệ thống Core Banking, phân quyền tác nghiệp và quản lý định danh người dùng là lớp bảo vệ tối quan trọng nhằm ngăn chặn rủi ro gian lận, xung đột lợi ích và đảm bảo tính toàn vẹn dữ liệu tài chính.
               </p>
               <div className="text-[11px] text-gray-600 border-t border-sky-100 pt-2 space-y-1.5 leading-relaxed">
-                <div>• <strong>Roles (Vai trò nghiệp vụ)</strong>: Đại diện cho chức danh và phạm vi quyền hạn trong ngân hàng (như Giao dịch viên - Teller, Kiểm soát viên - Checker, Cán bộ tín dụng - Loan Officer, Kế toán tổng hợp, Quản trị viên). Mỗi Role tập hợp danh mục các quyền hạn (Permissions) được phép thao tác.</div>
-                <div>• <strong>Permissions (Quyền hạn chi tiết)</strong>: Hệ thống Mifos quản lý chi tiết quyền theo từng phân hệ tác nghiệp (Read, Create, Update, Delete) cho các đối tượng Khách hàng, Tiền gửi, Tín dụng, Kế toán sổ cái...</div>
-                <div>• <strong>Users (Tài khoản người dùng)</strong>: Đại diện cho từng nhân sự cụ thể làm việc tại ngân hàng, được cấp Username định danh, gắn với Chi nhánh / Phòng giao dịch trực thuộc (Office) và được phân bổ các Roles tương ứng với công việc.</div>
-                <div>• <strong>Nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker)</strong>: Cán bộ khởi tạo giao dịch (Maker) không được phép tự phê duyệt giao dịch của chính mình; các nghiệp vụ tài chính phát sinh vượt hạn mức bắt buộc phải do một cán bộ độc lập có thẩm quyền (Checker) phê duyệt.</div>
+                <div><strong>Roles (Vai trò nghiệp vụ)</strong>: Đại diện cho chức danh và phạm vi quyền hạn trong ngân hàng (như Giao dịch viên - Teller, Kiểm soát viên - Checker, Cán bộ tín dụng - Loan Officer, Kế toán tổng hợp, Quản trị viên). Mỗi Role tập hợp danh mục các quyền hạn (Permissions) được phép thao tác.</div>
+                <div><strong>Permissions (Quyền hạn chi tiết)</strong>: Hệ thống Mifos quản lý chi tiết quyền theo từng phân hệ tác nghiệp (Read, Create, Update, Delete) cho các đối tượng Khách hàng, Tiền gửi, Tín dụng, Kế toán sổ cái...</div>
+                <div><strong>Users (Tài khoản người dùng)</strong>: Đại diện cho từng nhân sự cụ thể làm việc tại ngân hàng, được cấp Username định danh, gắn với Chi nhánh / Phòng giao dịch trực thuộc (Office) và được phân bổ các Roles tương ứng với công việc.</div>
+                <div><strong>Nguyên tắc kiểm soát 4 mắt (Dual Control / Maker - Checker)</strong>: Cán bộ khởi tạo giao dịch (Maker) không được phép tự phê duyệt giao dịch của chính mình; các nghiệp vụ tài chính phát sinh vượt hạn mức bắt buộc phải do một cán bộ độc lập có thẩm quyền (Checker) phê duyệt.</div>
               </div>
             </div>
 
@@ -1996,7 +1996,7 @@ export default function EduGuideDrawer({
                     Trụ cột 1: Thiết lập vai trò tác nghiệp (Roles & Permissions)
                   </div>
                   <div className="text-[11px] text-gray-500">
-                    Đường dẫn: <strong>Admin → System → Manage Roles and Permissions</strong>
+                    Đường dẫn: <strong>Admin &gt; System &gt; Manage Roles and Permissions</strong>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed pt-1">
                     Nhấn <strong>+ Add Role</strong> để khởi tạo vai trò tác nghiệp mới. Sau đó cấu hình ma trận phân quyền chi tiết cho từng nhóm nghiệp vụ theo nguyên tắc đặc quyền tối thiểu (Least Privilege).
@@ -2008,7 +2008,7 @@ export default function EduGuideDrawer({
                     Trụ cột 2: Khởi tạo tài khoản nhân viên (Users Management)
                   </div>
                   <div className="text-[11px] text-gray-500">
-                    Đường dẫn: <strong>Admin → Users → Manage Users</strong>
+                    Đường dẫn: <strong>Admin &gt; Users &gt; Manage Users</strong>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed pt-1">
                     Nhấn <strong>+ Create User</strong> để cấp tài khoản cá nhân cho cán bộ nhân sự. Điền thông tin nhân viên, lựa chọn Office làm việc, gán các Roles phù hợp và thiết lập mật khẩu đăng nhập ban đầu.
@@ -2092,7 +2092,7 @@ export default function EduGuideDrawer({
                 Luồng thực hành Thiết lập Quyền (Role Permissions):
               </div>
               <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
-                <li>Truy cập <strong>Admin → System → Manage Roles and Permissions</strong>.</li>
+                <li>Truy cập <strong>Admin &gt; System &gt; Manage Roles and Permissions</strong>.</li>
                 <li>Chọn Role biểu diễn của phòng ban (ví dụ: <strong>TKB_ACCOUNTING_MAKER</strong> cho Kế toán & Tài chính).</li>
                 <li>Nhấn nút <strong>Edit Role</strong> ở góc trên bên phải để bật chế độ chỉnh sửa (các ô tickbox sẽ đậm màu).</li>
                 <li>Vào các <strong>Tab phân hệ</strong> ở cột bên trái (như <em>Accounting, Organisation</em>) và tick chọn các box quyền tương ứng.</li>
@@ -2123,7 +2123,7 @@ export default function EduGuideDrawer({
             <div className="space-y-3 text-xs text-gray-700 leading-relaxed">
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px]">
                 <div className="font-semibold text-gray-900">Cấp 1: Tạo Hội sở chính (Head Office)</div>
-                <p className="text-gray-600 mt-1">Admin ➔ Organization ➔ Manage Offices ➔ Create Office. Nhập tên Hội sở, Parent Office để trống (Head Office gốc).</p>
+                <p className="text-gray-600 mt-1">Admin &gt; Organization &gt; Manage Offices &gt; Create Office. Nhập tên Hội sở, Parent Office để trống (Head Office gốc).</p>
               </div>
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px]">
                 <div className="font-semibold text-gray-900">Cấp 2: Tạo Văn phòng khu vực (Bắc - Trung - Nam)</div>
@@ -2166,7 +2166,7 @@ export default function EduGuideDrawer({
                   <span>Truy cập Quản lý Sản phẩm Tiết kiệm / CASA</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Đường dẫn: <strong className="text-gray-900">Admin ➔ Products ➔ Savings Products</strong>, sau đó nhấn nút <strong className="text-[#1072ba]">+ Create Savings Product</strong>.
+                  Đường dẫn: <strong className="text-gray-900">Admin &gt; Products &gt; Savings Products</strong>, sau đó nhấn nút <strong className="text-[#1072ba]">+ Create Savings Product</strong>.
                 </p>
               </div>
 
@@ -2225,7 +2225,7 @@ export default function EduGuideDrawer({
                   }}
                   className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Bắt đầu thực hành CASA →
+                  Bắt đầu thực hành CASA
                 </button>
               </div>
             </div>
@@ -2257,7 +2257,7 @@ export default function EduGuideDrawer({
                   <span>Truy cập Tạo Khách Hàng (Create Client)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Đường dẫn: Menu trên <strong>Clients ➔ Create Client</strong>.
+                  Đường dẫn: Menu trên <strong>Clients &gt; Create Client</strong>.
                 </p>
               </div>
 
@@ -2268,13 +2268,13 @@ export default function EduGuideDrawer({
                   <span>Nhập thông tin hồ sơ CIF mẫu</span>
                 </div>
                 <div className="pl-6 space-y-1.5 text-xs text-gray-600">
-                  <div>• <strong>Office:</strong> <code>Thu Duc Transaction Office</code></div>
-                  <div>• <strong>Staff:</strong> <code>Dang, Quan</code></div>
-                  <div>• <strong>Legal Form:</strong> <code>Person</code></div>
-                  <div>• <strong>First Name:</strong> <code>Minh</code>, <strong>Last Name:</strong> <code>Tran</code></div>
-                  <div>• <strong>External ID:</strong> <code>TKB-CIF-TDU-001</code></div>
-                  <div>• <strong>Mobile Number:</strong> <code>955738216</code>, <strong>Email:</strong> <code>quang2004@gmail.com</code></div>
-                  <div>• <strong>Activation Date:</strong> <code>13 October 2026</code></div>
+                  <div><strong>Office:</strong> <code>Thu Duc Transaction Office</code></div>
+                  <div><strong>Staff:</strong> <code>Dang, Quan</code></div>
+                  <div><strong>Legal Form:</strong> <code>Person</code></div>
+                  <div><strong>First Name:</strong> <code>Minh</code>, <strong>Last Name:</strong> <code>Tran</code></div>
+                  <div><strong>External ID:</strong> <code>TKB-CIF-TDU-001</code></div>
+                  <div><strong>Mobile Number:</strong> <code>955738216</code>, <strong>Email:</strong> <code>quang2004@gmail.com</code></div>
+                  <div><strong>Activation Date:</strong> <code>13 October 2026</code></div>
                 </div>
               </div>
 
@@ -2302,7 +2302,7 @@ export default function EduGuideDrawer({
                   }}
                   className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Đến tạo CIF →
+                  Đến tạo CIF
                 </button>
               </div>
             </div>
@@ -2334,7 +2334,7 @@ export default function EduGuideDrawer({
                   <span>Truy cập Chi tiết Khách Hàng (Client Detail)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Đường dẫn: <strong className="text-gray-900">Clients ➔ Chọn khách hàng Minh Quang Tran</strong> (hoặc bấm nút thao tác nhanh bên dưới).
+                  Đường dẫn: <strong className="text-gray-900">Clients &gt; Chọn khách hàng Minh Quang Tran</strong> (hoặc bấm nút thao tác nhanh bên dưới).
                 </p>
               </div>
 
@@ -2345,7 +2345,7 @@ export default function EduGuideDrawer({
                   <span>Mở Menu Thao Tác Hamburger & Chọn "+ Add Savings"</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tại góc trên bên phải thanh banner xanh dương của khách hàng, bấm vào biểu tượng <strong>☰ Menu</strong> và chọn <strong className="text-[#1072ba]">+ Add Savings (Cấp CASA)</strong>.
+                  Tại góc trên bên phải thanh banner xanh dương của khách hàng, bấm vào biểu tượng <strong>Menu</strong> và chọn <strong className="text-[#1072ba]">+ Add Savings (Cấp CASA)</strong>.
                 </p>
               </div>
 
@@ -2356,11 +2356,11 @@ export default function EduGuideDrawer({
                   <span>Nhập thông tin cấp tài khoản CASA</span>
                 </div>
                 <div className="pl-6 space-y-1.5 text-xs text-gray-600">
-                  <div>• <strong>Product *:</strong> <code>TKB Current Account (TKCA)</code></div>
-                  <div>• <strong>Submitted On *:</strong> <code>10/20/2026</code></div>
-                  <div>• <strong>Field Officer:</strong> <code>Dang, Quan</code></div>
-                  <div>• <strong>External ID:</strong> <code>TKB-CASA-001</code></div>
-                  <div>• <strong>Initial Deposit Amount:</strong> <strong className="text-emerald-700">12,000,000 VND</strong></div>
+                  <div><strong>Product *:</strong> <code>TKB Current Account (TKCA)</code></div>
+                  <div><strong>Submitted On *:</strong> <code>10/20/2026</code></div>
+                  <div><strong>Field Officer:</strong> <code>Dang, Quan</code></div>
+                  <div><strong>External ID:</strong> <code>TKB-CASA-001</code></div>
+                  <div><strong>Initial Deposit Amount:</strong> <strong className="text-emerald-700">12,000,000 VND</strong></div>
                 </div>
               </div>
 
@@ -2388,7 +2388,7 @@ export default function EduGuideDrawer({
                   }}
                   className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Đến cấp CASA →
+                  Đến cấp CASA
                 </button>
               </div>
             </div>
@@ -2400,8 +2400,7 @@ export default function EduGuideDrawer({
           {activePartId === 'gl-part-1' ? (
             isGlPart1Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã hoàn thành 100% Thiết lập đơn vị tiền tệ!</span>
                 </div>
                 <button
@@ -2409,7 +2408,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-2')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp (Chart of Accounts) →
+                  Đến bài học kế tiếp (Chart of Accounts)
                 </button>
                 <button
                   type="button"
@@ -2453,8 +2452,7 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-2' ? (
             isGlPart2Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã thiết lập hoàn tất 5 GL Header cấp 1 (100%)!</span>
                 </div>
                 <button
@@ -2462,7 +2460,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-3')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: GL Cấp 2 →
+                  Đến bài học kế tiếp: GL Cấp 2
                 </button>
                 <button
                   type="button"
@@ -2504,8 +2502,7 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-3' ? (
             isGlPart3Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã thiết lập hoàn tất danh mục GL Cấp 2 (100%)!</span>
                 </div>
                 <button
@@ -2513,7 +2510,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-4')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: GL Detail →
+                  Đến bài học kế tiếp: GL Detail
                 </button>
                 <button
                   type="button"
@@ -2560,7 +2557,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-5')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: Financial Activity Mapping →
+                  Đến bài học kế tiếp: Financial Activity Mapping
                 </button>
                 <button
                   type="button"
@@ -2602,8 +2599,7 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-5' ? (
             isGlPart5Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã thiết lập hoàn tất 6 Financial Activity Mappings (100%)!</span>
                 </div>
                 <button
@@ -2611,7 +2607,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-6')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: Opening Balance Migration →
+                  Đến bài học kế tiếp: Opening Balance Migration
                 </button>
                 <button
                   type="button"
@@ -2653,8 +2649,7 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-6' ? (
             isGlPart6Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã hoàn thành xuất sắc Khởi tạo số dư đầu kỳ & Đối soát Journal Entries (100%)!</span>
                 </div>
                 <button
@@ -2662,7 +2657,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-7')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: Manual Journal Entries →
+                  Đến bài học kế tiếp: Manual Journal Entries
                 </button>
                 <button
                   type="button"
@@ -2704,8 +2699,7 @@ export default function EduGuideDrawer({
           ) : activePartId === 'gl-part-7' ? (
             isGlPart7Complete ? (
               <div className="space-y-2">
-                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                  <span>✓</span>
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                   <span>Đã hoàn thành xuất sắc Ghi nhận bút toán thủ công & Đối soát Journal Entries (100%)!</span>
                 </div>
                 <button
@@ -2713,7 +2707,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-8')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: Accounting Rules →
+                  Đến bài học kế tiếp: Accounting Rules
                 </button>
                 <button
                   type="button"
@@ -2763,7 +2757,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('gl-part-9')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến bài học kế tiếp: Frequent Postings →
+                  Đến bài học kế tiếp: Frequent Postings
                 </button>
                 <button
                   type="button"
@@ -2813,7 +2807,7 @@ export default function EduGuideDrawer({
                   onClick={() => setActivePartId('part-1')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến phần kế tiếp: User & Access Management →
+                  Đến phần kế tiếp: User & Access Management
                 </button>
                 <button
                   type="button"
@@ -2856,14 +2850,14 @@ export default function EduGuideDrawer({
             isCasaPart1Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>✓ Đã cấu hình thành công Sản phẩm CASA: TKB Current Account (TKCA)!</span>
+                  <span>Đã cấu hình thành công Sản phẩm CASA: TKB Current Account (TKCA)!</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActivePartId('casa-part-2')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến phần kế tiếp: Tạo Hồ Sơ Khách Hàng CIF →
+                  Đến phần kế tiếp: Tạo Hồ Sơ Khách Hàng CIF
                 </button>
                 <button
                   type="button"
@@ -2895,14 +2889,14 @@ export default function EduGuideDrawer({
             isCasaPart2Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>✓ Đã tạo thành công Hồ sơ CIF: Minh Quang Tran (TKB-CIF-TDU-001)!</span>
+                  <span>Đã tạo thành công Hồ sơ CIF: Minh Quang Tran (TKB-CIF-TDU-001)!</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActivePartId('casa-part-3')}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Đến phần kế tiếp: Cấp Tài Khoản CASA Cho Khách Hàng →
+                  Đến phần kế tiếp: Cấp Tài Khoản CASA Cho Khách Hàng
                 </button>
                 <button
                   type="button"
@@ -2934,7 +2928,7 @@ export default function EduGuideDrawer({
             isCasaPart3Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>✓ Đã cấp & kích hoạt thành công Tài khoản CASA 000000001 (12.000.000 VND)!</span>
+                  <span>Đã cấp và kích hoạt thành công Tài khoản CASA 000000001 (12.000.000 VND)!</span>
                 </div>
                 <button
                   type="button"
@@ -2944,7 +2938,7 @@ export default function EduGuideDrawer({
                   }}
                   className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Xem chi tiết hồ sơ tài khoản khách hàng →
+                  Xem chi tiết hồ sơ tài khoản khách hàng
                 </button>
                 <button
                   type="button"
@@ -3005,8 +2999,7 @@ export default function EduGuideDrawer({
             )
           ) : (
             isPart2Complete ? (
-              <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center flex items-center justify-center gap-1.5 shadow-xs">
-                <span>✓</span>
+              <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
                 <span>Đã hoàn thành xuất sắc Foundation 2 (100%)</span>
               </div>
             ) : (

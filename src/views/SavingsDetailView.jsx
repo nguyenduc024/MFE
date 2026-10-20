@@ -66,12 +66,13 @@ export default function SavingsDetailView({ savings, onBack, onDeposit, onWithdr
                 <h1 className="text-xl font-bold text-gray-900">
                   {savings.productName} #{savings.accountNo}
                 </h1>
-                <span className="text-xs text-emerald-700 font-bold">
-                  ● {savings.status}
+                <span className="text-xs text-emerald-700 font-bold inline-flex items-center">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-1.5" />
+                  {savings.status}
                 </span>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">
-                Chủ tài khoản: <strong className="text-emerald-900">{savings.clientName}</strong> • Loại hình: <strong>{savings.accountType}</strong>
+                Chủ tài khoản: <strong className="text-emerald-900">{savings.clientName}</strong>, Loại hình: <strong>{savings.accountType}</strong>
               </div>
             </div>
           </div>

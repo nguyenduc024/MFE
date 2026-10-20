@@ -509,10 +509,9 @@ export default function CreateSavingsProductView({
             <button
               type="button"
               onClick={onStartPractice}
-              className="text-xs bg-[#1072ba] hover:bg-[#0e619e] text-white px-3 py-1.5 rounded-[2px] font-medium transition-colors cursor-pointer flex items-center space-x-1.5 shadow-xs"
+              className="text-xs bg-[#1072ba] hover:bg-[#0e619e] text-white px-3 py-1.5 rounded-[2px] font-medium transition-colors cursor-pointer flex items-center shadow-xs"
               title="Bật luồng thực hành có hướng dẫn (vùng tối, vùng sáng và popup chỉ dẫn)"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
               <span>Bật chỉ dẫn thực hành (Vùng tối & Vùng sáng)</span>
             </button>
           )}

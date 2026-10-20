@@ -59,10 +59,9 @@ export default function SavingsProductsView({
             <button
               type="button"
               onClick={onStartPractice}
-              className="text-xs bg-[#28a745] hover:bg-[#218838] text-white px-3 py-2 rounded-[3px] font-medium transition-colors cursor-pointer flex items-center space-x-1.5 shadow-2xs select-none"
+              className="text-xs bg-[#28a745] hover:bg-[#218838] text-white px-3 py-2 rounded-[3px] font-medium transition-colors cursor-pointer flex items-center shadow-2xs select-none"
               title="Bật luồng thực hành có hướng dẫn (vùng tối, vùng sáng và popup chỉ dẫn)"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
               <span>Bật chỉ dẫn thực hành CASA</span>
             </button>
           )}
