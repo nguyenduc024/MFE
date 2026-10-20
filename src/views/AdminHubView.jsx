@@ -29,6 +29,7 @@ export default function AdminHubView({ navigate }) {
       icon: Package,
       color: "text-[#1072ba] bg-[#1072ba]/10",
       links: [
+        { label: "Products (Danh mục phân hệ Products)", path: "admin-products", desc: "Sản phẩm tiền gửi, tín dụng, biểu phí, thuế và lãi suất" },
         { label: "Loan Products (Gói vay TKB Personal Loan)", path: "admin-loan-products", desc: "Kỳ hạn 12 tháng, lãi suất 12%/năm, liên kết GL" },
         { label: "Savings & Deposit Products (3 sản phẩm huy động)", path: "admin-savings-products", desc: "Tiền gửi thanh toán, tiết kiệm có kỳ hạn, gửi góp" }
       ]

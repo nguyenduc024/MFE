@@ -30,6 +30,8 @@ import AccountingRulesView from './views/AccountingRulesView';
 import JournalEntriesView from './views/JournalEntriesView';
 import LoanProductsView from './views/LoanProductsView';
 import SavingsProductsView from './views/SavingsProductsView';
+import ProductsView from './views/ProductsView';
+import CreateSavingsProductView from './views/CreateSavingsProductView';
 import ClientsView from './views/ClientsView';
 import CreateClientView from './views/CreateClientView';
 import CreateUserView from './views/CreateUserView';
@@ -202,6 +204,15 @@ export default function App() {
     setLoanProducts(prev => [newProduct, ...prev]);
   };
 
+  const handleAddSavingsProduct = (newProduct) => {
+    const nextId = String(savingsProducts.length + 1);
+    const productWithId = {
+      ...newProduct,
+      id: nextId
+    };
+    setSavingsProducts(prev => [productWithId, ...prev]);
+  };
+
   const handleAddClient = (newClient) => {
     const nextAccountNo = String(clients.length + 1).padStart(9, '0');
     const clientWithAccount = {
@@ -306,10 +317,14 @@ export default function App() {
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Roles and Permissions', path: 'admin-roles' }, { label: 'Add' }];
       case 'admin-configurations':
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Configurations' }];
+      case 'admin-products':
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Products' }];
       case 'admin-loan-products':
-        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin' }, { label: 'Loan Products' }];
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Loan Products' }];
       case 'admin-savings-products':
-        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin' }, { label: 'Savings Products' }];
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Saving Products' }];
+      case 'admin-create-savings-product':
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Saving Products', path: 'admin-savings-products' }, { label: 'Create' }];
       case 'accounting-coa':
         return [{ label: 'Accounting', path: 'accounting' }, { label: 'Chart of Accounts' }];
       case 'accounting-activities':
@@ -374,7 +389,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -531,6 +546,14 @@ export default function App() {
           />
         )}
 
+        {currentPath === 'admin-products' && (
+          <ProductsView
+            onNavigateHome={() => navigate('home')}
+            onNavigateSavingsProducts={() => navigate('admin-savings-products')}
+            onNavigateLoanProducts={() => navigate('admin-loan-products')}
+          />
+        )}
+
         {currentPath === 'admin-loan-products' && (
           <LoanProductsView
             loanProducts={loanProducts}
@@ -539,7 +562,26 @@ export default function App() {
         )}
 
         {currentPath === 'admin-savings-products' && (
-          <SavingsProductsView savingsProducts={savingsProducts} />
+          <SavingsProductsView
+            savingsProducts={savingsProducts}
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateCreateSavingsProduct={() => navigate('admin-create-savings-product')}
+          />
+        )}
+
+        {currentPath === 'admin-create-savings-product' && (
+          <CreateSavingsProductView
+            glAccounts={glAccounts}
+            onSaveProduct={(newProduct) => {
+              handleAddSavingsProduct(newProduct);
+              navigate('admin-savings-products');
+            }}
+            onCancel={() => navigate('admin-savings-products')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateSavingsProducts={() => navigate('admin-savings-products')}
+          />
         )}
 
         {currentPath === 'accounting' && (

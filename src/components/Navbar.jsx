@@ -260,7 +260,7 @@ export default function Navbar({
                 >
                   System
                 </div>
-                <div onClick={() => handleItemClick('admin-loan-products')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <div onClick={() => handleItemClick('admin-products')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   Products
                 </div>
                 <div onClick={() => handleItemClick('admin')} className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
