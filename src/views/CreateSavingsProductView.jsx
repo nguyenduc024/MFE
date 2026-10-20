@@ -273,7 +273,6 @@ export default function CreateSavingsProductView({
         shortName: 'TKCA',
         description: 'Basic VND CASA Product · Demo'
       }));
-      setCurrentStep(2);
     };
 
     const handleFillCurrency = () => {
@@ -283,7 +282,6 @@ export default function CreateSavingsProductView({
         decimalPlaces: '0',
         currencyMultiplesOf: '1'
       }));
-      setCurrentStep(3);
     };
 
     const handleFillTerms = () => {
@@ -296,7 +294,6 @@ export default function CreateSavingsProductView({
         interestCalculationDaysInYearType: '365 Days'
       }));
       setHasCompletedTerms(true);
-      setCurrentStep(4);
     };
 
     const handleFillSettings = () => {
@@ -313,7 +310,6 @@ export default function CreateSavingsProductView({
         allowOverdraft: false,
         enableDormancyTracking: false
       }));
-      setCurrentStep(6);
     };
 
     const handleFillAccounting = () => {
@@ -342,7 +338,24 @@ export default function CreateSavingsProductView({
         advancedAccountingRules: false
       }));
       setHasCompletedTerms(true);
-      setCurrentStep(7);
+    };
+
+    const handleNextStepGeneral = () => {
+      setCurrentStep(prev => {
+        if (prev === 1) return 2;
+        if (prev === 2) return 3;
+        if (prev === 3) {
+          setHasCompletedTerms(true);
+          return 4;
+        }
+        if (prev === 4) return 5;
+        if (prev === 5) return 6;
+        if (prev === 6) {
+          setHasCompletedTerms(true);
+          return 7;
+        }
+        return prev;
+      });
     };
 
     const handleFillAll = () => {
@@ -359,6 +372,7 @@ export default function CreateSavingsProductView({
     window.addEventListener('practice-fill-casa-terms', handleFillTerms);
     window.addEventListener('practice-fill-casa-settings', handleFillSettings);
     window.addEventListener('practice-fill-casa-accounting', handleFillAccounting);
+    window.addEventListener('practice-next-casa-step', handleNextStepGeneral);
     window.addEventListener('practice-fill-casa-all', handleFillAll);
     window.addEventListener('practice-submit-casa', handleSubmitEvent);
 
@@ -368,6 +382,7 @@ export default function CreateSavingsProductView({
       window.removeEventListener('practice-fill-casa-terms', handleFillTerms);
       window.removeEventListener('practice-fill-casa-settings', handleFillSettings);
       window.removeEventListener('practice-fill-casa-accounting', handleFillAccounting);
+      window.removeEventListener('practice-next-casa-step', handleNextStepGeneral);
       window.removeEventListener('practice-fill-casa-all', handleFillAll);
       window.removeEventListener('practice-submit-casa', handleSubmitEvent);
     };

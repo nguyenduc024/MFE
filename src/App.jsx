@@ -88,8 +88,31 @@ export default function App() {
   const [savingsProducts, setSavingsProducts] = useState(INITIAL_SAVINGS_PRODUCTS);
   const [clients, setClients] = useState(INITIAL_CLIENTS);
   const [tellers, setTellers] = useState(INITIAL_TELLERS);
-  const [loans, setLoans] = useState(INITIAL_LOANS);
-  const [savingsAccounts, setSavingsAccounts] = useState(INITIAL_SAVINGS_ACCOUNTS);
+  const [loans, setLoans] = useState(() =>
+    INITIAL_LOANS.map(l => l.clientId === '11' ? { ...l, clientId: '12', clientName: 'Lan Ngoc Pham' } : l)
+  );
+  const [savingsAccounts, setSavingsAccounts] = useState(() =>
+    INITIAL_SAVINGS_ACCOUNTS.map(s => {
+      if (s.id === '1') {
+        return {
+          ...s,
+          clientId: '11',
+          clientName: 'Minh Quang Tran',
+          balance: null,
+          lastActive: '2026-10-13',
+          openedDate: '2026-10-13'
+        };
+      }
+      if (s.id === '3') {
+        return {
+          ...s,
+          clientId: '12',
+          clientName: 'Lan Ngoc Pham'
+        };
+      }
+      return s;
+    })
+  );
   const [financialActivities, setFinancialActivities] = useState(INITIAL_FINANCIAL_ACTIVITIES);
   const [accountingRules, setAccountingRules] = useState([
     {
@@ -215,12 +238,44 @@ export default function App() {
   };
 
   const handleAddClient = (newClient) => {
-    const nextAccountNo = String(clients.length + 1).padStart(9, '0');
+    const nextAccountNo = newClient.accountNo || String(clients.length + 1).padStart(9, '0');
     const clientWithAccount = {
       ...newClient,
-      accountNo: newClient.accountNo || nextAccountNo
+      id: newClient.id || String(Date.now()),
+      accountNo: nextAccountNo
     };
-    setClients(prev => [clientWithAccount, ...prev]);
+
+    setClients(prev => {
+      const idx = prev.findIndex(c => c.id === clientWithAccount.id || c.accountNo === clientWithAccount.accountNo);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = clientWithAccount;
+        return updated;
+      }
+      return [clientWithAccount, ...prev];
+    });
+
+    // If client requested to open savings account, create linked CASA account
+    if (newClient.openSavingsAccount) {
+      const newSavingsAcc = {
+        id: String(Date.now() + 1),
+        clientId: clientWithAccount.id,
+        clientName: clientWithAccount.displayName,
+        accountNo: '000000001',
+        productName: newClient.savingsProduct || 'TKB Current Account',
+        accountType: 'Savings (Thanh toán)',
+        balance: null, // empty initial balance as per screenshot Image 4
+        lastActive: '2026-10-13',
+        status: 'Active',
+        openedDate: '2026-10-13'
+      };
+      setSavingsAccounts(prev => {
+        const filtered = prev.filter(s => s.accountNo !== '000000001' || s.clientId !== clientWithAccount.id);
+        return [newSavingsAcc, ...filtered];
+      });
+    }
+
+    return clientWithAccount;
   };
 
   const handleAddSavingsAccountForClient = (newAccount) => {
@@ -726,8 +781,9 @@ export default function App() {
             offices={offices}
             users={users}
             onSaveClient={(newClient) => {
-              handleAddClient(newClient);
-              navigate('clients');
+              const saved = handleAddClient(newClient);
+              setSelectedClient(saved);
+              navigate('client-detail');
             }}
             onCancel={() => navigate('clients')}
             onNavigateHome={() => navigate('home')}
@@ -941,7 +997,8 @@ export default function App() {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
         }}
         onResetClients={() => {
-          setClients(prev => prev.filter(c => c.id !== '11' && c.externalId !== 'TKB-CIF-TDU-001'));
+          setClients(prev => prev.filter(c => c.id !== '11' && c.externalId !== 'TKB-CIF-TDU-001' && !c.displayName?.toLowerCase().includes('minh quang tran')));
+          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.accountNo !== '000000001'));
         }}
         onResetSavingsAccounts={() => {
           setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.accountNo !== '000000001'));

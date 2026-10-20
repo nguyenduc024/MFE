@@ -2210,24 +2210,6 @@ export default function EduGuideDrawer({
                   Xem lại toàn bộ thông số tại <strong>Tab Preview</strong>, sau đó nhấn <strong>Submit</strong> để kích hoạt sản phẩm trên toàn hệ thống.
                 </p>
               </div>
-
-              {/* Thực hành có hướng dẫn */}
-              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
-                <div className="text-[11px] text-sky-900 leading-tight">
-                  <strong>Thực hành có hướng dẫn:</strong> Mở luồng thực hành tạo sản phẩm CASA (Vùng tối & Vùng sáng)
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onStartPractice) {
-                      onStartPractice('casa-part-1');
-                    }
-                  }}
-                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                >
-                  Bắt đầu thực hành CASA
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -2287,23 +2269,6 @@ export default function EduGuideDrawer({
                 <p className="text-gray-600 pl-6">
                   Nhấn <strong>Submit</strong> để lưu hồ sơ. Khách hàng sẽ được cấp mã định danh <code>000000011</code> và chuyển sang trạng thái <strong>Active</strong>.
                 </p>
-              </div>
-
-              {/* Điền nhanh mẫu */}
-              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
-                <div className="text-[11px] text-sky-900 leading-tight">
-                  <strong>Thực hành nhanh:</strong> Mở màn hình tạo khách hàng CIF
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigate) navigate('create-client');
-                    if (onClose) onClose();
-                  }}
-                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                >
-                  Đến tạo CIF
-                </button>
               </div>
             </div>
           </div>
@@ -2373,23 +2338,6 @@ export default function EduGuideDrawer({
                 <p className="text-gray-600 pl-6">
                   Nhấn <strong>Submit & Activate CASA</strong>. Hệ thống tự động chuyển về trang chi tiết khách hàng và hiển thị tài khoản <code>000000001</code> với số dư <strong>12,000,000.00 VND</strong> tại bảng <em>Saving Accounts</em>.
                 </p>
-              </div>
-
-              {/* Thao tác nhanh */}
-              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
-                <div className="text-[11px] text-sky-900 leading-tight">
-                  <strong>Thực hành nhanh:</strong> Mở ngay màn hình cấp tài khoản CASA cho Minh Quang Tran
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigate) navigate('create-savings-account');
-                    if (onClose) onClose();
-                  }}
-                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                >
-                  Đến cấp CASA
-                </button>
               </div>
             </div>
           </div>

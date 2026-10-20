@@ -52,7 +52,7 @@ function formatDisplayDate(dateVal, fallback = '—') {
  * Format currency amount with comma separators and 2 decimal places (e.g. 12,000,000.00)
  */
 function formatCurrency(amount) {
-  if (amount === undefined || amount === null) return '0.00';
+  if (amount === undefined || amount === null || amount === '') return '';
   const num = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/,/g, ''));
   if (isNaN(num)) return String(amount);
   return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -131,7 +131,7 @@ export default function ClientDetailView({
       </div>
 
       {/* 2. Main Blue Banner Card matching Image: media_1792495256802_1f1cf497.png */}
-      <div className="bg-[#1072ba] text-white rounded-t-[3px] p-6 shadow-sm relative">
+      <div id="tour-client-detail-banner" className="bg-[#1072ba] text-white rounded-t-[3px] p-6 shadow-sm relative">
         <div className="flex items-start justify-between">
           
           <div className="flex items-start space-x-8">
@@ -512,7 +512,7 @@ export default function ClientDetailView({
           </div>
 
           {/* Section: Saving Accounts matching Image */}
-          <div className="space-y-2">
+          <div id="tour-client-detail-saving-table" className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-gray-800">
                 Saving Accounts

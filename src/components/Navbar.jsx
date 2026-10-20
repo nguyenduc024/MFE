@@ -76,6 +76,7 @@ export default function Navbar({
           {/* 1. Institution Dropdown (Exact match to Image 1) */}
           <div className="relative h-full flex items-center">
             <button
+              id="tour-nav-institution"
               onClick={() => toggleDropdown('institution')}
               className={`mifos-header-item h-9 ${openDropdown === 'institution' ? 'active' : ''}`}
             >
@@ -89,6 +90,7 @@ export default function Navbar({
                 onMouseLeave={() => setActiveSubmenu(null)}
               >
                 <div 
+                  id="tour-nav-clients"
                   onClick={() => handleItemClick('clients')}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-[#333333]"
                 >

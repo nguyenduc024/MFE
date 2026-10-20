@@ -107,6 +107,17 @@ export default function PracticeSpotlightTour({
 
   // Phân hệ 02 - Phần 1 state (CASA Product Creation)
   const [casaProductPopup, setCasaProductPopup] = useState(false);
+  const [casaFilledSteps, setCasaFilledSteps] = useState({
+    details: false,
+    currency: false,
+    terms: false,
+    settings: false,
+    accounting: false
+  });
+
+  // Phân hệ 02 - Phần 2 state (CIF Creation)
+  const [casaCifPopup, setCasaCifPopup] = useState(false);
+  const [cifGeneralFilled, setCifGeneralFilled] = useState(false);
 
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
@@ -116,6 +127,16 @@ export default function PracticeSpotlightTour({
     if (isActive) {
       if (module === 'casa-part-1') {
         setCasaProductPopup(false);
+        setCasaFilledSteps({
+          details: false,
+          currency: false,
+          terms: false,
+          settings: false,
+          accounting: false
+        });
+      } else if (module === 'casa-part-2') {
+        setCasaCifPopup(false);
+        setCifGeneralFilled(false);
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -179,6 +200,19 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [savingsProducts, isActive, module, casaProductPopup]);
+
+  // Track if CIF was created (Phân hệ 02 - Phần 2)
+  useEffect(() => {
+    if (isActive && module === 'casa-part-2') {
+      const hasMinhTran = clients.some(c => 
+        (c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')) &&
+        c.status === 'Active'
+      );
+      if (hasMinhTran && currentPath === 'client-detail' && !casaCifPopup) {
+        setCasaCifPopup(true);
+      }
+    }
+  }, [clients, isActive, module, currentPath, casaCifPopup]);
 
   // Track if Financial Activity Mapping was submitted / created (GL Part 5)
   useEffect(() => {
@@ -477,6 +511,50 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1 / 8: Vào menu Admin > Products';
       stepSubtitle = 'Truy cập trung tâm quản trị cấu hình sản phẩm nghiệp vụ ngân hàng.';
       stepInstruction = 'Di chuột hoặc bấm vào menu Admin trên thanh điều hướng, sau đó chọn mục "Products".';
+    }
+  } else if (module === 'casa-part-2') {
+    const hasMinhTranCreated = clients.some(c => 
+      c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')
+    );
+
+    if (currentPath === 'client-detail') {
+      currentStep = 4;
+      targetSelector = '#tour-client-detail-saving-table';
+      stepTitle = 'Bước 4 / 4: Hồ sơ CIF & Tài khoản CASA đã liên kết';
+      stepSubtitle = 'Khách hàng Minh Quang Tran đã được cấp mã định danh 000000011 và liên kết tài khoản CASA 000000001.';
+      stepInstruction = 'Kiểm tra thông tin khách hàng trên màn hình: CIF 000000011, Văn phòng PGD Thủ Đức, Trạng thái Active. Tại bảng Saving Accounts, tài khoản TKB Current Account đã hiển thị sẵn sàng.';
+    } else if (currentPath === 'create-client') {
+      if (typeof document !== 'undefined' && document.getElementById('tour-create-client-preview-card')) {
+        currentStep = 3;
+        targetSelector = '#tour-create-client-preview-card';
+        stepTitle = 'Bước 3 / 4: Rà soát thông tin tại Tab PREVIEW';
+        stepSubtitle = 'Kiểm tra toàn bộ thông số định danh CIF của khách hàng trước khi bấm Submit.';
+        stepInstruction = 'Rà soát các trường: Name (Minh Quang Tran), Office (Thu Duc Transaction Office), Legal Form (Person), Staff (Dang, Quan), DOB (06 April 2000), External Id (TKB-CIF-TDU-001), Mobile (0955738216), Email (quang2004@gmail.com), Savings Product (TKB Current Account), Submitted On Date (13 October 2026), Active? (Yes), Activation Date (13 October 2026). Sau khi xem xong, bấm nút "Submit" màu xanh để tạo hồ sơ!';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-create-client-family-container')) {
+        currentStep = 2;
+        targetSelector = '#tour-client-next-btn-step2';
+        stepTitle = 'Bước 2 / 4: Tab FAMILY MEMBERS (Người thân)';
+        stepSubtitle = 'Khách hàng chưa đăng ký người phụ thuộc hay thông tin gia đình.';
+        stepInstruction = 'Khách hàng Minh Quang Tran hiện chưa cần khai báo thành viên gia đình. Bạn xem qua giao diện rồi bấm nút "Next" bên dưới để chuyển sang Tab PREVIEW.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-create-client-form-general';
+        stepTitle = 'Bước 1 / 4: Khai báo thông tin định danh (Tab GENERAL)';
+        stepSubtitle = 'Khai báo đầy đủ các trường thông tin CIF của khách hàng tại Phòng giao dịch Thủ Đức.';
+        stepInstruction = 'Nhập thông tin: Office (Thu Duc Transaction Office), Legal Form (Person), First Name (Minh), Middle Name (Quang), Last Name (Tran), DOB (4/6/2000), Staff (Dang, Quan), Mobile (0955738216), Email (quang2004@gmail.com), Active (Yes), Open Savings Account (Yes). Bấm nút "Điền dữ liệu mẫu CIF" bên dưới để điền nhanh và kiểm tra.';
+      }
+    } else if (currentPath === 'clients') {
+      currentStep = 1;
+      targetSelector = '#tour-create-client-btn';
+      stepTitle = 'Bước 1 / 4: Bấm nút Create Client';
+      stepSubtitle = 'Khởi tạo hồ sơ khách hàng mới (CIF) trong phân hệ Quản lý khách hàng.';
+      stepInstruction = 'Tại trang danh sách Clients, bấm nút "+ Create Client" màu xanh ở góc trên bên phải để bắt đầu biểu mẫu tạo CIF.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1 / 4: Truy cập phân hệ Clients';
+      stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu "Institution > Clients" trên thanh menu trên cùng để truy cập danh sách khách hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -2478,6 +2556,85 @@ export default function PracticeSpotlightTour({
     );
   }
 
+  // CASA Part 2 completion modal
+  if (module === 'casa-part-2' && casaCifPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Tạo hồ sơ CIF thành công
+            </span>
+            <button
+              onClick={() => setCasaCifPopup(false)}
+              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <h3 className="text-base font-bold text-gray-900 leading-snug">
+            Hồ sơ CIF: Minh Quang Tran (000000011) đã được kích hoạt!
+          </h3>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Hồ sơ khách hàng cá nhân đã được tạo thành công tại Phòng giao dịch Thủ Đức và tự động liên kết tài khoản thanh toán CASA:
+          </p>
+
+          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-1.5 font-sans">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Khách hàng:</span>
+              <strong className="text-gray-900">Minh Quang Tran (Mã CIF: 000000011)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Chi nhánh / PGD:</span>
+              <strong className="text-gray-900">Thu Duc Transaction Office</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">External ID:</span>
+              <strong className="text-gray-900">TKB-CIF-TDU-001</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Cán bộ quản lý:</span>
+              <strong className="text-gray-900">Dang, Quan</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tài khoản CASA cấp tự động:</span>
+              <strong className="text-[#1072ba]">000000001 (TKB Current Account)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Số dư ban đầu:</span>
+              <strong className="text-gray-600">Trống (Sẵn sàng cấp vốn tại Phần 3)</strong>
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCasaCifPopup(false);
+              }}
+              className="py-2 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors"
+            >
+              Xem chi tiết hồ sơ
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCasaCifPopup(false);
+                if (onClose) onClose();
+              }}
+              className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+            >
+              Hoàn thành bài thực hành CIF
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tooltip position calculation
   const padding = 6;
   const box = targetRect ? {
@@ -2509,7 +2666,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1') {
+    if (module === 'casa-part-1' || module === 'casa-part-2') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn') {
         tooltipStyle = {
@@ -2770,15 +2927,33 @@ export default function PracticeSpotlightTour({
                       <div>Short Name: <strong>TKCA</strong></div>
                       <div>Description: <strong>Basic VND CASA Product · Demo</strong></div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-fill-casa-details'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Điền mẫu Details và Sang Currency
-                    </button>
+                    {!casaFilledSteps.details ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-casa-details'));
+                          setCasaFilledSteps(prev => ({ ...prev, details: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Details
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Details đã được điền. Hãy rà soát các trường trên màn hình rồi bấm Tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Tab CURRENCY)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2792,15 +2967,33 @@ export default function PracticeSpotlightTour({
                       <div>Decimal Places: <strong>0</strong></div>
                       <div>In multiples of: <strong>1</strong></div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-fill-casa-currency'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Điền mẫu Currency và Sang Terms
-                    </button>
+                    {!casaFilledSteps.currency ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-casa-currency'));
+                          setCasaFilledSteps(prev => ({ ...prev, currency: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Currency
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Currency đã được điền. Hãy rà soát các trường trên màn hình rồi bấm Tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Tab TERMS)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2815,15 +3008,33 @@ export default function PracticeSpotlightTour({
                       <div>Calculated using: <strong>Daily Balance</strong></div>
                       <div>Days in Year: <strong>365 Days</strong></div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-fill-casa-terms'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Điền mẫu Terms và Mở Preview
-                    </button>
+                    {!casaFilledSteps.terms ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-casa-terms'));
+                          setCasaFilledSteps(prev => ({ ...prev, terms: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Terms
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Terms đã được điền và mở khóa Tab Preview. Bấm Tiếp theo để sang Tab Settings.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Tab SETTINGS)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2837,15 +3048,33 @@ export default function PracticeSpotlightTour({
                       <div>Lock-in Period: <strong>Để trống</strong></div>
                       <div>Overdraft / Rút chuyển khoản: <strong>Không chọn</strong></div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-fill-casa-settings'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Điền mẫu Settings và Sang Charges
-                    </button>
+                    {!casaFilledSteps.settings ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-casa-settings'));
+                          setCasaFilledSteps(prev => ({ ...prev, settings: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Settings
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Settings đã được điền. Bấm Tiếp theo để sang Tab Charges.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Tab CHARGES)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2860,8 +3089,7 @@ export default function PracticeSpotlightTour({
                     <button
                       type="button"
                       onClick={() => {
-                        const nextBtn = document.getElementById('tour-casa-charges-next-btn');
-                        if (nextBtn) nextBtn.click();
+                        window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
@@ -2882,15 +3110,33 @@ export default function PracticeSpotlightTour({
                       <div>Interest on savings: <strong>510101 Savings Interest Exp</strong></div>
                       <div>Fees & Penalty: <strong>420102 & 420103</strong></div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-fill-casa-accounting'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Điền mẫu Accounting (Cash) và Sang Preview
-                    </button>
+                    {!casaFilledSteps.accounting ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-casa-accounting'));
+                          setCasaFilledSteps(prev => ({ ...prev, accounting: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền mẫu Accounting (Cash Based)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Đã liên kết 9 tài khoản kế toán đối ứng. Hãy rà soát trên màn hình rồi bấm Tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-casa-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Tab PREVIEW)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2985,6 +3231,134 @@ export default function PracticeSpotlightTour({
               >
                 Đến trang Quản lý Products
               </button>
+            )}
+          </div>
+        )}
+
+        {/* Quick autofill & interactive actions for CASA Part 2 */}
+        {module === 'casa-part-2' && (
+          <div className="space-y-2 mt-2">
+            {currentPath === 'create-client' && (
+              <>
+                {targetSelector === '#tour-create-client-form-general' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin hồ sơ CIF mẫu (Minh Quang Tran):
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Office: <strong>Thu Duc Transaction Office</strong></div>
+                      <div>Legal Form: <strong>Person</strong> | Staff: <strong>Dang, Quan</strong></div>
+                      <div>Họ và tên: <strong>Minh Quang Tran</strong></div>
+                      <div>External ID: <strong>TKB-CIF-TDU-001</strong></div>
+                      <div>DOB: <strong>4/6/2000</strong> (06 April 2000)</div>
+                      <div>Mobile: <strong>0955738216</strong> | Email: <strong>quang2004@gmail.com</strong></div>
+                      <div>Submitted On: <strong>10/13/2026</strong> | Active: <strong>Yes</strong></div>
+                      <div>Savings Product: <strong>TKB Current Account</strong></div>
+                    </div>
+
+                    {!cifGeneralFilled ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-cif-general'));
+                          setCifGeneralFilled(true);
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu CIF (Minh Quang Tran)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu CIF đã được điền vào biểu mẫu. Hãy rà soát lại các trường thông tin trên màn hình trước khi tiếp tục.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp theo (Sang Family Members)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {targetSelector === '#tour-client-next-btn-step2' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Tab FAMILY MEMBERS:
+                    </div>
+                    <p className="text-[10px] text-gray-600">
+                      Khách hàng Minh Quang Tran hiện chưa cần đăng ký người phụ thuộc hay thành viên gia đình.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Chuyển sang Tab PREVIEW
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-create-client-preview-card' && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-emerald-900">
+                      Rà soát & Hoàn tất tạo CIF:
+                    </div>
+                    <p className="text-[10px] text-emerald-800">
+                      Kiểm tra lại toàn bộ thông tin tại bảng tóm tắt bên trái. Bấm nút Submit màu xanh để tạo hồ sơ khách hàng và kích hoạt tài khoản CASA!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-cif'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bấm Submit tạo CIF
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {currentPath === 'clients' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('create-client');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở biểu mẫu Create Client
+              </button>
+            )}
+
+            {currentPath === 'client-detail' && (
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                  <div className="font-bold text-emerald-900 mb-0.5">
+                    Đã tạo thành công CIF: Minh Quang Tran (000000011)!
+                  </div>
+                  <div>Tài khoản CASA 000000001 (TKB Current Account) đã được cấp và hiển thị trong danh mục Saving Accounts.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onClose) onClose();
+                    if (navigate) navigate('client-detail');
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Hoàn tất bài thực hành CIF
+                </button>
+              </div>
             )}
           </div>
         )}

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Pencil, Calendar, ChevronDown, Plus, Trash2, Check, X
 } from 'lucide-react';
 
 /**
- * Helper to format date strings into Mifos format: DD MMMM YYYY (e.g. "02 March 2004", "20 October 2026")
+ * Helper to format date strings into Mifos format: DD MMMM YYYY (e.g. "06 April 2000", "13 October 2026")
  */
 function formatDisplayDate(dateVal, fallback = '—') {
   if (!dateVal) return fallback;
 
-  // Handle MM/DD/YYYY format like "10/20/2026"
+  // Handle M/D/YYYY or MM/DD/YYYY format like "4/6/2000" or "10/13/2026"
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateVal)) {
     const [month, day, year] = dateVal.split('/');
     const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
@@ -22,7 +22,7 @@ function formatDisplayDate(dateVal, fallback = '—') {
     }
   }
 
-  // Handle YYYY-MM-DD format like "2004-03-02"
+  // Handle YYYY-MM-DD format like "2000-04-06"
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
     const [year, month, day] = dateVal.split('-');
     const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
@@ -192,9 +192,11 @@ export default function CreateClientView({
     emailAddress: '',
     clientType: '',
     clientClassification: '',
-    submittedOn: '10/20/2026',
+    submittedOn: '10/13/2026',
     active: false,
-    openSavingsAccount: false
+    activationDate: '10/13/2026',
+    openSavingsAccount: false,
+    savingsProduct: 'TKB Current Account'
   });
 
   // Track if user touched office field or validated
@@ -212,46 +214,34 @@ export default function CreateClientView({
     gender: 'Female'
   });
 
-  // Quick autofill with the user's sample data from Image 1 & Image 3
+  // Quick autofill with the user's sample data from Image 2 & Image 3 (Minh Quang Tran)
   const handleQuickAutofillSample = () => {
-    // Find Quangninh Branch or fallback office
-    const qnOffice = offices.find(o => o.name && o.name.toLowerCase().includes('quangninh')) || offices[0];
+    // Find Thu Duc Transaction Office (id 26) or fallback office
+    const tdOffice = offices.find(o => o.name && o.name.toLowerCase().includes('thu duc')) || offices.find(o => String(o.id) === '26') || offices[0];
+    const quanStaff = users.find(u => (u.firstname && u.firstname.toLowerCase().includes('quan')) || (u.lastname && u.lastname.toLowerCase().includes('dang'))) || users[0];
 
     setFormData({
-      officeId: qnOffice ? String(qnOffice.id) : '18',
+      officeId: tdOffice ? String(tdOffice.id) : '26',
       legalForm: 'Person',
-      externalId: 'TKB-CUS-2004',
-      firstname: 'NG Anh',
-      middlename: '',
-      lastname: 'Minhh',
-      dateOfBirth: '2004-03-02',
-      gender: 'Male',
-      staffId: users[0]?.id || '',
+      externalId: 'TKB-CIF-TDU-001',
+      firstname: 'Minh',
+      middlename: 'Quang',
+      lastname: 'Tran',
+      dateOfBirth: '4/6/2000',
+      gender: '',
+      staffId: quanStaff ? String(quanStaff.id) : '13',
       isStaff: false,
-      mobileNo: '0912345678',
-      emailAddress: 'ng.anhminhh@takashimayabank.org',
-      clientType: 'Individual',
-      clientClassification: 'Retail',
-      submittedOn: '10/20/2026',
-      active: false,
-      openSavingsAccount: false
+      mobileNo: '0955738216',
+      emailAddress: 'quang2004@gmail.com',
+      clientType: '',
+      clientClassification: '',
+      submittedOn: '10/13/2026',
+      active: true,
+      activationDate: '10/13/2026',
+      openSavingsAccount: true,
+      savingsProduct: 'TKB Current Account'
     });
     setOfficeTouched(true);
-  };
-
-  const handleAddFamilyMember = (e) => {
-    e.preventDefault();
-    if (!newFamilyMember.firstname.trim() || !newFamilyMember.lastname.trim()) return;
-    setFamilyMembers([
-      ...familyMembers, 
-      { ...newFamilyMember, id: Date.now() }
-    ]);
-    setNewFamilyMember({ firstname: '', lastname: '', relationship: 'Spouse', dateOfBirth: '', gender: 'Female' });
-    setShowAddFamilyModal(false);
-  };
-
-  const handleRemoveFamilyMember = (id) => {
-    setFamilyMembers(familyMembers.filter(m => m.id !== id));
   };
 
   // Step 1 Validation -> Next
@@ -260,7 +250,6 @@ export default function CreateClientView({
     setOfficeTouched(true);
 
     if (!formData.officeId) {
-      // Keep user on step 1 with red error matching Image 1
       return;
     }
     if (!formData.firstname.trim() || !formData.lastname.trim()) {
@@ -280,31 +269,35 @@ export default function CreateClientView({
   // Step 3 Submit -> Finalize
   const handleSubmitFinal = () => {
     const office = offices.find(o => String(o.id) === String(formData.officeId));
+    const staff = users.find(u => String(u.id) === String(formData.staffId));
     const fullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim();
 
     const newClient = {
-      id: String(Date.now()),
-      accountNo: '', // assigned in App.jsx
-      externalId: formData.externalId || `TKB-CUS-${String(Math.floor(100 + Math.random() * 900))}`,
-      displayName: fullName || 'NG Anh Minhh',
-      firstname: formData.firstname || 'NG Anh',
-      lastname: formData.lastname || 'Minhh',
-      middlename: formData.middlename || '',
-      officeId: formData.officeId || '18',
-      officeName: office ? office.name : 'Quangninh Branch',
-      legalForm: formData.legalForm,
-      dateOfBirth: formData.dateOfBirth,
-      gender: formData.gender,
-      staffId: formData.staffId,
-      isStaff: formData.isStaff,
-      mobileNo: formData.mobileNo || null,
-      email: formData.emailAddress || null,
-      clientType: formData.clientType,
-      clientClassification: formData.clientClassification,
+      id: '11',
+      accountNo: '000000011',
+      externalId: formData.externalId || 'TKB-CIF-TDU-001',
+      displayName: fullName || 'Minh Quang Tran',
+      firstname: formData.firstname || 'Minh',
+      middlename: formData.middlename || 'Quang',
+      lastname: formData.lastname || 'Tran',
+      officeId: formData.officeId || '26',
+      officeName: office ? office.name : 'Thu Duc Transaction Office',
+      staffId: formData.staffId || '13',
+      staffName: staff ? `${staff.lastname}, ${staff.firstname}` : 'Dang, Quan',
+      legalForm: formData.legalForm || 'Person',
+      dateOfBirth: formData.dateOfBirth || '4/6/2000',
+      gender: formData.gender || '',
+      isStaff: formData.isStaff || false,
+      mobileNo: formData.mobileNo || '0955738216',
+      email: formData.emailAddress || 'quang2004@gmail.com',
+      clientType: formData.clientType || '',
+      clientClassification: formData.clientClassification || '',
       status: formData.active ? 'Active' : 'Pending',
-      activationDate: formData.active ? new Date().toISOString().split('T')[0] : null,
+      activationDate: formData.active ? (formData.activationDate || '2026-10-13') : null,
+      submittedOn: formData.submittedOn || '10/13/2026',
       familyMembers: familyMembers,
-      openSavingsAccount: formData.openSavingsAccount
+      openSavingsAccount: formData.openSavingsAccount,
+      savingsProduct: formData.savingsProduct || 'TKB Current Account'
     };
 
     if (onSaveClient) {
@@ -312,14 +305,67 @@ export default function CreateClientView({
     }
   };
 
+  // Guided practice event listeners
+  useEffect(() => {
+    const handleAutofillEvent = () => {
+      handleQuickAutofillSample();
+    };
+
+    const handleNextStepEvent = () => {
+      setStep(prev => {
+        if (prev === 1) return 2;
+        if (prev === 2) {
+          setHasVisitedPreview(true);
+          return 3;
+        }
+        return prev;
+      });
+    };
+
+    const handleSubmitEvent = () => {
+      handleSubmitFinal();
+    };
+
+    window.addEventListener('practice-autofill-cif-general', handleAutofillEvent);
+    window.addEventListener('practice-next-cif-step', handleNextStepEvent);
+    window.addEventListener('practice-submit-cif', handleSubmitEvent);
+
+    return () => {
+      window.removeEventListener('practice-autofill-cif-general', handleAutofillEvent);
+      window.removeEventListener('practice-next-cif-step', handleNextStepEvent);
+      window.removeEventListener('practice-submit-cif', handleSubmitEvent);
+    };
+  }, [formData, offices, users, familyMembers]);
+
+  const handleAddFamilyMember = (e) => {
+    e.preventDefault();
+    if (!newFamilyMember.firstname.trim() || !newFamilyMember.lastname.trim()) return;
+    setFamilyMembers([
+      ...familyMembers, 
+      { ...newFamilyMember, id: Date.now() }
+    ]);
+    setNewFamilyMember({ firstname: '', lastname: '', relationship: 'Spouse', dateOfBirth: '', gender: 'Female' });
+    setShowAddFamilyModal(false);
+  };
+
+  const handleRemoveFamilyMember = (id) => {
+    setFamilyMembers(familyMembers.filter(m => m.id !== id));
+  };
+
   // Resolve office name for preview
   const selectedOffice = offices.find(o => String(o.id) === String(formData.officeId));
   const previewOfficeName = selectedOffice 
     ? selectedOffice.name 
-    : (formData.officeId === '18' ? 'Quangninh Branch' : (formData.officeId ? `Office #${formData.officeId}` : 'Quangninh Branch'));
+    : (formData.officeId === '26' ? 'Thu Duc Transaction Office' : (formData.officeId ? `Office #${formData.officeId}` : 'Thu Duc Transaction Office'));
+
+  // Resolve staff name for preview
+  const selectedStaff = users.find(u => String(u.id) === String(formData.staffId));
+  const previewStaffName = selectedStaff
+    ? `${selectedStaff.lastname}, ${selectedStaff.firstname}`
+    : 'Dang, Quan';
 
   // Resolve client full name for preview
-  const previewFullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim() || 'NG Anh Minhh';
+  const previewFullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim() || 'Minh Quang Tran';
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6 select-none font-sans text-gray-800">
@@ -355,9 +401,9 @@ export default function CreateClientView({
           type="button"
           onClick={handleQuickAutofillSample}
           className="text-xs text-[#1072ba] hover:bg-sky-50 px-2.5 py-1 rounded border border-sky-200 font-medium transition-colors cursor-pointer"
-          title="Điền nhanh dữ liệu mẫu theo screenshot: NG Anh Minhh - Quangninh Branch"
+          title="Điền nhanh dữ liệu mẫu theo screenshot: Minh Quang Tran - Thu Duc Transaction Office"
         >
-          Điền nhanh mẫu (NG Anh Minhh)
+          Điền nhanh mẫu (Minh Quang Tran)
         </button>
       </div>
 
@@ -479,10 +525,10 @@ export default function CreateClientView({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* STEP 1: GENERAL FORM (Exact match to Image 1)                 */}
+        {/* STEP 1: GENERAL FORM (Exact match to Image 1 & 2)             */}
         {/* ------------------------------------------------------------- */}
         {step === 1 && (
-          <form onSubmit={handleNextFromStep1} className="space-y-7 pt-2">
+          <form id="tour-create-client-form-general" onSubmit={handleNextFromStep1} className="space-y-7 pt-2">
             
             {/* Row 1: Office * (Col 1), Legal Form * (Col 2), External Id (Col 3) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -582,7 +628,7 @@ export default function CreateClientView({
                 <option value=""></option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>
-                    {u.firstname} {u.lastname} ({u.username})
+                    {u.lastname ? `${u.lastname}, ${u.firstname}` : u.username}
                   </option>
                 ))}
               </FloatingSelect>
@@ -661,7 +707,21 @@ export default function CreateClientView({
               </div>
             </div>
 
-            {/* Row 9: Open Savings Account? Checkbox */}
+            {/* Row 9: Activation Date * (shown when Active is checked) matching Image 2 */}
+            {formData.active && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FloatingInput
+                  label="Activation Date *"
+                  required
+                  value={formData.activationDate || formData.submittedOn}
+                  onChange={(e) => setFormData({ ...formData, activationDate: e.target.value })}
+                  rightIcon={<Calendar className="w-3.5 h-3.5" />}
+                />
+                <div />
+              </div>
+            )}
+
+            {/* Row 10: Open Savings Account? Checkbox */}
             <div className="flex items-center space-x-2 pt-1">
               <span className="text-xs text-gray-700">Open Savings Account?</span>
               <input
@@ -672,7 +732,23 @@ export default function CreateClientView({
               />
             </div>
 
-            {/* Centered Action Buttons matching Image 1: [ <- Previous ] (disabled) [ Next -> ] */}
+            {/* Row 11: Savings Product * (shown when Open Savings Account is checked) matching Image 2 */}
+            {formData.openSavingsAccount && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-1">
+                <FloatingSelect
+                  label="Savings Product *"
+                  required
+                  value={formData.savingsProduct || 'TKB Current Account'}
+                  onChange={(e) => setFormData({ ...formData, savingsProduct: e.target.value })}
+                >
+                  <option value="TKB Current Account">TKB Current Account</option>
+                  <option value="TKB Fixed Deposit">TKB Fixed Deposit</option>
+                </FloatingSelect>
+                <div />
+              </div>
+            )}
+
+            {/* Centered Action Buttons matching Image 1 & 2: [ <- Previous ] (disabled) [ Next -> ] */}
             <div className="flex items-center justify-center space-x-3 pt-8 pb-1">
               <button
                 type="button"
@@ -684,6 +760,7 @@ export default function CreateClientView({
 
               <button
                 type="submit"
+                id="tour-client-next-btn-step1"
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
                 <span>Next &rarr;</span>
@@ -697,7 +774,7 @@ export default function CreateClientView({
         {/* STEP 2: FAMILY MEMBERS (Exact match to Image 2)               */}
         {/* ------------------------------------------------------------- */}
         {step === 2 && (
-          <div className="space-y-6 pt-2">
+          <div id="tour-create-client-family-container" className="space-y-6 pt-2">
             
             {/* Header: Family Members on left, [+ Add] button on right matching Image 2 */}
             <div className="flex items-center justify-between">
@@ -846,6 +923,7 @@ export default function CreateClientView({
 
               <button
                 type="button"
+                id="tour-client-next-btn-step2"
                 onClick={handleNextFromStep2}
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
@@ -860,7 +938,7 @@ export default function CreateClientView({
         {/* STEP 3: PREVIEW (Exact match to Image 3)                      */}
         {/* ------------------------------------------------------------- */}
         {step === 3 && (
-          <div className="space-y-6 pt-2">
+          <div id="tour-create-client-preview-card" className="space-y-6 pt-2">
             
             {/* Section Title: General with thin horizontal line underneath matching Image 3 */}
             <div>
@@ -870,7 +948,7 @@ export default function CreateClientView({
               <div className="w-full h-[1px] bg-gray-200" />
             </div>
 
-            {/* Two-column summary key-value list matching Image 3 */}
+            {/* Two-column summary key-value list matching Image 3 in exact order */}
             <div className="space-y-3.5 text-xs text-[#212529] max-w-3xl">
               
               {/* Row 1: Name */}
@@ -891,60 +969,81 @@ export default function CreateClientView({
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.legalForm || 'Person'}</span>
               </div>
 
-              {/* Row 4: Date of Birth (Formatted e.g. "02 March 2004") */}
+              {/* Row 4: Staff matching Image 3 */}
+              <div className="grid grid-cols-12 py-0.5">
+                <span className="col-span-4 md:col-span-3 text-gray-700">Staff</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{previewStaffName}</span>
+              </div>
+
+              {/* Row 5: Date of Birth (Formatted e.g. "06 April 2000") */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Date of Birth</span>
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">
-                  {formatDisplayDate(formData.dateOfBirth, '02 March 2004')}
+                  {formatDisplayDate(formData.dateOfBirth, '06 April 2000')}
                 </span>
               </div>
 
-              {/* Row 5: Submitted On Date (Formatted e.g. "20 October 2026") */}
+              {/* Row 6: External Id */}
+              <div className="grid grid-cols-12 py-0.5">
+                <span className="col-span-4 md:col-span-3 text-gray-700">External Id</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.externalId || 'TKB-CIF-TDU-001'}</span>
+              </div>
+
+              {/* Row 7: Mobile No */}
+              <div className="grid grid-cols-12 py-0.5">
+                <span className="col-span-4 md:col-span-3 text-gray-700">Mobile No</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.mobileNo || '0955738216'}</span>
+              </div>
+
+              {/* Row 8: Email Address */}
+              <div className="grid grid-cols-12 py-0.5">
+                <span className="col-span-4 md:col-span-3 text-gray-700">Email Address</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.emailAddress || 'quang2004@gmail.com'}</span>
+              </div>
+
+              {/* Row 9: Savings Product matching Image 3 */}
+              {formData.openSavingsAccount && (
+                <div className="grid grid-cols-12 py-0.5">
+                  <span className="col-span-4 md:col-span-3 text-gray-700">Savings Product</span>
+                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.savingsProduct || 'TKB Current Account'}</span>
+                </div>
+              )}
+
+              {/* Row 10: Submitted On Date (Formatted e.g. "13 October 2026") */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Submitted On Date</span>
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">
-                  {formatDisplayDate(formData.submittedOn, '20 October 2026')}
+                  {formatDisplayDate(formData.submittedOn, '13 October 2026')}
                 </span>
               </div>
 
-              {/* Row 6: Active? */}
+              {/* Row 11: Active? */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Active?</span>
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.active ? 'Yes' : 'No'}</span>
               </div>
 
-              {/* Row 7: Is staff? */}
+              {/* Row 12: Activation Date matching Image 3 */}
+              {formData.active && (
+                <div className="grid grid-cols-12 py-0.5">
+                  <span className="col-span-4 md:col-span-3 text-gray-700">Activation Date</span>
+                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">
+                    {formatDisplayDate(formData.activationDate || formData.submittedOn, '13 October 2026')}
+                  </span>
+                </div>
+              )}
+
+              {/* Row 13: Is staff? */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Is staff?</span>
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.isStaff ? 'Yes' : 'No'}</span>
               </div>
 
-              {/* Optional Fields from input */}
-              {formData.externalId && (
-                <div className="grid grid-cols-12 py-0.5">
-                  <span className="col-span-4 md:col-span-3 text-gray-700">External Id</span>
-                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.externalId}</span>
-                </div>
-              )}
-
+              {/* Optional Fields if any */}
               {formData.gender && (
                 <div className="grid grid-cols-12 py-0.5">
                   <span className="col-span-4 md:col-span-3 text-gray-700">Gender</span>
                   <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.gender}</span>
-                </div>
-              )}
-
-              {formData.mobileNo && (
-                <div className="grid grid-cols-12 py-0.5">
-                  <span className="col-span-4 md:col-span-3 text-gray-700">Mobile No</span>
-                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.mobileNo}</span>
-                </div>
-              )}
-
-              {formData.emailAddress && (
-                <div className="grid grid-cols-12 py-0.5">
-                  <span className="col-span-4 md:col-span-3 text-gray-700">Email Address</span>
-                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.emailAddress}</span>
                 </div>
               )}
 
@@ -959,13 +1058,6 @@ export default function CreateClientView({
                 <div className="grid grid-cols-12 py-0.5">
                   <span className="col-span-4 md:col-span-3 text-gray-700">Client Classification</span>
                   <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.clientClassification}</span>
-                </div>
-              )}
-
-              {formData.openSavingsAccount && (
-                <div className="grid grid-cols-12 py-0.5">
-                  <span className="col-span-4 md:col-span-3 text-gray-700">Open Savings Account?</span>
-                  <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">Yes</span>
                 </div>
               )}
 
@@ -1020,6 +1112,7 @@ export default function CreateClientView({
 
               <button
                 type="button"
+                id="tour-client-submit-btn"
                 onClick={handleSubmitFinal}
                 className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-normal px-6 py-2 rounded-[3px] transition-colors shadow-2xs cursor-pointer select-none"
               >

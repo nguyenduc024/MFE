@@ -148,6 +148,7 @@ export default function ClientsView({
             </button>
 
             <button
+              id="tour-create-client-btn"
               onClick={() => onNavigateCreateClient ? onNavigateCreateClient() : setShowAddModal(true)}
               className="bg-[#1072ba] hover:bg-[#0d5f9c] text-white text-xs font-medium px-3.5 py-1.5 rounded flex items-center gap-1.5 transition-colors shadow-2xs"
             >
