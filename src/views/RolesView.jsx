@@ -254,19 +254,20 @@ export default function RolesView({
                   return (
                     <tr 
                       key={role.id || idx}
+                      id={role.id === '4' || role.name === 'TKB_ACCOUNTING_MAKER' ? 'tour-role-row-maker' : `tour-role-row-${role.id}`}
                       onClick={() => {
-                        if (isSystemRole(role)) {
+                        if (navigate) {
+                          navigate('admin-role-detail', { role });
+                        } else if (isSystemRole(role)) {
                           setRestrictedModalRole(role);
                         }
                       }}
-                      className={`transition-colors ${
-                        isSystemRole(role) ? 'cursor-pointer' : ''
-                      } ${
+                      className={`transition-colors cursor-pointer ${
                         isOdd ? 'bg-[#f5f6f8]' : 'bg-white'
                       } hover:bg-[#eef5fa]`}
                     >
                       {/* 1. Name */}
-                      <td className="py-3 px-4 text-xs text-[#212529] font-normal align-middle">
+                      <td className="py-3 px-4 text-xs text-[#1072ba] hover:underline font-normal align-middle">
                         {role.name}
                       </td>
 
@@ -291,7 +292,11 @@ export default function RolesView({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleOpenEditModal(role);
+                              if (navigate) {
+                                navigate('admin-role-detail', { role, editMode: true });
+                              } else {
+                                handleOpenEditModal(role);
+                              }
                             }}
                             className="text-[#1072ba] hover:text-[#0e619e] cursor-pointer inline-flex items-center justify-center p-1 rounded hover:bg-sky-50 transition-colors"
                             title={`Edit ${role.name}`}

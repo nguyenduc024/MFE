@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, RotateCcw } from 'lucide-react';
 import { EDU_MODULES } from '../data/mifosData';
+import { BANK_DEPARTMENTS_CONFIG, ALL_DEMO_ROLES, ALL_REMAINING_ROLES } from '../data/mifosPermissions';
 
 export default function EduGuideDrawer({ 
   isOpen, 
@@ -25,7 +26,8 @@ export default function EduGuideDrawer({
   onResetManualJournal,
   accountingRules = [],
   onResetAccountingRules,
-  onResetFrequentPostings
+  onResetFrequentPostings,
+  onResetRolePermissions
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -1928,18 +1930,87 @@ export default function EduGuideDrawer({
               </div>
             </div>
 
+            {/* Bảng ma trận phân quyền chi tiết theo 8 phòng ban */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+                  Ma Trận Phân Quyền Theo 8 Phòng Ban Ngân Hàng
+                </h4>
+                <span className="text-[10px] text-gray-500 font-medium">
+                  Chuẩn xác theo tài liệu nghiệp vụ Mifos X
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {BANK_DEPARTMENTS_CONFIG.map((dept) => (
+                  <div key={dept.departmentId} className="border border-gray-200 rounded-[2px] bg-white overflow-hidden">
+                    <div className="bg-[#f5f6f8] px-3 py-2 border-b border-gray-200 flex items-center justify-between">
+                      <div className="font-bold text-xs text-gray-800">
+                        {dept.departmentName}
+                      </div>
+                      <span className="text-[10px] font-semibold bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
+                        {dept.rolesCount}
+                      </span>
+                    </div>
+
+                    <div className="p-3 space-y-2.5">
+                      <p className="text-[11px] text-gray-500 leading-relaxed italic">
+                        {dept.description}
+                      </p>
+
+                      <div className="divide-y divide-gray-100 border border-gray-100 rounded-[2px]">
+                        {dept.roles.map((r) => (
+                          <div key={r.id} className="p-2.5 space-y-1.5 text-xs">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-bold font-mono text-[#1072ba]">
+                                  {r.name}
+                                </span>
+                                {r.isDemo ? (
+                                  <span className="bg-sky-100 text-[#1072ba] text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                    Đại diện biểu diễn
+                                  </span>
+                                ) : (
+                                  <span className="bg-gray-100 text-gray-600 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                                    Vai trò còn lại
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1 pl-1">
+                              {r.tabs.map((tab) => (
+                                <div key={tab.tabId} className="text-[11px] text-gray-700 leading-relaxed flex flex-col sm:flex-row sm:items-start gap-1">
+                                  <span className="font-semibold text-gray-900 shrink-0 w-36">
+                                    Tab {tab.tabName}:
+                                  </span>
+                                  <span className="font-mono text-gray-600 text-[10.5px]">
+                                    {tab.permissions.map(p => p.replace(/_/g, ' ')).join(', ')}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Quy trình thực hành chuẩn bị */}
             <div className="p-3.5 bg-amber-50/60 border border-amber-200/70 rounded-[2px] space-y-2 text-xs text-amber-900">
               <div className="font-bold text-amber-950">
-                Quy trình thực hành tổng quan:
+                Luồng thực hành Thiết lập Quyền (Role Permissions):
               </div>
               <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-amber-900/90 pl-1">
                 <li>Truy cập <strong>Admin → System → Manage Roles and Permissions</strong>.</li>
-                <li>Nhấn <strong>+ Add Role</strong> để tạo vai trò tác nghiệp mới với tên và mô tả chức danh.</li>
-                <li>Cấu hình phân quyền chi tiết cho vai trò tác nghiệp.</li>
-                <li>Truy cập <strong>Admin → Users → Manage Users</strong>.</li>
-                <li>Nhấn <strong>+ Create User</strong> để tạo tài khoản nhân viên làm việc, gán văn phòng và vai trò tương ứng.</li>
-                <li>Kiểm tra trạng thái tài khoản kích hoạt thành công trên danh sách Users.</li>
+                <li>Chọn Role biểu diễn của phòng ban (ví dụ: <strong>TKB_ACCOUNTING_MAKER</strong> cho Kế toán & Tài chính).</li>
+                <li>Nhấn nút <strong>Edit Role</strong> ở góc trên bên phải để bật chế độ chỉnh sửa (các ô tickbox sẽ đậm màu).</li>
+                <li>Vào các <strong>Tab phân hệ</strong> ở cột bên trái (như <em>Accounting, Organisation</em>) và tick chọn các box quyền tương ứng.</li>
+                <li>Nhấn nút <strong>Submit</strong> ở cuối màn hình để xác nhận lưu quyền.</li>
+                <li>Màn hình tổng kết sẽ hiển thị bảng danh sách quyền của <strong>toàn bộ các Role còn lại</strong> theo 8 phòng ban và nút <strong>Tự động nạp vào Database</strong> để hoàn tất 100%.</li>
               </ol>
             </div>
           </div>

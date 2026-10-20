@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ROOT_GL_HEADERS_SAMPLES, SAMPLE_GL_LEVEL_2, FULL_GL_LEVEL_2_ACCOUNTS, SAMPLE_GL_DETAILS } from '../views/ChartOfAccountsView';
 import { SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS } from '../views/FinancialActivityMappingsView';
+import { ALL_REMAINING_ROLES, BANK_DEPARTMENTS_CONFIG, ALL_DEMO_ROLES } from '../data/mifosPermissions';
 
 /**
  * PracticeSpotlightTour - Guided interactive walkthrough for:
@@ -11,6 +12,7 @@ import { SAMPLE_FINANCIAL_ACTIVITY_MAPPINGS } from '../views/FinancialActivityMa
  * 5. GL Part 3: GL Level 2 Headers across 5 categories
  * 6. GL Part 4: GL Detail Accounts across 5 categories
  * 7. GL Part 5: Financial Activity Mappings (6 mappings)
+ * 8. Role Permissions Setup: Setting role permissions across 8 departments
  */
 export default function PracticeSpotlightTour({
   isActive,
@@ -37,7 +39,8 @@ export default function PracticeSpotlightTour({
   onLoadAllCurrencies,
   onLoadAllGlLevel2,
   onLoadAllGlDetails,
-  onLoadAllFinancialActivities
+  onLoadAllFinancialActivities,
+  onLoadAllRolePermissions
 }) {
   const [targetRect, setTargetRect] = useState(null);
   const [roleCreated, setRoleCreated] = useState(false);
@@ -45,6 +48,11 @@ export default function PracticeSpotlightTour({
   const [userCreated, setUserCreated] = useState(false);
   const [usersImported, setUsersImported] = useState(false);
   const [tourPhase, setTourPhase] = useState('role'); // 'role', 'role-popup', 'user', 'user-popup', 'completed'
+
+  // Role Permissions Setup state
+  const [rolePermissionsPopup, setRolePermissionsPopup] = useState(false);
+  const [rolePermissionsImported, setRolePermissionsImported] = useState(false);
+  const [lastSubmittedRole, setLastSubmittedRole] = useState(null);
 
   // Part 2 state
   const [officePopup, setOfficePopup] = useState(null); // null, 'ho-created', 'ro-created', 'br-created', 'to-created'
@@ -98,7 +106,11 @@ export default function PracticeSpotlightTour({
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'gl-part-9') {
+      if (module === 'role-permissions') {
+        setRolePermissionsPopup(false);
+        setRolePermissionsImported(false);
+        setLastSubmittedRole(null);
+      } else if (module === 'gl-part-9') {
         setFrequentSubStep('office');
       } else if (module === 'gl-part-8') {
         setRuleSubStep('name');
@@ -134,10 +146,16 @@ export default function PracticeSpotlightTour({
         startRoleCountRef.current = roles.length;
         startUserCountRef.current = users.length;
         setRoleCreated(false);
-        setRolesImported(false);
+        setRolesImported(roles.length >= 16);
         setUserCreated(false);
-        setUsersImported(false);
-        setTourPhase('role');
+        setUsersImported(users.length >= 26);
+        setRolePermissionsPopup(false);
+        setLastSubmittedRole(null);
+        if (roles.length >= 16 && !rolePermissionsImported) {
+          setTourPhase('permissions');
+        } else {
+          setTourPhase('role');
+        }
       }
     }
   }, [isActive, module]);
@@ -277,6 +295,16 @@ export default function PracticeSpotlightTour({
       setTourPhase('user-popup');
     }
   }, [users.length, isActive, module, userCreated]);
+
+  // Track if role permissions were submitted during this session
+  useEffect(() => {
+    const handleRolePermsSubmitted = (e) => {
+      setLastSubmittedRole(e?.detail || null);
+      setRolePermissionsPopup(true);
+    };
+    window.addEventListener('practice-role-permissions-submitted', handleRolePermsSubmitted);
+    return () => window.removeEventListener('practice-role-permissions-submitted', handleRolePermsSubmitted);
+  }, []);
 
   // Track if an office was created during this active session (Part 2)
   useEffect(() => {
@@ -931,40 +959,87 @@ export default function PracticeSpotlightTour({
     }
   } else if (tourPhase === 'role-popup') {
     targetSelector = null; // Displaying confirmation popup
+  } else if (tourPhase === 'permissions' || module === 'role-permissions') {
+    if (currentPath === 'admin-role-detail') {
+      const isRoleEditMode = typeof document !== 'undefined' && Boolean(document.getElementById('tour-submit-permissions-btn'));
+      if (!isRoleEditMode) {
+        currentStep = 6;
+        targetSelector = '#tour-edit-role-btn';
+        stepTitle = 'Bước 6: Nhấn nút Edit Role';
+        stepInstruction = 'Nhấn nút "Edit Role" ở góc trên bên phải để kích hoạt chế độ chỉnh sửa. Khi đó các ô tickbox quyền sẽ đậm màu và cho phép bạn click chọn.';
+      } else {
+        const activeTabAccounting = typeof document !== 'undefined' ? document.getElementById('tour-category-tab-accounting') : null;
+        const isAccountingActive = activeTabAccounting && activeTabAccounting.classList.contains('bg-[#f0f0f0]');
+        if (!isAccountingActive) {
+          currentStep = 7;
+          targetSelector = '#tour-category-tab-accounting';
+          stepTitle = 'Bước 7: Vào Tab phân hệ Accounting';
+          stepInstruction = 'Nhấn vào danh mục "Accounting" ở cột bên trái để mở danh sách quyền của phân hệ Kế toán.';
+        } else {
+          currentStep = 8;
+          targetSelector = '#tour-submit-permissions-btn';
+          stepTitle = 'Bước 8: Nhấn Submit để xác nhận';
+          stepInstruction = 'Kiểm tra các quyền đã chọn hoặc bấm nút "Điền nhanh quyền chuẩn mẫu" bên dưới, sau đó bấm nút "Submit" để lưu xác nhận.';
+        }
+      }
+    } else if (currentPath === 'admin-roles') {
+      currentStep = 5;
+      targetSelector = '#tour-role-row-maker';
+      stepTitle = 'Bước 5: Chọn Role biểu diễn (TKB_ACCOUNTING_MAKER)';
+      stepInstruction = 'Chọn vai trò "TKB_ACCOUNTING_MAKER" (Role đại diện biểu diễn của phòng Kế toán & Tài chính) từ danh sách để thiết lập quyền.';
+    } else if (currentPath === 'admin-system') {
+      currentStep = 4;
+      targetSelector = '#tour-manage-roles';
+      stepTitle = 'Bước 4: Chọn Manage Roles and Permissions';
+      stepInstruction = 'Bấm vào Manage Roles and Permissions để mở danh sách vai trò.';
+    } else {
+      const adminSystemEl = typeof document !== 'undefined' ? document.getElementById('tour-admin-system') : null;
+      if (adminSystemEl) {
+        currentStep = 4;
+        targetSelector = '#tour-admin-system';
+        stepTitle = 'Bước 4: Chọn System';
+        stepInstruction = 'Bấm vào mục System trong danh sách thả xuống.';
+      } else {
+        currentStep = 4;
+        targetSelector = '#tour-nav-admin';
+        stepTitle = 'Bước 4: Mở menu Quản trị';
+        stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
+      }
+    }
   } else if (tourPhase === 'user') {
     if (userCreated && currentPath === 'admin-user-detail') {
-      currentStep = 9;
+      currentStep = 12;
       targetSelector = null;
       stepTitle = 'Hoàn thành xuất sắc bài học!';
       stepInstruction = 'Bạn đã thiết lập thành công các vai trò nghiệp vụ và tạo tài khoản nhân viên.';
     } else if (currentPath === 'admin-create-user') {
-      currentStep = 8;
+      currentStep = 11;
       if (!isUserFormFilled) {
         targetSelector = '#tour-user-input-card';
-        stepTitle = 'Bước 8: Nhập thông tin người dùng';
+        stepTitle = 'Bước 11: Nhập thông tin người dùng';
         stepInstruction = 'Nhập thông tin nhân viên (Username, Email, Họ tên, Chi nhánh, Vai trò) hoặc bấm "Điền nhanh mẫu user".';
       } else {
         targetSelector = '#tour-submit-user-btn';
-        stepTitle = 'Bước 8: Nhấn Submit để tạo người dùng';
+        stepTitle = 'Bước 11: Nhấn Submit để tạo người dùng';
         stepInstruction = 'Thông tin tài khoản đã hợp lệ. Nhấn nút Submit để lưu người dùng vào hệ thống.';
       }
     } else if (currentPath === 'admin-users') {
-      currentStep = 7;
+      currentStep = 10;
       targetSelector = '#tour-create-user-btn';
-      stepTitle = 'Bước 7: Nhấn nút Create User';
+      stepTitle = 'Bước 10: Nhấn nút Create User';
       stepInstruction = 'Bấm vào nút Create User ở góc trên bên phải để bắt đầu biểu mẫu cấp tài khoản mới.';
     } else {
       // Guide user to open Admin -> Users from wherever they currently are
       const adminUsersEl = typeof document !== 'undefined' ? document.getElementById('tour-admin-users') : null;
       if (adminUsersEl) {
-        currentStep = 6;
+        currentStep = 9;
         targetSelector = '#tour-admin-users';
-        stepTitle = 'Bước 6.2: Chọn mục Users';
+        stepTitle = 'Bước 9.2: Chọn mục Users';
         stepInstruction = 'Bấm vào mục Users trong menu thả xuống để mở trang Quản lý danh sách người dùng.';
       } else {
-        currentStep = 6;
+        currentStep = 9;
         targetSelector = '#tour-nav-admin';
-        stepTitle = 'Bước 6.1: Mở menu Quản trị';
+        stepTitle = 'Bước 9.1: Mở menu Quản trị';
         stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở danh sách phân hệ quản trị.';
       }
     }
@@ -1175,8 +1250,15 @@ export default function PracticeSpotlightTour({
     setRolesImported(true);
   };
 
+  const handleContinueToPermissions = () => {
+    setTourPhase('permissions');
+    if (navigate) navigate('admin-roles');
+  };
+
   const handleContinueToUsers = () => {
+    setRolePermissionsPopup(false);
     setTourPhase('user');
+    if (navigate) navigate('admin-users');
   };
 
   const handleConfirmImportUsers = () => {
@@ -1185,6 +1267,142 @@ export default function PracticeSpotlightTour({
     }
     setUsersImported(true);
   };
+
+  // Pop-up modal for Role Permissions Setup Flow (8 Departments & Remaining Roles List)
+  if ((module === 'role-permissions' || module === 'part-1') && rolePermissionsPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200 select-none">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-4xl w-full p-6 text-gray-800 space-y-4 max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Hoàn thành luồng thiết lập quyền hạn vai trò
+              </div>
+              <h3 className="text-base font-bold text-gray-900 mt-0.5">
+                Đã Lưu Thành Công Quyền Cho: {lastSubmittedRole?.roleName || 'TKB_ACCOUNTING_MAKER'}
+              </h3>
+            </div>
+            <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">
+              Thực hành thành công
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Bạn đã hoàn thành xuất sắc luồng thiết lập phân quyền thực tế: <strong className="text-gray-900">Vào Roles & Permissions ➔ Chọn Role ➔ Nhấn Edit Role ➔ Vào các tab tick chọn permissions ➔ Nhấn Submit</strong>.
+          </p>
+
+          {/* Section: Danh sách quyền của các Role còn lại theo 8 phòng ban */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+                Danh Sách Quyền Các Role Còn Lại Của 8 Phòng Ban
+              </h4>
+              <span className="text-[11px] text-gray-500">
+                Gồm 6 vai trò nghiệp vụ & kiểm soát liên quan
+              </span>
+            </div>
+
+            <div className="border border-gray-200 rounded-[2px] overflow-hidden">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-[#f5f6f8] border-b border-gray-200">
+                    <th className="py-2.5 px-3 font-semibold text-gray-700 w-1/4">Phòng ban</th>
+                    <th className="py-2.5 px-3 font-semibold text-gray-700 w-1/4">Vai trò (Role)</th>
+                    <th className="py-2.5 px-3 font-semibold text-gray-700 w-1/6">Tab phân hệ</th>
+                    <th className="py-2.5 px-3 font-semibold text-gray-700">Permissions cần tick</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {ALL_REMAINING_ROLES.map((r, idx) => (
+                    <tr key={r.id || idx} className={idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'}>
+                      <td className="py-2 px-3 text-gray-700 font-medium align-top">
+                        {r.departmentName}
+                      </td>
+                      <td className="py-2 px-3 text-[#1072ba] font-mono font-medium align-top">
+                        {r.name}
+                      </td>
+                      <td className="py-2 px-3 text-gray-600 align-top">
+                        {r.tabs.map(t => (
+                          <div key={t.tabId} className="font-medium text-gray-800">
+                            {t.tabName}
+                          </div>
+                        ))}
+                      </td>
+                      <td className="py-2 px-3 text-gray-700 align-top font-mono text-[11px]">
+                        {r.tabs.map(t => (
+                          <div key={t.tabId} className="mb-1 leading-relaxed">
+                            <span className="font-semibold text-[#1072ba] font-sans">[{t.tabName}]: </span>
+                            {t.permissions.map(p => p.replace(/_/g, ' ')).join(', ')}
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Action Box: Tự động nhập vào database */}
+          <div className="p-3.5 bg-sky-50 border border-sky-200 rounded-[2px] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-sky-900 leading-relaxed">
+              <div className="font-bold text-[#1072ba]">
+                Tự động nạp toàn bộ quyền cho các Role còn lại vào hệ thống:
+              </div>
+              <div>
+                Hệ thống sẽ cập nhật tự động toàn bộ ma trận quyền của tất cả các Role vào cơ sở dữ liệu mô phỏng.
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 shrink-0">
+              {!rolePermissionsImported ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onLoadAllRolePermissions) {
+                      onLoadAllRolePermissions();
+                    }
+                    setRolePermissionsImported(true);
+                  }}
+                  className="px-4 py-2 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Tự động nạp vào Database
+                </button>
+              ) : (
+                <div className="flex items-center space-x-1.5 text-emerald-700 font-bold text-xs bg-emerald-100 px-3 py-1.5 rounded-[2px]">
+                  <span>✓</span>
+                  <span>Đã nạp toàn bộ quyền vào Database</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer buttons */}
+          <div className="flex items-center justify-end space-x-3 pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setRolePermissionsPopup(false);
+                onClose();
+                if (navigate) navigate('admin-roles');
+              }}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors"
+            >
+              Đóng hướng dẫn
+            </button>
+            <button
+              type="button"
+              onClick={handleContinueToUsers}
+              className="px-5 py-2 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+            >
+              Tiếp tục: Tạo tài khoản Người dùng (Users)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Pop-up modals for GL Part 2: 5 Root GL Headers Flow
   if (module === 'gl-part-2' && glPopup) {
@@ -1890,7 +2108,7 @@ export default function PracticeSpotlightTour({
               </p>
 
               <div className="py-2.5 px-3 bg-emerald-50 border-l-2 border-[#28a745] text-xs text-emerald-900">
-                Bước tiếp theo của phân hệ: Khởi tạo tài khoản nhân viên (Users) và liên kết với vai trò vừa nạp.
+                Bước tiếp theo của phân hệ: Thiết lập ma trận phân quyền chi tiết cho vai trò tác nghiệp theo 8 phòng ban.
               </div>
 
               <div className="pt-2 flex items-center justify-end space-x-3">
@@ -1901,10 +2119,10 @@ export default function PracticeSpotlightTour({
                   Đóng hướng dẫn
                 </button>
                 <button
-                  onClick={handleContinueToUsers}
+                  onClick={handleContinueToPermissions}
                   className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Tiếp tục: Tạo tài khoản Người dùng (Users)
+                  Tiếp tục: Thiết lập ma trận phân quyền (Role Permissions)
                 </button>
               </div>
             </>
@@ -2138,6 +2356,20 @@ export default function PracticeSpotlightTour({
         tooltipLeft = Math.max(16, windowWidth - tooltipWidth - 24);
       }
       const tooltipTop = Math.max(20, Math.min(box.top - 120, windowHeight - 480));
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${tooltipTop}px`,
+        left: `${tooltipLeft}px`,
+        width: `${tooltipWidth}px`
+      };
+    } else if (targetSelector === '#tour-submit-permissions-btn' || ((module === 'role-permissions' || module === 'part-1') && currentStep === 8)) {
+      // Step 8: popup strictly on the RIGHT side of the spotlight area so Submit button is never blocked
+      const tooltipWidth = 360;
+      let tooltipLeft = Math.max(24, box.right + 24);
+      if (tooltipLeft + tooltipWidth > windowWidth - 16) {
+        tooltipLeft = Math.max(16, windowWidth - tooltipWidth - 24);
+      }
+      const tooltipTop = Math.max(20, Math.min(box.top - 120, Math.max(20, windowHeight - 460)));
       tooltipStyle = {
         position: 'fixed',
         top: `${tooltipTop}px`,
@@ -2696,8 +2928,41 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
-        {/* Quick autofill suggestion button for Role creation (Part 1) */}
-        {module === 'part-1' && currentStep === 5 && (
+        {/* Quick autofill suggestion button for Role Permissions Setup */}
+        {(module === 'role-permissions' || module === 'part-1') && currentStep === 8 && currentPath === 'admin-role-detail' && (
+          <div className="pt-2 border-t border-gray-100 space-y-2">
+            <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-relaxed font-sans">
+              <div className="font-bold text-[#1072ba] mb-1">
+                Gợi ý mẫu quyền Role biểu diễn: TKB_ACCOUNTING_MAKER
+              </div>
+              <div>• Tab <strong>Accounting</strong>: READ GLACCOUNT, READ JOURNALENTRY, CREATE JOURNALENTRY, READ ACCOUNTINGRULE</div>
+              <div>• Tab <strong>Organisation</strong>: READ OFFICE</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('practice-autofill-role-permissions', {
+                  detail: {
+                    activeCategory: 'accounting',
+                    permissions: [
+                      'READ_GLACCOUNT',
+                      'READ_JOURNALENTRY',
+                      'CREATE_JOURNALENTRY',
+                      'READ_ACCOUNTINGRULE',
+                      'READ_OFFICE'
+                    ]
+                  }
+                }));
+              }}
+              className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white rounded-[2px] font-bold text-xs shadow-xs cursor-pointer transition-colors text-center"
+            >
+              Điền nhanh quyền chuẩn mẫu
+            </button>
+          </div>
+        )}
+
+        {/* Quick autofill suggestion button for Role creation (Part 1 - Step 5) */}
+        {module === 'part-1' && (currentPath === 'admin-add-role' || (tourPhase === 'role' && currentStep === 5)) && (
           <div className="pt-1 flex items-center justify-between">
             <button
               type="button"
@@ -2766,7 +3031,7 @@ export default function PracticeSpotlightTour({
         )}
 
         {/* Quick autofill suggestion button for User creation */}
-        {module === 'part-1' && currentStep === 8 && (
+        {module === 'part-1' && (currentStep === 11 || currentStep === 8 || currentPath === 'admin-create-user') && (
           <div className="pt-1 flex items-center justify-between">
             <button
               type="button"
@@ -3283,7 +3548,7 @@ export default function PracticeSpotlightTour({
              (module === 'gl-part-2' && glCompletedCodes.length >= 5) ||
              (module === 'gl-part-1' && currencies.length >= 5)
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
-              : (module === 'part-1' && currentStep === 5 && !isRoleFormFilled) || (module === 'part-1' && currentStep === 8 && !isUserFormFilled)
+              : (module === 'part-1' && (currentPath === 'admin-add-role' || (tourPhase === 'role' && currentStep === 5)) && !isRoleFormFilled) || (module === 'part-1' && (currentStep === 11 || currentStep === 8 || currentPath === 'admin-create-user') && !isUserFormFilled)
               ? 'Nhập vào ô phía trên hoặc chọn điền nhanh' 
               : 'Nhấn trực tiếp vào vùng phát sáng để tiếp tục'}
           </span>

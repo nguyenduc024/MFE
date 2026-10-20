@@ -44,6 +44,8 @@ import CreateAccountingRuleView from './views/CreateAccountingRuleView';
 import ViewAccountingRuleView from './views/ViewAccountingRuleView';
 import FrequentPostingsView from './views/FrequentPostingsView';
 import ViewTransactionView from './views/ViewTransactionView';
+import RoleDetailView from './views/RoleDetailView';
+import { INITIAL_ROLE_PERMISSIONS, FULL_CONFIGURED_ROLE_PERMISSIONS } from './data/mifosPermissions';
 
 // Authentic Dataset
 import {
@@ -108,6 +110,9 @@ export default function App() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedAccountingRule, setSelectedAccountingRule] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [rolePermissions, setRolePermissions] = useState(INITIAL_ROLE_PERMISSIONS);
+  const [roleInitialEditMode, setRoleInitialEditMode] = useState(false);
 
   // User & Edu guide modal
   const [currentUser, setCurrentUser] = useState(SYSTEM_ADMIN);
@@ -129,6 +134,12 @@ export default function App() {
     }
     if (params.transaction) {
       setSelectedTransaction(params.transaction);
+    }
+    if (params.role) {
+      setSelectedRole(params.role);
+    }
+    if (params.editMode !== undefined) {
+      setRoleInitialEditMode(Boolean(params.editMode));
     }
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -157,6 +168,30 @@ export default function App() {
 
   const handleAddRole = (newRole) => {
     setRoles(prev => [...prev, newRole]);
+  };
+
+  const handleSaveRolePermissions = (roleId, updatedPermissions) => {
+    setRolePermissions(prev => ({
+      ...prev,
+      [String(roleId)]: updatedPermissions
+    }));
+  };
+
+  const handleToggleRoleDisabled = (roleId) => {
+    setRoles(prev => prev.map(r => {
+      if (String(r.id) === String(roleId)) {
+        return { ...r, disabled: !r.disabled };
+      }
+      return r;
+    }));
+  };
+
+  const handleDeleteRole = (roleId) => {
+    setRoles(prev => prev.filter(r => String(r.id) !== String(roleId)));
+  };
+
+  const handleLoadAllRolePermissions = () => {
+    setRolePermissions({ ...FULL_CONFIGURED_ROLE_PERMISSIONS });
   };
 
   const handleAddAccount = (newAccount) => {
@@ -260,6 +295,13 @@ export default function App() {
         return [{ label: 'Admin', path: 'admin' }, { label: 'Users', path: 'admin-users' }, { label: selectedUser?.id || '28' }];
       case 'admin-roles':
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Roles and Permissions' }];
+      case 'admin-role-detail':
+        return [
+          { label: 'Admin', path: 'admin' },
+          { label: 'System', path: 'admin-system' },
+          { label: 'Roles and Permissions', path: 'admin-roles' },
+          { label: selectedRole ? (selectedRole.name || String(selectedRole.id)) : '4' }
+        ];
       case 'admin-add-role':
         return [{ label: 'Admin', path: 'admin' }, { label: 'System', path: 'admin-system' }, { label: 'Roles and Permissions', path: 'admin-roles' }, { label: 'Add' }];
       case 'admin-configurations':
@@ -332,7 +374,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-configurations' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -466,6 +508,19 @@ export default function App() {
             roles={roles} 
             onAddRole={handleAddRole}
             navigate={navigate}
+          />
+        )}
+
+        {currentPath === 'admin-role-detail' && (
+          <RoleDetailView
+            role={selectedRole}
+            roles={roles}
+            rolePermissions={selectedRole ? rolePermissions[String(selectedRole.id)] : rolePermissions['4']}
+            onSavePermissions={handleSaveRolePermissions}
+            onToggleRoleDisabled={handleToggleRoleDisabled}
+            onDeleteRole={handleDeleteRole}
+            navigate={navigate}
+            initialEditMode={roleInitialEditMode}
           />
         )}
 
@@ -780,6 +835,16 @@ export default function App() {
             setAccountingRules([]);
             setCurrentPath('home');
           }
+          if (targetModule === 'part-1') {
+            if (roles.length >= 16) {
+              setCurrentPath('admin-roles');
+            } else {
+              setCurrentPath('home');
+            }
+          }
+          if (targetModule === 'role-permissions') {
+            setCurrentPath('admin-roles');
+          }
           if (targetModule === 'gl-part-9') {
             setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
             setCurrentPath('home');
@@ -802,6 +867,9 @@ export default function App() {
         }}
         onResetFrequentPostings={() => {
           setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
+        }}
+        onResetRolePermissions={() => {
+          setRolePermissions({ ...INITIAL_ROLE_PERMISSIONS });
         }}
       />
 
@@ -884,6 +952,7 @@ export default function App() {
         onLoadAllFinancialActivities={() => {
           setFinancialActivities([...INITIAL_FINANCIAL_ACTIVITIES]);
         }}
+        onLoadAllRolePermissions={handleLoadAllRolePermissions}
       />
     </div>
   );
