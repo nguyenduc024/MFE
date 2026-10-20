@@ -2211,20 +2211,21 @@ export default function EduGuideDrawer({
                 </p>
               </div>
 
-              {/* Điền nhanh mẫu */}
+              {/* Thực hành có hướng dẫn */}
               <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
                 <div className="text-[11px] text-sky-900 leading-tight">
-                  <strong>Thực hành nhanh:</strong> Mở ngay màn hình tạo sản phẩm CASA
+                  <strong>Thực hành có hướng dẫn:</strong> Mở luồng thực hành tạo sản phẩm CASA (Vùng tối & Vùng sáng)
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    if (navigate) navigate('admin-create-savings-product');
-                    if (onClose) onClose();
+                    if (onStartPractice) {
+                      onStartPractice('casa-part-1');
+                    }
                   }}
                   className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Đến tạo SP CASA →
+                  Bắt đầu thực hành CASA →
                 </button>
               </div>
             </div>
@@ -2868,7 +2869,9 @@ export default function EduGuideDrawer({
                   type="button"
                   onClick={() => {
                     if (onResetSavingsProducts) onResetSavingsProducts();
-                    if (navigate) navigate('admin-savings-products');
+                    if (onStartPractice) {
+                      onStartPractice('casa-part-1');
+                    }
                   }}
                   className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
                 >
@@ -2879,12 +2882,13 @@ export default function EduGuideDrawer({
               <button
                 type="button"
                 onClick={() => {
-                  if (navigate) navigate('admin-create-savings-product');
-                  if (onClose) onClose();
+                  if (onStartPractice) {
+                    onStartPractice('casa-part-1');
+                  }
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
-                Bắt đầu Tạo Sản Phẩm CASA
+                Bắt đầu Tạo Sản Phẩm CASA (Vùng tối & Vùng sáng)
               </button>
             )
           ) : activePartId === 'casa-part-2' ? (
@@ -2904,7 +2908,9 @@ export default function EduGuideDrawer({
                   type="button"
                   onClick={() => {
                     if (onResetClients) onResetClients();
-                    if (navigate) navigate('clients');
+                    if (onStartPractice) {
+                      onStartPractice('casa-part-2');
+                    }
                   }}
                   className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
                 >
@@ -2915,8 +2921,9 @@ export default function EduGuideDrawer({
               <button
                 type="button"
                 onClick={() => {
-                  if (navigate) navigate('create-client');
-                  if (onClose) onClose();
+                  if (onStartPractice) {
+                    onStartPractice('casa-part-2');
+                  }
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
@@ -2943,7 +2950,9 @@ export default function EduGuideDrawer({
                   type="button"
                   onClick={() => {
                     if (onResetSavingsAccounts) onResetSavingsAccounts();
-                    if (navigate) navigate('create-savings-account');
+                    if (onStartPractice) {
+                      onStartPractice('casa-part-3');
+                    }
                   }}
                   className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
                 >
@@ -2954,8 +2963,9 @@ export default function EduGuideDrawer({
               <button
                 type="button"
                 onClick={() => {
-                  if (navigate) navigate('create-savings-account');
-                  if (onClose) onClose();
+                  if (onStartPractice) {
+                    onStartPractice('casa-part-3');
+                  }
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >

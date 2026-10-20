@@ -573,6 +573,11 @@ export default function App() {
             onNavigateHome={() => navigate('home')}
             onNavigateProducts={() => navigate('admin-products')}
             onNavigateCreateSavingsProduct={() => navigate('admin-create-savings-product')}
+            onStartPractice={() => {
+              setPracticeModule('casa-part-1');
+              setPracticeActive(true);
+            }}
+            isPracticeActive={practiceActive}
           />
         )}
 
@@ -587,6 +592,11 @@ export default function App() {
             onNavigateHome={() => navigate('home')}
             onNavigateProducts={() => navigate('admin-products')}
             onNavigateSavingsProducts={() => navigate('admin-savings-products')}
+            onStartPractice={() => {
+              setPracticeModule('casa-part-1');
+              setPracticeActive(true);
+            }}
+            isPracticeActive={practiceActive}
           />
         )}
 
@@ -910,7 +920,9 @@ export default function App() {
             setCurrentPath('home');
           }
           if (targetModule === 'casa-part-1') {
-            setCurrentPath('admin-savings-products');
+            if (currentPath !== 'admin-create-savings-product') {
+              setCurrentPath('admin-savings-products');
+            }
           }
           if (targetModule === 'casa-part-2') {
             setCurrentPath('clients');

@@ -1272,10 +1272,10 @@ export default function PracticeSpotlightTour({
         }
 
         // Auto-scroll target into view if outside visible viewport
-        if (targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target' || targetSelector === '#tour-journal-entry-manual-opex' || targetSelector === '#tour-manual-submit-btn') {
+        if (targetSelector.startsWith('#tour-casa-') || targetSelector === '#tour-create-savings-product-btn' || targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target' || targetSelector === '#tour-journal-entry-manual-opex' || targetSelector === '#tour-manual-submit-btn') {
           const inView = rect.top >= 60 && rect.bottom <= (window.innerHeight || 800) - 60;
           if (!inView) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }
         }
 

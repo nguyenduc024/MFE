@@ -5,7 +5,9 @@ export default function SavingsProductsView({
   savingsProducts = [],
   onNavigateHome,
   onNavigateProducts,
-  onNavigateCreateSavingsProduct
+  onNavigateCreateSavingsProduct,
+  onStartPractice,
+  isPracticeActive = false
 }) {
   const [filterText, setFilterText] = useState('');
   const [isFilterFocused, setIsFilterFocused] = useState(false);
@@ -51,16 +53,30 @@ export default function SavingsProductsView({
           </div>
         </div>
 
-        {/* Top Right: + Create Savings Product Button matching Image 2 */}
-        <button
-          type="button"
-          id="tour-create-savings-product-btn"
-          onClick={onNavigateCreateSavingsProduct}
-          className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer select-none"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Create Savings Product</span>
-        </button>
+        {/* Top Right: Actions */}
+        <div className="flex items-center space-x-2.5">
+          {!isPracticeActive && onStartPractice && (
+            <button
+              type="button"
+              onClick={onStartPractice}
+              className="text-xs bg-[#28a745] hover:bg-[#218838] text-white px-3 py-2 rounded-[3px] font-medium transition-colors cursor-pointer flex items-center space-x-1.5 shadow-2xs select-none"
+              title="Bật luồng thực hành có hướng dẫn (vùng tối, vùng sáng và popup chỉ dẫn)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+              <span>Bật chỉ dẫn thực hành CASA</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            id="tour-create-savings-product-btn"
+            onClick={onNavigateCreateSavingsProduct}
+            className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer select-none"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Savings Product</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Main White Card matching Image 2 */}

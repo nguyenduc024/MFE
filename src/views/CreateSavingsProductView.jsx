@@ -119,7 +119,9 @@ export default function CreateSavingsProductView({
   onCancel,
   onNavigateHome,
   onNavigateProducts,
-  onNavigateSavingsProducts
+  onNavigateSavingsProducts,
+  onStartPractice,
+  isPracticeActive = false
 }) {
   // Current active step:
   // 1: DETAILS, 2: CURRENCY, 3: TERMS, 4: SETTINGS, 5: CHARGES, 6: ACCOUNTING, 7: PREVIEW
@@ -502,15 +504,29 @@ export default function CreateSavingsProductView({
           </div>
         </div>
 
-        {/* Quick autofill helper */}
-        <button
-          type="button"
-          onClick={handleQuickAutofillSample}
-          className="text-xs text-[#1072ba] hover:bg-sky-50 px-2.5 py-1 rounded border border-sky-200 font-medium transition-colors cursor-pointer"
-          title="Điền nhanh dữ liệu mẫu theo hình: TKB Current Account (TKCA)"
-        >
-          Điền nhanh mẫu (TKB Current Account - TKCA)
-        </button>
+        <div className="flex items-center space-x-2">
+          {!isPracticeActive && onStartPractice && (
+            <button
+              type="button"
+              onClick={onStartPractice}
+              className="text-xs bg-[#1072ba] hover:bg-[#0e619e] text-white px-3 py-1.5 rounded-[2px] font-medium transition-colors cursor-pointer flex items-center space-x-1.5 shadow-xs"
+              title="Bật luồng thực hành có hướng dẫn (vùng tối, vùng sáng và popup chỉ dẫn)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>Bật chỉ dẫn thực hành (Vùng tối & Vùng sáng)</span>
+            </button>
+          )}
+
+          {/* Quick autofill helper */}
+          <button
+            type="button"
+            onClick={handleQuickAutofillSample}
+            className="text-xs text-[#1072ba] hover:bg-sky-50 px-2.5 py-1 rounded border border-sky-200 font-medium transition-colors cursor-pointer"
+            title="Điền nhanh dữ liệu mẫu theo hình: TKB Current Account (TKCA)"
+          >
+            Điền nhanh mẫu (TKB Current Account - TKCA)
+          </button>
+        </div>
       </div>
 
       {/* 2. Main White Card */}
