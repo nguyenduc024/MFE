@@ -1984,7 +1984,9 @@ export const INITIAL_CLIENTS = [
     "officeName": "Thu Duc Transaction Office",
     "status": "Active",
     "activationDate": "2026-10-13",
-    "mobileNo": "955738216"
+    "mobileNo": "955738216",
+    "email": "quang2004@gmail.com",
+    "staffName": "Dang, Quan"
   },
   {
     "id": "12",
@@ -2104,8 +2106,8 @@ export const INITIAL_LOANS = [
     termMonths: 12,
     status: "Active (Đã giải ngân)",
     disbursementDate: "2026-08-15",
-    totalRepaid: 2500000,
-    outstandingBalance: 7500000,
+    totalRepaid: 888487.89,
+    outstandingBalance: 9773366.75,
     schedule: [
       { installment: 1, dueDate: "2026-09-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
       { installment: 2, dueDate: "2026-10-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
@@ -2124,7 +2126,8 @@ export const INITIAL_SAVINGS_ACCOUNTS = [
     productId: "1",
     productName: "TKB Current Account",
     accountType: "Savings (Thanh toán)",
-    balance: 15400000,
+    balance: 12000000,
+    lastActive: "2026-10-15",
     status: "Active",
     openedDate: "2026-08-10"
   },
@@ -2148,7 +2151,8 @@ export const INITIAL_SAVINGS_ACCOUNTS = [
     productId: "2",
     productName: "TKB Fixed Deposit",
     accountType: "Fixed Deposit (Có kỳ hạn)",
-    balance: 50000000,
+    balance: 1000000,
+    lastActive: "2026-10-13",
     status: "Active",
     termMonths: 6,
     interestRate: 6.5,
@@ -2302,6 +2306,41 @@ export const EDU_MODULES = [
     objective: "Khởi tạo và thiết lập phân cấp mạng lưới hoạt động ngân hàng gồm Hội sở chính (Head Office), Chi nhánh khu vực (Branch) và Phòng giao dịch (Transaction Office - TO).",
     targetMenu: "admin-offices",
     subPath: "offices"
+  },
+  {
+    id: "casa-part-1",
+    moduleNumber: "02",
+    moduleTitle: "Phân hệ 02: Account / CASA",
+    partNumber: "1",
+    name: "Phần 1: Tạo Sản Phẩm CASA (Create Savings/CASA Product)",
+    shortLabel: "Phần 1: Tạo SP CASA",
+    title: "Thiết Lập Sản Phẩm Tiền Gửi Thanh Toán CASA (TKB Current Account - TKCA)",
+    objective: "Khai báo sản phẩm tiền gửi thanh toán cá nhân TKB Current Account (Short Name: TKCA), cấu hình đơn vị tiền tệ VND, lãi suất danh nghĩa 0%, chu kỳ tính lãi hàng ngày (Daily Balance) ghi có hàng tháng (Monthly), và phương thức hạch toán Cash Based kết nối với các tài khoản GL tương ứng.",
+    targetMenu: "admin-savings-products",
+    subPath: "savings-products"
+  },
+  {
+    id: "casa-part-2",
+    moduleNumber: "02",
+    moduleTitle: "Phân hệ 02: Account / CASA",
+    partNumber: "2",
+    name: "Phần 2: Tạo Hồ Sơ Khách Hàng CIF (Create Client CIF)",
+    shortLabel: "Phần 2: Tạo CIF",
+    title: "Tạo Mới Hồ Sơ Khách Hàng Cá Nhân CIF (Minh Quang Tran - TKB-CIF-TDU-001)",
+    objective: "Khởi tạo thông tin định danh khách hàng cá nhân (CIF) tại Phòng giao dịch Thủ Đức (Thu Duc Transaction Office) cho khách hàng Minh Quang Tran, gán mã định danh External ID: TKB-CIF-TDU-001, cán bộ quản lý Dang, Quan và kích hoạt hồ sơ.",
+    targetMenu: "clients",
+    subPath: "create-client"
+  },
+  {
+    id: "casa-part-3",
+    moduleNumber: "02",
+    moduleTitle: "Phân hệ 02: Account / CASA",
+    partNumber: "3",
+    name: "Phần 3: Cấp Tài Khoản CASA Cho Khách Hàng Quang Minh Tran",
+    shortLabel: "Phần 3: Cấp CASA",
+    title: "Mở & Kích Hoạt Tài Khoản Tiền Gửi Thanh Toán CASA (Account 000000001)",
+    objective: "Cấp tài khoản tiền gửi thanh toán CASA theo sản phẩm TKB Current Account (TKCA) cho khách hàng Minh Quang Tran, nộp số dư mở tài khoản ban đầu 12.000.000 VND và kiểm tra cập nhật số dư, trạng thái hoạt động trên trang chi tiết khách hàng.",
+    targetMenu: "clients",
+    subPath: "client-detail"
   }
 ];
-

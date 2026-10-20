@@ -27,7 +27,13 @@ export default function EduGuideDrawer({
   accountingRules = [],
   onResetAccountingRules,
   onResetFrequentPostings,
-  onResetRolePermissions
+  onResetRolePermissions,
+  savingsProducts = [],
+  clients = [],
+  savingsAccounts = [],
+  onResetSavingsProducts,
+  onResetClients,
+  onResetSavingsAccounts
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -166,6 +172,32 @@ export default function EduGuideDrawer({
     return score;
   };
 
+  // Tính toán tiến độ Phân hệ 02 - Phần 1: Tạo Sản Phẩm CASA (TKB Current Account - TKCA)
+  const calculateCasaPart1Progress = () => {
+    const hasProduct = savingsProducts.some(p => p.shortName === 'TKCA' || p.name?.toLowerCase().includes('current'));
+    return hasProduct ? 100 : (savingsProducts.length > 0 ? 50 : 0);
+  };
+
+  // Tính toán tiến độ Phân hệ 02 - Phần 2: Tạo Hồ Sơ Khách Hàng CIF (Minh Quang Tran)
+  const calculateCasaPart2Progress = () => {
+    const hasClient = clients.some(c => 
+      c.displayName?.toLowerCase().includes('minh quang tran') || 
+      c.externalId === 'TKB-CIF-TDU-001' || 
+      c.accountNo === '000000011'
+    );
+    return hasClient ? 100 : 0;
+  };
+
+  // Tính toán tiến độ Phân hệ 02 - Phần 3: Cấp Tài Khoản CASA Cho Khách Hàng Quang Minh Tran
+  const calculateCasaPart3Progress = () => {
+    const hasCASA = savingsAccounts.some(s => 
+      (s.accountNo === '000000001' || s.externalId === 'TKB-CASA-001' || s.productName?.toLowerCase().includes('current')) && 
+      (String(s.clientId) === '11' || s.clientName?.toLowerCase().includes('minh quang tran')) &&
+      parseFloat(s.balance) >= 12000000
+    );
+    return hasCASA ? 100 : 0;
+  };
+
   const currentModule = EDU_MODULES.find(m => m.id === activePartId) || EDU_MODULES[0];
   const glPart1Progress = calculateGlPart1Progress();
   const glPart2Progress = calculateGlPart2Progress();
@@ -180,6 +212,10 @@ export default function EduGuideDrawer({
   const glPart8Progress = calculateGlPart8Progress();
   const glPart9Progress = calculateGlPart9Progress();
 
+  const casaPart1Progress = calculateCasaPart1Progress();
+  const casaPart2Progress = calculateCasaPart2Progress();
+  const casaPart3Progress = calculateCasaPart3Progress();
+
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
     activePartId === 'gl-part-2' ? glPart2Progress :
@@ -190,6 +226,9 @@ export default function EduGuideDrawer({
     activePartId === 'gl-part-7' ? glPart7Progress :
     activePartId === 'gl-part-8' ? glPart8Progress :
     activePartId === 'gl-part-9' ? glPart9Progress :
+    activePartId === 'casa-part-1' ? casaPart1Progress :
+    activePartId === 'casa-part-2' ? casaPart2Progress :
+    activePartId === 'casa-part-3' ? casaPart3Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -201,6 +240,9 @@ export default function EduGuideDrawer({
   const isGlPart7Complete = glPart7Progress === 100;
   const isGlPart8Complete = glPart8Progress === 100;
   const isGlPart9Complete = glPart9Progress === 100;
+  const isCasaPart1Complete = casaPart1Progress === 100;
+  const isCasaPart2Complete = casaPart2Progress === 100;
+  const isCasaPart3Complete = casaPart3Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -279,6 +321,51 @@ export default function EduGuideDrawer({
                          item.id === 'gl-part-5' ? 'Ánh xạ 6 hoạt động tài chính tự động (Financial Activities)' :
                          item.id === 'gl-part-6' ? 'Khởi tạo số dư đầu kỳ (1 tỷ) & tra cứu Journal Entries' :
                          'Ghi nhận bút toán thủ công (2 triệu OPEX) & tra cứu Journal Entries'}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        itemProgress === 100 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : itemProgress > 0 
+                          ? 'bg-sky-100 text-[#1072ba]' 
+                          : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {itemProgress}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Phân hệ 02: Account / CASA */}
+              <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1072ba] bg-sky-50/70 border-t border-b border-sky-100 my-1">
+                Phân hệ 02: Account / CASA
+              </div>
+
+              {EDU_MODULES.filter(m => m.moduleNumber === "02").map((item) => {
+                const isSelected = item.id === activePartId;
+                const itemProgress = 
+                  item.id === 'casa-part-1' ? casaPart1Progress : 
+                  item.id === 'casa-part-2' ? casaPart2Progress : casaPart3Progress;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setActivePartId(item.id);
+                      setDropdownOpen(false);
+                    }}
+                    className={`px-3.5 py-2.5 flex items-center justify-between cursor-pointer transition-colors ${
+                      isSelected ? 'bg-sky-50 text-[#1072ba] font-semibold' : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <div className="pr-2 truncate">
+                      <div className="text-xs truncate font-medium">{item.name}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5 truncate">
+                        {item.id === 'casa-part-1' ? 'Tạo sản phẩm TKB Current Account (TKCA)' : 
+                         item.id === 'casa-part-2' ? 'Tạo hồ sơ CIF Minh Quang Tran (TKB-CIF-TDU-001)' :
+                         'Cấp tài khoản CASA 000000001 (12.000.000 VND)'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -2054,6 +2141,255 @@ export default function EduGuideDrawer({
           </div>
         )}
 
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 02 - PHẦN 1: TẠO SẢN PHẨM CASA
+            ========================================================== */}
+        {activePartId === 'casa-part-1' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân Hệ 02: Account / CASA
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-gray-700 leading-relaxed">
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Truy cập Quản lý Sản phẩm Tiết kiệm / CASA</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Đường dẫn: <strong className="text-gray-900">Admin ➔ Products ➔ Savings Products</strong>, sau đó nhấn nút <strong className="text-[#1072ba]">+ Create Savings Product</strong>.
+                </p>
+              </div>
+
+              {/* Bước 2: 4 Tabs */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Thiết lập thông tin qua 4 Tab quy cách</span>
+                </div>
+                <div className="pl-6 space-y-2 text-xs">
+                  <div>
+                    <strong className="text-[#1072ba]">Tab 1: Details</strong>
+                    <div className="text-gray-600">Product Name: <code>TKB Current Account</code>, Short Name: <code>TKCA</code>, Currency: <code>VND</code>, Decimal Places: <code>2</code>.</div>
+                  </div>
+                  <div>
+                    <strong className="text-[#1072ba]">Tab 2: Terms</strong>
+                    <div className="text-gray-600">Nominal Annual Interest: <code>0.00%</code>, Compounding: <code>Daily Balance</code>, Posting: <code>Monthly</code>, Days in Year: <code>365 Days</code>.</div>
+                  </div>
+                  <div>
+                    <strong className="text-[#1072ba]">Tab 3: Charges</strong>
+                    <div className="text-gray-600">Cấu hình phí duy trì hoặc phí dịch vụ (tùy chọn).</div>
+                  </div>
+                  <div>
+                    <strong className="text-[#1072ba]">Tab 4: Accounting</strong>
+                    <div className="text-gray-600">Chọn <code>Cash Based</code> và ánh xạ tài khoản Tiền gửi thanh toán <code>210101 Demand Deposits</code>.</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Kiểm tra Preview & Hoàn tất</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Xem lại toàn bộ thông số tại <strong>Tab Preview</strong>, sau đó nhấn <strong>Submit</strong> để kích hoạt sản phẩm trên toàn hệ thống.
+                </p>
+              </div>
+
+              {/* Điền nhanh mẫu */}
+              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
+                <div className="text-[11px] text-sky-900 leading-tight">
+                  <strong>Thực hành nhanh:</strong> Mở ngay màn hình tạo sản phẩm CASA
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('admin-create-savings-product');
+                    if (onClose) onClose();
+                  }}
+                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Đến tạo SP CASA →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 02 - PHẦN 2: TẠO HỒ SƠ KHÁCH HÀNG CIF
+            ========================================================== */}
+        {activePartId === 'casa-part-2' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân Hệ 02: Account / CASA
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-gray-700 leading-relaxed">
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Truy cập Tạo Khách Hàng (Create Client)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Đường dẫn: Menu trên <strong>Clients ➔ Create Client</strong>.
+                </p>
+              </div>
+
+              {/* Bước 2: Thông tin định danh */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Nhập thông tin hồ sơ CIF mẫu</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div>• <strong>Office:</strong> <code>Thu Duc Transaction Office</code></div>
+                  <div>• <strong>Staff:</strong> <code>Dang, Quan</code></div>
+                  <div>• <strong>Legal Form:</strong> <code>Person</code></div>
+                  <div>• <strong>First Name:</strong> <code>Minh</code>, <strong>Last Name:</strong> <code>Tran</code></div>
+                  <div>• <strong>External ID:</strong> <code>TKB-CIF-TDU-001</code></div>
+                  <div>• <strong>Mobile Number:</strong> <code>955738216</code>, <strong>Email:</strong> <code>quang2004@gmail.com</code></div>
+                  <div>• <strong>Activation Date:</strong> <code>13 October 2026</code></div>
+                </div>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Lưu hồ sơ & Kích hoạt CIF</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhấn <strong>Submit</strong> để lưu hồ sơ. Khách hàng sẽ được cấp mã định danh <code>000000011</code> và chuyển sang trạng thái <strong>Active</strong>.
+                </p>
+              </div>
+
+              {/* Điền nhanh mẫu */}
+              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
+                <div className="text-[11px] text-sky-900 leading-tight">
+                  <strong>Thực hành nhanh:</strong> Mở màn hình tạo khách hàng CIF
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('create-client');
+                    if (onClose) onClose();
+                  }}
+                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Đến tạo CIF →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 02 - PHẦN 3: CẤP TÀI KHOẢN CASA
+            ========================================================== */}
+        {activePartId === 'casa-part-3' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân Hệ 02: Account / CASA
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                {currentModule.title}
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                {currentModule.objective}
+              </p>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-gray-700 leading-relaxed">
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Truy cập Chi tiết Khách Hàng (Client Detail)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Đường dẫn: <strong className="text-gray-900">Clients ➔ Chọn khách hàng Minh Quang Tran</strong> (hoặc bấm nút thao tác nhanh bên dưới).
+                </p>
+              </div>
+
+              {/* Bước 2: Nút Hamburger */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Mở Menu Thao Tác Hamburger & Chọn "+ Add Savings"</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại góc trên bên phải thanh banner xanh dương của khách hàng, bấm vào biểu tượng <strong>☰ Menu</strong> và chọn <strong className="text-[#1072ba]">+ Add Savings (Cấp CASA)</strong>.
+                </p>
+              </div>
+
+              {/* Bước 3: Điền đơn đăng ký CASA */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Nhập thông tin cấp tài khoản CASA</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div>• <strong>Product *:</strong> <code>TKB Current Account (TKCA)</code></div>
+                  <div>• <strong>Submitted On *:</strong> <code>10/20/2026</code></div>
+                  <div>• <strong>Field Officer:</strong> <code>Dang, Quan</code></div>
+                  <div>• <strong>External ID:</strong> <code>TKB-CASA-001</code></div>
+                  <div>• <strong>Initial Deposit Amount:</strong> <strong className="text-emerald-700">12,000,000 VND</strong></div>
+                </div>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Xác nhận & Kiểm tra số dư tài khoản CASA</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhấn <strong>Submit & Activate CASA</strong>. Hệ thống tự động chuyển về trang chi tiết khách hàng và hiển thị tài khoản <code>000000001</code> với số dư <strong>12,000,000.00 VND</strong> tại bảng <em>Saving Accounts</em>.
+                </p>
+              </div>
+
+              {/* Thao tác nhanh */}
+              <div className="p-3 bg-sky-50 border border-sky-200 rounded-[2px] flex items-center justify-between gap-2">
+                <div className="text-[11px] text-sky-900 leading-tight">
+                  <strong>Thực hành nhanh:</strong> Mở ngay màn hình cấp tài khoản CASA cho Minh Quang Tran
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('create-savings-account');
+                    if (onClose) onClose();
+                  }}
+                  className="px-3 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Đến cấp CASA →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Nút hành động ở chân bài học */}
         <div className="pt-2">
           {activePartId === 'gl-part-1' ? (
@@ -2509,6 +2845,117 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu thực hành Frequent Postings
+              </button>
+            )
+          ) : activePartId === 'casa-part-1' ? (
+            isCasaPart1Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>✓ Đã cấu hình thành công Sản phẩm CASA: TKB Current Account (TKCA)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePartId('casa-part-2')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến phần kế tiếp: Tạo Hồ Sơ Khách Hàng CIF →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetSavingsProducts) onResetSavingsProducts();
+                    if (navigate) navigate('admin-savings-products');
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Tạo Sản Phẩm CASA
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-create-savings-product');
+                  if (onClose) onClose();
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Tạo Sản Phẩm CASA
+              </button>
+            )
+          ) : activePartId === 'casa-part-2' ? (
+            isCasaPart2Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>✓ Đã tạo thành công Hồ sơ CIF: Minh Quang Tran (TKB-CIF-TDU-001)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePartId('casa-part-3')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến phần kế tiếp: Cấp Tài Khoản CASA Cho Khách Hàng →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetClients) onResetClients();
+                    if (navigate) navigate('clients');
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Tạo Hồ Sơ CIF
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('create-client');
+                  if (onClose) onClose();
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Tạo Hồ Sơ Khách Hàng CIF
+              </button>
+            )
+          ) : activePartId === 'casa-part-3' ? (
+            isCasaPart3Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>✓ Đã cấp & kích hoạt thành công Tài khoản CASA 000000001 (12.000.000 VND)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('client-detail');
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Xem chi tiết hồ sơ tài khoản khách hàng →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetSavingsAccounts) onResetSavingsAccounts();
+                    if (navigate) navigate('create-savings-account');
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Cấp Tài Khoản CASA
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('create-savings-account');
+                  if (onClose) onClose();
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Cấp Tài Khoản CASA (12 triệu VND)
               </button>
             )
           ) : activePartId === 'part-1' ? (

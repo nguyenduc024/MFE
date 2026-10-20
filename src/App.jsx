@@ -39,6 +39,7 @@ import UserDetailView from './views/UserDetailView';
 import ClientDetailView from './views/ClientDetailView';
 import LoanDetailView from './views/LoanDetailView';
 import SavingsDetailView from './views/SavingsDetailView';
+import CreateSavingsAccountView from './views/CreateSavingsAccountView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
 import CreateJournalEntryView from './views/CreateJournalEntryView';
@@ -222,6 +223,11 @@ export default function App() {
     setClients(prev => [clientWithAccount, ...prev]);
   };
 
+  const handleAddSavingsAccountForClient = (newAccount) => {
+    setSavingsAccounts(prev => [newAccount, ...prev]);
+    navigate('client-detail');
+  };
+
   const handleAllocateCash = (tellerId, amount) => {
     setTellers(prev => prev.map(t => {
       if (t.id === tellerId) {
@@ -389,7 +395,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -734,7 +740,19 @@ export default function App() {
               navigate('savings-detail');
             }}
             onOpenNewLoanModal={() => navigate('admin-loan-products')}
-            onOpenNewSavingsModal={() => navigate('admin-savings-products')}
+            onOpenNewSavingsModal={() => navigate('create-savings-account')}
+          />
+        )}
+
+        {currentPath === 'create-savings-account' && (
+          <CreateSavingsAccountView
+            client={selectedClient}
+            savingsProducts={savingsProducts}
+            users={users}
+            onSaveSavingsAccount={handleAddSavingsAccountForClient}
+            onCancel={() => navigate('client-detail')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
           />
         )}
 
@@ -891,7 +909,30 @@ export default function App() {
             setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
             setCurrentPath('home');
           }
+          if (targetModule === 'casa-part-1') {
+            setCurrentPath('admin-savings-products');
+          }
+          if (targetModule === 'casa-part-2') {
+            setCurrentPath('clients');
+          }
+          if (targetModule === 'casa-part-3') {
+            const targetClient = clients.find(c => c.id === '11' || c.displayName?.includes('Minh Quang Tran')) || clients[0];
+            setSelectedClient(targetClient);
+            setCurrentPath('client-detail');
+          }
           setPracticeActive(true);
+        }}
+        savingsProducts={savingsProducts}
+        clients={clients}
+        savingsAccounts={savingsAccounts}
+        onResetSavingsProducts={() => {
+          setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
+        }}
+        onResetClients={() => {
+          setClients(prev => prev.filter(c => c.id !== '11' && c.externalId !== 'TKB-CIF-TDU-001'));
+        }}
+        onResetSavingsAccounts={() => {
+          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.accountNo !== '000000001'));
         }}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
         hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
