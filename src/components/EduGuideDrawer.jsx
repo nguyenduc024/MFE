@@ -2174,24 +2174,28 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                  <span>Thiết lập thông tin qua 4 Tab quy cách</span>
+                  <span>Thiết lập thông tin qua các Tab quy cách</span>
                 </div>
                 <div className="pl-6 space-y-2 text-xs">
                   <div>
                     <strong className="text-[#1072ba]">Tab 1: Details</strong>
-                    <div className="text-gray-600">Product Name: <code>TKB Current Account</code>, Short Name: <code>TKCA</code>, Currency: <code>VND</code>, Decimal Places: <code>2</code>.</div>
+                    <div className="text-gray-600">Product Name: <code>TKB Current Account</code>, Short Name: <code>TKCA</code>, Description: <code>Basic VND CASA Product · Demo</code>.</div>
                   </div>
                   <div>
-                    <strong className="text-[#1072ba]">Tab 2: Terms</strong>
-                    <div className="text-gray-600">Nominal Annual Interest: <code>0.00%</code>, Compounding: <code>Daily Balance</code>, Posting: <code>Monthly</code>, Days in Year: <code>365 Days</code>.</div>
+                    <strong className="text-[#1072ba]">Tab 2: Currency</strong>
+                    <div className="text-gray-600">Currency: <code>Vietnamese Dong (VND)</code>, Decimal Places: <code>0</code>, Multiples: <code>1</code>.</div>
                   </div>
                   <div>
-                    <strong className="text-[#1072ba]">Tab 3: Charges</strong>
-                    <div className="text-gray-600">Cấu hình phí duy trì hoặc phí dịch vụ (tùy chọn).</div>
+                    <strong className="text-[#1072ba]">Tab 3: Terms</strong>
+                    <div className="text-gray-600">Nominal Annual Interest: <code>0.00%</code>, Compounding: <code>Daily</code>, Posting: <code>Monthly</code>, Days in Year: <code>365 Days</code>.</div>
                   </div>
                   <div>
-                    <strong className="text-[#1072ba]">Tab 4: Accounting</strong>
-                    <div className="text-gray-600">Chọn <code>Cash Based</code> và ánh xạ tài khoản Tiền gửi thanh toán <code>210101 Demand Deposits</code>.</div>
+                    <strong className="text-[#1072ba]">Tab 4: Settings</strong>
+                    <div className="text-gray-600">Minimum Opening Balance: <code>0 VND</code>, không kích hoạt Overdraft.</div>
+                  </div>
+                  <div>
+                    <strong className="text-[#1072ba]">Tab 5: Accounting</strong>
+                    <div className="text-gray-600">Chọn <code>Cash</code> và liên kết Sổ cái: Nợ TK <code>110201 Settlement Bank</code> và Có TK <code>210102 Current Account Deposits</code>.</div>
                   </div>
                 </div>
               </div>

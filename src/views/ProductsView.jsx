@@ -102,6 +102,7 @@ export default function ProductsView({
               return (
                 <div
                   key={idx}
+                  id={item.label === 'Savings Products' ? 'tour-savings-products-tile' : undefined}
                   onClick={item.onClick || undefined}
                   className={`flex items-center justify-between py-3 px-3 rounded-[2px] transition-colors ${
                     item.onClick 
@@ -128,6 +129,7 @@ export default function ProductsView({
               return (
                 <div
                   key={idx}
+                  id={item.label === 'Savings Products' ? 'tour-savings-products-tile' : undefined}
                   onClick={item.onClick || undefined}
                   className={`flex items-center justify-between py-3 px-3 rounded-[2px] transition-colors ${
                     item.onClick 

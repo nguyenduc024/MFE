@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Check, Plus, Trash2, Eye } from 'lucide-react';
 
 /**
@@ -163,15 +163,18 @@ export default function CreateSavingsProductView({
     selectedChargeId: '',
     charges: [],
 
-    // Step 6: ACCOUNTING (matching Image 3)
+    // Step 6: ACCOUNTING (matching Image 5)
     accountingRule: 'None', // 'None', 'Cash', 'Accrual (periodic)'
     savingsReferenceAccountId: '',
     overdraftPortfolioControlId: '',
     savingsControlAccountId: '',
     transfersInSuspenseAccountId: '',
     interestOnSavingsAccountId: '',
+    writeOffAccountId: '',
     incomeFromFeeAccountId: '',
-    incomeFromPenaltyAccountId: ''
+    incomeFromPenaltyAccountId: '',
+    overdraftInterestIncomeAccountId: '',
+    advancedAccountingRules: false
   });
 
   // Base 6 steps, with Step 7 (PREVIEW) appearing ONLY after completing TERMS
@@ -196,21 +199,23 @@ export default function CreateSavingsProductView({
     { id: '4', name: 'SMS Banking Notification Fee', type: 'Flat', amount: 8800, collectedOn: 'Monthly' }
   ];
 
-  // Quick autofill sample from Image 3 & Image 4: TKB Current Account (TKCA)
+  // Quick autofill sample from Images 1, 2, 3, 4, 5: TKB Current Account (TKCA)
   const handleQuickAutofillSample = () => {
-    const cashRef = glAccounts.find(g => g.glCode === '100101' || g.name.toLowerCase().includes('cash')) || glAccounts[0];
-    const overdraftAcc = glAccounts.find(g => g.glCode === '110101' || g.name.toLowerCase().includes('loan')) || glAccounts[1];
-    const savingsCtrl = glAccounts.find(g => g.glCode === '200101' || g.name.toLowerCase().includes('demand')) || glAccounts[2];
-    const suspenseAcc = glAccounts.find(g => g.glCode === '200401' || g.name.toLowerCase().includes('suspense')) || glAccounts[3];
-    const interestExp = glAccounts.find(g => g.glCode === '500101' || g.name.toLowerCase().includes('interest expense')) || glAccounts[4];
-    const feeInc = glAccounts.find(g => g.glCode === '400101' || g.name.toLowerCase().includes('fee income')) || glAccounts[5];
-    const penaltyInc = glAccounts.find(g => g.glCode === '400201' || g.name.toLowerCase().includes('penalty')) || glAccounts[6];
+    const cashRef = glAccounts.find(g => g.glCode === '110201' || g.name.toLowerCase().includes('settlement')) || glAccounts[0];
+    const overdraftAcc = glAccounts.find(g => g.glCode === '120101' || g.name.toLowerCase().includes('retail loan')) || glAccounts[1];
+    const savingsCtrl = glAccounts.find(g => g.glCode === '210102' || g.name.toLowerCase().includes('current account deposits')) || glAccounts[2];
+    const suspenseAcc = glAccounts.find(g => g.glCode === '220201' || g.name.toLowerCase().includes('clearing payable')) || glAccounts[3];
+    const interestExp = glAccounts.find(g => g.glCode === '510101' || g.name.toLowerCase().includes('savings interest')) || glAccounts[4];
+    const writeOffAcc = glAccounts.find(g => g.glCode === '520101' || g.name.toLowerCase().includes('write-off')) || glAccounts[4];
+    const feeInc = glAccounts.find(g => g.glCode === '420102' || g.name.toLowerCase().includes('savings service fee')) || glAccounts[5];
+    const penaltyInc = glAccounts.find(g => g.glCode === '420103' || g.name.toLowerCase().includes('penalty')) || glAccounts[6];
+    const overdraftInterestInc = glAccounts.find(g => g.glCode === '410101' || g.name.toLowerCase().includes('loan interest income')) || glAccounts[5];
 
     setFormData({
       // Step 1: DETAILS
       name: 'TKB Current Account',
       shortName: 'TKCA',
-      description: 'Basic VND CASA Product - Demo',
+      description: 'Basic VND CASA Product · Demo',
 
       // Step 2: CURRENCY
       currencyCode: 'VND',
@@ -218,18 +223,18 @@ export default function CreateSavingsProductView({
       currencyMultiplesOf: '1',
 
       // Step 3: TERMS
-      nominalAnnualInterestRate: '0.00',
+      nominalAnnualInterestRate: '0',
       interestCompoundingPeriodType: 'Daily',
       interestPostingPeriodType: 'Monthly',
       interestCalculationType: 'Daily Balance',
       interestCalculationDaysInYearType: '365 Days',
 
       // Step 4: SETTINGS
-      minRequiredOpeningBalance: '50000',
+      minRequiredOpeningBalance: '0',
       lockinPeriodFrequency: '',
-      lockinPeriodFrequencyType: 'Days',
+      lockinPeriodFrequencyType: '',
       withdrawalFeeForTransfers: false,
-      balanceRequiredForInterestCalculation: '0',
+      balanceRequiredForInterestCalculation: '',
       enforceMinRequiredBalance: false,
       minRequiredBalance: '',
       isWithholdTaxApplicable: false,
@@ -247,12 +252,124 @@ export default function CreateSavingsProductView({
       savingsControlAccountId: savingsCtrl ? String(savingsCtrl.id) : '3',
       transfersInSuspenseAccountId: suspenseAcc ? String(suspenseAcc.id) : '4',
       interestOnSavingsAccountId: interestExp ? String(interestExp.id) : '5',
-      incomeFromFeeAccountId: feeInc ? String(feeInc.id) : '6',
-      incomeFromPenaltyAccountId: penaltyInc ? String(penaltyInc.id) : '7'
+      writeOffAccountId: writeOffAcc ? String(writeOffAcc.id) : '6',
+      incomeFromFeeAccountId: feeInc ? String(feeInc.id) : '7',
+      incomeFromPenaltyAccountId: penaltyInc ? String(penaltyInc.id) : '8',
+      overdraftInterestIncomeAccountId: overdraftInterestInc ? String(overdraftInterestInc.id) : '9',
+      advancedAccountingRules: false
     });
 
     setHasCompletedTerms(true);
   };
+
+  // Custom Event Listeners for Step-by-Step Guided Practice Tour
+  useEffect(() => {
+    const handleFillDetails = () => {
+      setFormData(prev => ({
+        ...prev,
+        name: 'TKB Current Account',
+        shortName: 'TKCA',
+        description: 'Basic VND CASA Product · Demo'
+      }));
+      setCurrentStep(2);
+    };
+
+    const handleFillCurrency = () => {
+      setFormData(prev => ({
+        ...prev,
+        currencyCode: 'VND',
+        decimalPlaces: '0',
+        currencyMultiplesOf: '1'
+      }));
+      setCurrentStep(3);
+    };
+
+    const handleFillTerms = () => {
+      setFormData(prev => ({
+        ...prev,
+        nominalAnnualInterestRate: '0',
+        interestCompoundingPeriodType: 'Daily',
+        interestPostingPeriodType: 'Monthly',
+        interestCalculationType: 'Daily Balance',
+        interestCalculationDaysInYearType: '365 Days'
+      }));
+      setHasCompletedTerms(true);
+      setCurrentStep(4);
+    };
+
+    const handleFillSettings = () => {
+      setFormData(prev => ({
+        ...prev,
+        minRequiredOpeningBalance: '0',
+        lockinPeriodFrequency: '',
+        lockinPeriodFrequencyType: '',
+        withdrawalFeeForTransfers: false,
+        balanceRequiredForInterestCalculation: '',
+        enforceMinRequiredBalance: false,
+        minRequiredBalance: '',
+        isWithholdTaxApplicable: false,
+        allowOverdraft: false,
+        enableDormancyTracking: false
+      }));
+      setCurrentStep(6);
+    };
+
+    const handleFillAccounting = () => {
+      const cashRef = glAccounts.find(g => g.glCode === '110201' || g.name.toLowerCase().includes('settlement')) || glAccounts[0];
+      const overdraftAcc = glAccounts.find(g => g.glCode === '120101' || g.name.toLowerCase().includes('retail loan')) || glAccounts[1];
+      const savingsCtrl = glAccounts.find(g => g.glCode === '210102' || g.name.toLowerCase().includes('current account deposits')) || glAccounts[2];
+      const suspenseAcc = glAccounts.find(g => g.glCode === '220201' || g.name.toLowerCase().includes('clearing payable')) || glAccounts[3];
+      const interestExp = glAccounts.find(g => g.glCode === '510101' || g.name.toLowerCase().includes('savings interest')) || glAccounts[4];
+      const writeOffAcc = glAccounts.find(g => g.glCode === '520101' || g.name.toLowerCase().includes('write-off')) || glAccounts[4];
+      const feeInc = glAccounts.find(g => g.glCode === '420102' || g.name.toLowerCase().includes('savings service fee')) || glAccounts[5];
+      const penaltyInc = glAccounts.find(g => g.glCode === '420103' || g.name.toLowerCase().includes('penalty')) || glAccounts[6];
+      const overdraftInterestInc = glAccounts.find(g => g.glCode === '410101' || g.name.toLowerCase().includes('loan interest income')) || glAccounts[5];
+
+      setFormData(prev => ({
+        ...prev,
+        accountingRule: 'Cash',
+        savingsReferenceAccountId: cashRef ? String(cashRef.id) : '1',
+        overdraftPortfolioControlId: overdraftAcc ? String(overdraftAcc.id) : '2',
+        savingsControlAccountId: savingsCtrl ? String(savingsCtrl.id) : '3',
+        transfersInSuspenseAccountId: suspenseAcc ? String(suspenseAcc.id) : '4',
+        interestOnSavingsAccountId: interestExp ? String(interestExp.id) : '5',
+        writeOffAccountId: writeOffAcc ? String(writeOffAcc.id) : '6',
+        incomeFromFeeAccountId: feeInc ? String(feeInc.id) : '7',
+        incomeFromPenaltyAccountId: penaltyInc ? String(penaltyInc.id) : '8',
+        overdraftInterestIncomeAccountId: overdraftInterestInc ? String(overdraftInterestInc.id) : '9',
+        advancedAccountingRules: false
+      }));
+      setHasCompletedTerms(true);
+      setCurrentStep(7);
+    };
+
+    const handleFillAll = () => {
+      handleQuickAutofillSample();
+      setCurrentStep(7);
+    };
+
+    const handleSubmitEvent = () => {
+      handleFinalSubmit();
+    };
+
+    window.addEventListener('practice-fill-casa-details', handleFillDetails);
+    window.addEventListener('practice-fill-casa-currency', handleFillCurrency);
+    window.addEventListener('practice-fill-casa-terms', handleFillTerms);
+    window.addEventListener('practice-fill-casa-settings', handleFillSettings);
+    window.addEventListener('practice-fill-casa-accounting', handleFillAccounting);
+    window.addEventListener('practice-fill-casa-all', handleFillAll);
+    window.addEventListener('practice-submit-casa', handleSubmitEvent);
+
+    return () => {
+      window.removeEventListener('practice-fill-casa-details', handleFillDetails);
+      window.removeEventListener('practice-fill-casa-currency', handleFillCurrency);
+      window.removeEventListener('practice-fill-casa-terms', handleFillTerms);
+      window.removeEventListener('practice-fill-casa-settings', handleFillSettings);
+      window.removeEventListener('practice-fill-casa-accounting', handleFillAccounting);
+      window.removeEventListener('practice-fill-casa-all', handleFillAll);
+      window.removeEventListener('practice-submit-casa', handleSubmitEvent);
+    };
+  }, [glAccounts]);
 
   // Step 1 Next handler
   const handleNextStep1 = (e) => {
@@ -456,7 +573,7 @@ export default function CreateSavingsProductView({
         {/* TAB 1: DETAILS                                                */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 1 && (
-          <form onSubmit={handleNextStep1} className="space-y-7 pt-2">
+          <form id="tour-casa-form-details" onSubmit={handleNextStep1} className="space-y-7 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FloatingInput
                 label="Product Name *"
@@ -491,8 +608,10 @@ export default function CreateSavingsProductView({
                 <span>&larr; Previous</span>
               </button>
 
+              {/* Details Next button */}
               <button
                 type="submit"
+                id="tour-casa-details-next-btn"
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
                 <span>Next &rarr;</span>
@@ -505,7 +624,7 @@ export default function CreateSavingsProductView({
         {/* TAB 2: CURRENCY                                               */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 2 && (
-          <form onSubmit={handleNextStep2} className="space-y-7 pt-2">
+          <form id="tour-casa-form-currency" onSubmit={handleNextStep2} className="space-y-7 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FloatingSelect
                 label="Currency *"
@@ -548,8 +667,10 @@ export default function CreateSavingsProductView({
                 <span>&larr; Previous</span>
               </button>
 
+              {/* Currency Next button */}
               <button
                 type="submit"
+                id="tour-casa-currency-next-btn"
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
                 <span>Next &rarr;</span>
@@ -562,7 +683,7 @@ export default function CreateSavingsProductView({
         {/* TAB 3: TERMS                                                  */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 3 && (
-          <div className="space-y-7 pt-2">
+          <div id="tour-casa-form-terms" className="space-y-7 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FloatingInput
                 label="Nominal Annual Interest *"
@@ -632,6 +753,7 @@ export default function CreateSavingsProductView({
 
               <button
                 type="button"
+                id="tour-casa-terms-next-btn"
                 onClick={handleNextStep3}
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
@@ -645,7 +767,7 @@ export default function CreateSavingsProductView({
         {/* TAB 4: SETTINGS (Exact match to Image 1)                      */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 4 && (
-          <div className="space-y-7 pt-2">
+          <div id="tour-casa-form-settings" className="space-y-7 pt-2">
             
             {/* Row 1: Minimum Opening Balance */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -780,6 +902,7 @@ export default function CreateSavingsProductView({
 
               <button
                 type="button"
+                id="tour-casa-settings-next-btn"
                 onClick={handleNextStep4}
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
@@ -794,7 +917,7 @@ export default function CreateSavingsProductView({
         {/* TAB 5: CHARGES (Exact match to Image 2)                       */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 5 && (
-          <div className="space-y-7 pt-2">
+          <div id="tour-casa-form-charges" className="space-y-7 pt-2">
             
             {/* Charge dropdown & [+ Add] button matching Image 2 */}
             <div className="flex items-end space-x-3 max-w-lg">
@@ -877,6 +1000,7 @@ export default function CreateSavingsProductView({
 
               <button
                 type="button"
+                id="tour-casa-charges-next-btn"
                 onClick={handleNextStep5}
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
@@ -888,12 +1012,12 @@ export default function CreateSavingsProductView({
         )}
 
         {/* ------------------------------------------------------------- */}
-        {/* TAB 6: ACCOUNTING (Exact match to Image 3)                    */}
+        {/* TAB 6: ACCOUNTING (Exact match to Image 5)                    */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 6 && (
-          <div className="space-y-6 pt-2">
+          <div id="tour-casa-form-accounting" className="space-y-6 pt-2">
             
-            {/* 3 Radio options matching Image 3: None | Cash | Accrual (periodic) */}
+            {/* 3 Radio options matching Image 5: None | Cash | Accrual (periodic) */}
             <div className="flex items-center space-x-8 py-2">
               <label className="flex items-center space-x-2 text-xs text-gray-800 cursor-pointer select-none">
                 <input
@@ -932,108 +1056,156 @@ export default function CreateSavingsProductView({
               </label>
             </div>
 
-            {/* Horizontal divider line matching Image 3 */}
+            {/* Horizontal divider line matching Image 5 */}
             <div className="w-full h-[1px] bg-gray-200 my-2" />
 
-            {/* When Cash Accounting is selected: expanded GL accounts form (user will provide screenshot for fine-tuning) */}
+            {/* When Cash Accounting is selected: 4 sections matching Image 5 */}
             {formData.accountingRule === 'Cash' && (
               <div className="space-y-6 pt-2">
-                <h4 className="text-xs font-bold text-[#1072ba] uppercase tracking-wider border-b border-gray-200 pb-2">
-                  Chart of Accounts Mapping (Liên Kết Sổ Cái Hạch Toán - Cash)
-                </h4>
+                
+                {/* 1. Assets Section matching Image 5 */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-900">Assets</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FloatingSelect
+                      label="Saving reference *"
+                      value={formData.savingsReferenceAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingsReferenceAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Asset' || g.typeId === '1' || g.typeName === 'Asset').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
 
-                {/* Assets Mapping */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <FloatingSelect
-                    label="Savings reference *"
-                    value={formData.savingsReferenceAccountId}
-                    onChange={(e) => setFormData({ ...formData, savingsReferenceAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Asset' || g.typeId === '1').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
-
-                  <FloatingSelect
-                    label="Overdraft portfolio *"
-                    value={formData.overdraftPortfolioControlId}
-                    onChange={(e) => setFormData({ ...formData, overdraftPortfolioControlId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Asset' || g.typeId === '1').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
+                    <FloatingSelect
+                      label="Overdraft portfolio *"
+                      value={formData.overdraftPortfolioControlId}
+                      onChange={(e) => setFormData({ ...formData, overdraftPortfolioControlId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Asset' || g.typeId === '1' || g.typeName === 'Asset').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+                  </div>
                 </div>
 
-                {/* Liabilities Mapping */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <FloatingSelect
-                    label="Savings control *"
-                    value={formData.savingsControlAccountId}
-                    onChange={(e) => setFormData({ ...formData, savingsControlAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Liability' || g.typeId === '2').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
+                {/* 2. Liabilities Section matching Image 5 */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-900">Liabilities</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FloatingSelect
+                      label="Saving control *"
+                      value={formData.savingsControlAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingsControlAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Liability' || g.typeId === '2' || g.typeName === 'Liability').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
 
-                  <FloatingSelect
-                    label="Savings transfers in suspense *"
-                    value={formData.transfersInSuspenseAccountId}
-                    onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Liability' || g.typeId === '2').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
+                    <FloatingSelect
+                      label="Savings transfers in suspense *"
+                      value={formData.transfersInSuspenseAccountId}
+                      onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Liability' || g.typeId === '2' || g.typeName === 'Liability').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+                  </div>
                 </div>
 
-                {/* Expenses & Income Mapping */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <FloatingSelect
-                    label="Interest on savings *"
-                    value={formData.interestOnSavingsAccountId}
-                    onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Expense' || g.typeId === '5').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
+                {/* 3. Expenses Section matching Image 5 */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-900">Expenses</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FloatingSelect
+                      label="Interest on savings *"
+                      value={formData.interestOnSavingsAccountId}
+                      onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Expense' || g.typeId === '5' || g.typeName === 'Expense').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
 
-                  <FloatingSelect
-                    label="Income from fees *"
-                    value={formData.incomeFromFeeAccountId}
-                    onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Income' || g.typeId === '4').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
+                    <FloatingSelect
+                      label="Write-off *"
+                      value={formData.writeOffAccountId}
+                      onChange={(e) => setFormData({ ...formData, writeOffAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Expense' || g.typeId === '5' || g.typeName === 'Expense').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <FloatingSelect
-                    label="Income from penalties *"
-                    value={formData.incomeFromPenaltyAccountId}
-                    onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
-                  >
-                    <option value=""></option>
-                    {glAccounts.filter(g => g.type === 'Income' || g.typeId === '4').map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.glCode})</option>
-                    ))}
-                  </FloatingSelect>
-                  <div />
+                {/* 4. Income Section matching Image 5 */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-900">Income</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FloatingSelect
+                      label="Income from fees *"
+                      value={formData.incomeFromFeeAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Income' || g.typeId === '4' || g.typeName === 'Income').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+
+                    <FloatingSelect
+                      label="Income from penalties *"
+                      value={formData.incomeFromPenaltyAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Income' || g.typeId === '4' || g.typeName === 'Income').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FloatingSelect
+                      label="Overdraft Interest Income *"
+                      value={formData.overdraftInterestIncomeAccountId}
+                      onChange={(e) => setFormData({ ...formData, overdraftInterestIncomeAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {glAccounts.filter(g => g.type === 'Income' || g.typeId === '4' || g.typeName === 'Income').map(g => (
+                        <option key={g.id} value={g.id}>({g.glCode}) {g.name}</option>
+                      ))}
+                    </FloatingSelect>
+                    <div />
+                  </div>
                 </div>
+
+                {/* Advanced Accounting Rules Checkbox matching Image 5 */}
+                <div className="pt-2">
+                  <label className="flex items-center space-x-2 text-xs text-gray-800 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={formData.advancedAccountingRules}
+                      onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
+                      className="w-3.5 h-3.5 rounded-[2px] border-gray-400 text-[#1072ba] focus:ring-0 cursor-pointer"
+                    />
+                    <span>Advanced Accounting Rules</span>
+                  </label>
+                </div>
+
               </div>
             )}
 
-            {/* Centered Buttons matching Image 3: [ <- Previous ] [ Next -> ] */}
+            {/* Centered Buttons matching Image 5: [ <- Previous ] [ Next -> ] */}
             <div className="flex items-center justify-center space-x-3 pt-8 pb-1">
               <button
                 type="button"
@@ -1045,6 +1217,7 @@ export default function CreateSavingsProductView({
 
               <button
                 type="button"
+                id="tour-casa-accounting-next-btn"
                 onClick={handleNextStep6}
                 className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-normal px-5 py-2 rounded-[3px] flex items-center space-x-1 transition-colors shadow-2xs cursor-pointer select-none"
               >
@@ -1059,12 +1232,12 @@ export default function CreateSavingsProductView({
         {/* TAB 7: PREVIEW (Exact match to Image 4)                       */}
         {/* ------------------------------------------------------------- */}
         {currentStep === 7 && (
-          <div className="space-y-6 pt-2">
+          <div id="tour-casa-preview-card" className="space-y-6 pt-2">
             
             {/* Product Name Title at top matching Image 4 */}
             <div>
               <h2 className="text-base font-normal text-[#212529] pb-2">
-                {formData.name || 'dfgdg'}
+                {formData.name || 'TKB Current Account'}
               </h2>
               <div className="w-full h-[1px] bg-gray-200" />
             </div>
@@ -1074,7 +1247,7 @@ export default function CreateSavingsProductView({
               <h4 className="text-xs text-[#1072ba] font-medium">Details</h4>
               <div className="grid grid-cols-12 text-xs py-1">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Short Name:</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.shortName || 'gfd'}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.shortName || 'TKCA'}</span>
               </div>
               <div className="w-full h-[1px] bg-gray-200 my-2" />
             </div>
@@ -1092,7 +1265,7 @@ export default function CreateSavingsProductView({
               </div>
               <div className="grid grid-cols-12 text-xs py-1">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Currency in multiples of:</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.currencyMultiplesOf || ''}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.currencyMultiplesOf || '1'}</span>
               </div>
               <div className="w-full h-[1px] bg-gray-200 my-2" />
             </div>
@@ -1102,7 +1275,7 @@ export default function CreateSavingsProductView({
               <h4 className="text-xs text-[#1072ba] font-medium">Terms</h4>
               <div className="grid grid-cols-12 text-xs py-1">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Nominal Annual Interest:</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.nominalAnnualInterestRate ? `${formData.nominalAnnualInterestRate} %` : '1.00 %'}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.nominalAnnualInterestRate ? `${formData.nominalAnnualInterestRate} %` : '0 %'}</span>
               </div>
               <div className="grid grid-cols-12 text-xs py-1">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Interest Compounding Period:</span>
@@ -1179,6 +1352,7 @@ export default function CreateSavingsProductView({
 
               <button
                 type="button"
+                id="tour-casa-submit-btn"
                 onClick={handleFinalSubmit}
                 className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-normal px-6 py-2 rounded-[3px] transition-colors shadow-2xs cursor-pointer select-none"
               >

@@ -54,6 +54,7 @@ export default function SavingsProductsView({
         {/* Top Right: + Create Savings Product Button matching Image 2 */}
         <button
           type="button"
+          id="tour-create-savings-product-btn"
           onClick={onNavigateCreateSavingsProduct}
           className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer select-none"
         >
@@ -104,7 +105,11 @@ export default function SavingsProductsView({
                 </tr>
               ) : (
                 filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
+                  <tr 
+                    key={p.id} 
+                    id={p.shortName === 'TKCA' ? 'tour-casa-created-row' : undefined}
+                    className={`hover:bg-gray-50 transition-colors cursor-pointer ${p.shortName === 'TKCA' ? 'bg-sky-50/50' : ''}`}
+                  >
                     <td className="py-3 px-4 font-normal text-gray-900">{p.name}</td>
                     <td className="py-3 px-4 font-normal text-gray-700">{p.shortName}</td>
                   </tr>

@@ -24,6 +24,10 @@ export default function PracticeSpotlightTour({
   offices = [],
   currencies = [],
   glAccounts = [],
+  savingsProducts = [],
+  clients = [],
+  savingsAccounts = [],
+  onAddSavingsProduct,
   financialActivities = [],
   accountingRules = [],
   contraAccountConfigEnabled = false,
@@ -100,13 +104,18 @@ export default function PracticeSpotlightTour({
   // GL Part 9 state (Frequent Postings)
   const [frequentSubStep, setFrequentSubStep] = useState('office'); // 'office' | 'rule' | 'currency' | 'debit' | 'credit' | 'ref-date' | 'comments' | 'submit'
 
+  // Phân hệ 02 - Phần 1 state (CASA Product Creation)
+  const [casaProductPopup, setCasaProductPopup] = useState(false);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
   // Reset session reference whenever practice becomes active
   useEffect(() => {
     if (isActive) {
-      if (module === 'role-permissions') {
+      if (module === 'casa-part-1') {
+        setCasaProductPopup(false);
+      } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
         setLastSubmittedRole(null);
@@ -159,6 +168,16 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [isActive, module]);
+
+  // Track if CASA Product was created (Phân hệ 02 - Phần 1)
+  useEffect(() => {
+    if (isActive && module === 'casa-part-1') {
+      const hasTkca = savingsProducts.some(p => p.shortName === 'TKCA' || p.name?.toLowerCase().includes('tkb current'));
+      if (hasTkca && !casaProductPopup) {
+        setCasaProductPopup(true);
+      }
+    }
+  }, [savingsProducts, isActive, module, casaProductPopup]);
 
   // Track if Financial Activity Mapping was submitted / created (GL Part 5)
   useEffect(() => {
@@ -382,9 +401,83 @@ export default function PracticeSpotlightTour({
   let currentStep = 1;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
+  let stepSubtitle = '';
   let stepInstruction = 'Bấm vào nút Admin trên thanh điều hướng để mở các phân hệ quản trị.';
 
-  if (module === 'gl-part-9') {
+  if (module === 'casa-part-1') {
+    const hasTkcaCreated = savingsProducts.some(p => p.shortName === 'TKCA' || p.name?.toLowerCase().includes('tkb current'));
+    if (currentPath === 'admin-create-savings-product') {
+      if (typeof document !== 'undefined' && document.getElementById('tour-casa-preview-card')) {
+        currentStep = 8;
+        targetSelector = '#tour-casa-preview-card';
+        stepTitle = 'Bước 8 / 8: Kiểm tra thông số & Bấm Submit';
+        stepSubtitle = 'Rà soát toàn bộ các tham số kỹ thuật của sản phẩm CASA trước khi đưa vào vận hành trên hệ thống core banking.';
+        stepInstruction = 'Kiểm tra lại toàn bộ: Details (TKB Current Account - TKCA), Currency (VND, 0 decimals), Terms (0% lãi suất, 365 ngày), Settings, Accounting (Cash Based). Bấm nút "Submit" màu xanh nước biển để hoàn tất khởi tạo sản phẩm!';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-accounting')) {
+        currentStep = 7;
+        targetSelector = '#tour-casa-form-accounting';
+        stepTitle = 'Bước 7 / 8: Cấu hình Liên kết kế toán (ACCOUNTING)';
+        stepSubtitle = 'Hạch toán theo phương pháp Cash: Ghi nhận đối ứng tài sản thanh toán và nghĩa vụ nợ đối với tiền gửi của khách hàng.';
+        stepInstruction = 'Chọn Cash, sau đó liên kết 9 tài khoản Sổ cái (GL Accounts): Nợ TK 110201 Settlement Bank Account và Có TK 210102 Current Account Deposits. Bấm "Điền mẫu Accounting (Cash) ➔" bên dưới để tự động điền đầy đủ theo chuẩn thiết kế!';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-charges')) {
+        currentStep = 6;
+        targetSelector = '#tour-casa-form-charges';
+        stepTitle = 'Bước 6 / 8: Cấu hình Biểu phí dịch vụ (CHARGES)';
+        stepSubtitle = 'Tùy chọn gán các khoản phí dịch vụ, duy trì định kỳ. Sản phẩm CASA cơ bản này mở miễn phí.';
+        stepInstruction = 'Sản phẩm CASA cơ bản chưa áp dụng phí định kỳ bắt buộc. Bấm nút "Next ➔" ở bên dưới để chuyển tiếp sang Tab ACCOUNTING.';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-settings')) {
+        currentStep = 5;
+        targetSelector = '#tour-casa-form-settings';
+        stepTitle = 'Bước 5 / 8: Cấu hình Quy tắc hoạt động (SETTINGS)';
+        stepSubtitle = 'Tài khoản CASA mở tự do không yêu cầu số dư tối thiểu ban đầu (0 VND) và không kích hoạt hạn mức thấu chi.';
+        stepInstruction = 'Cấu hình Minimum Opening Balance: 0 VND, để trống Lock-in Period và không kích hoạt Overdraft. Bấm "Điền mẫu Settings ➔" bên dưới để hoàn thành nhanh.';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-terms')) {
+        currentStep = 4;
+        targetSelector = '#tour-casa-form-terms';
+        stepTitle = 'Bước 4 / 8: Thiết lập Điều khoản tính lãi (TERMS)';
+        stepSubtitle = 'Tài khoản thanh toán lãi suất 0%, chu kỳ tính dồn theo số dư cuối ngày (Daily Balance) trên chuẩn 365 ngày/năm.';
+        stepInstruction = 'Cấu hình Nominal Annual Interest: 0%, Compounding Period: Daily, Posting Period: Monthly, Calculated using: Daily Balance, Days in Year: 365 Days. Bấm "Điền mẫu Terms ➔" bên dưới để hoàn thành và mở khóa Tab PREVIEW!';
+      } else if (typeof document !== 'undefined' && document.getElementById('tour-casa-form-currency')) {
+        currentStep = 3;
+        targetSelector = '#tour-casa-form-currency';
+        stepTitle = 'Bước 3 / 8: Thiết lập Loại tiền tệ (CURRENCY)';
+        stepSubtitle = 'Đồng Việt Nam (VND) không dùng số thập phân hào/xu lẻ (Decimal = 0) và làm tròn theo bội số 1 VND.';
+        stepInstruction = 'Chọn Currency: Vietnamese Dong (VND), Decimal Places: 0, Currency in multiples of: 1. Bấm "Điền mẫu Currency ➔" bên dưới để tiếp tục sang Tab TERMS.';
+      } else {
+        currentStep = 2;
+        targetSelector = '#tour-casa-form-details';
+        stepTitle = 'Bước 2 / 8: Nhập Thông tin chung sản phẩm (DETAILS)';
+        stepSubtitle = 'Tiền gửi không kỳ hạn phục vụ thanh toán (CASA), nhận diện bằng tên "TKB Current Account" và mã định danh "TKCA".';
+        stepInstruction = 'Nhập Product Name: "TKB Current Account", Short Name: "TKCA", Description: "Basic VND CASA Product · Demo". Bấm "Điền mẫu Details ➔" bên dưới để điền nhanh và chuyển sang Tab CURRENCY.';
+      }
+    } else if (currentPath === 'admin-savings-products') {
+      if (hasTkcaCreated) {
+        currentStep = 8;
+        targetSelector = '#tour-casa-created-row';
+        stepTitle = 'Đã tạo thành công Sản phẩm CASA: TKB Current Account (TKCA)';
+        stepSubtitle = 'Sản phẩm đã sẵn sàng trên hệ thống core banking để mở tài khoản cho khách hàng cá nhân và doanh nghiệp.';
+        stepInstruction = 'Sản phẩm TKB Current Account đã được lưu thành công vào danh mục Saving Products của Takashimaya Bank! Bạn có thể tiếp tục sang phần 2: Tạo hồ sơ CIF khách hàng.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-create-savings-product-btn';
+        stepTitle = 'Bước 1 / 8: Nhấn nút Create Savings Product';
+        stepSubtitle = 'Khởi tạo danh mục sản phẩm tiền gửi thanh toán (CASA) trên phân hệ Products của Core Banking.';
+        stepInstruction = 'Tại trang quản lý Saving Products, bấm nút "+ Create Savings Product" màu xanh ở góc trên bên phải để bắt đầu thiết lập sản phẩm.';
+      }
+    } else if (currentPath === 'admin-products') {
+      currentStep = 1;
+      targetSelector = '#tour-savings-products-tile';
+      stepTitle = 'Bước 1 / 8: Chọn danh mục Savings Products';
+      stepSubtitle = 'Truy cập danh mục quản lý toàn bộ các sản phẩm tiền gửi thanh toán và tiết kiệm.';
+      stepInstruction = 'Bấm vào ô "Savings Products" trong danh mục Products để vào danh sách sản phẩm tiền gửi.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-admin-products';
+      stepTitle = 'Bước 1 / 8: Vào menu Admin ➔ Products';
+      stepSubtitle = 'Truy cập trung tâm quản trị cấu hình sản phẩm nghiệp vụ ngân hàng.';
+      stepInstruction = 'Di chuột hoặc bấm vào menu Admin trên thanh điều hướng, sau đó chọn mục "Products".';
+    }
+  } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
       currentStep = 6;
       targetSelector = '#tour-view-transaction-screen';
@@ -2308,6 +2401,83 @@ export default function PracticeSpotlightTour({
     );
   }
 
+  // CASA Part 1 completion modal
+  if (module === 'casa-part-1' && casaProductPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              ✓ Khởi tạo sản phẩm thành công
+            </span>
+            <button
+              onClick={() => setCasaProductPopup(false)}
+              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <h3 className="text-base font-bold text-gray-900 leading-snug">
+            Sản phẩm CASA: TKB Current Account (TKCA) đã kích hoạt!
+          </h3>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Chúc mừng bạn đã hoàn thành thiết lập sản phẩm Tiền gửi thanh toán (CASA) chuẩn hóa theo đúng yêu cầu nghiệp vụ ngân hàng:
+          </p>
+
+          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-1.5 font-sans">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tên sản phẩm:</span>
+              <strong className="text-gray-900">TKB Current Account (TKCA)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Đơn vị tiền tệ:</span>
+              <strong className="text-gray-900">VND (0 Decimals, Bội số 1)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Điều khoản lãi:</span>
+              <strong className="text-gray-900">0.00% / năm (Daily Balance, 365 Days)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Số dư tối thiểu:</span>
+              <strong className="text-gray-900">0 VND (Không hạn chế số dư)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Hạch toán kế toán:</span>
+              <strong className="text-[#1072ba]">Cash Based (TK 110201 đối ứng Có 210102)</strong>
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCasaProductPopup(false);
+                if (navigate) navigate('admin-savings-products');
+              }}
+              className="py-2 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors"
+            >
+              Xem danh sách SP Saving
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCasaProductPopup(false);
+                if (onClose) onClose();
+                if (navigate) navigate('clients');
+              }}
+              className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+            >
+              Tiếp tục: Tạo CIF Khách Hàng ➔
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tooltip position calculation
   const padding = 6;
   const box = targetRect ? {
@@ -2339,7 +2509,43 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'gl-part-9' && (currentPath === 'accounting-view-transaction' || targetSelector === '#tour-view-transaction-screen' || currentStep === 6)) {
+    if (module === 'casa-part-1') {
+      const tooltipWidth = 340;
+      if (targetSelector === '#tour-create-savings-product-btn') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${Math.max(20, box.top + 36)}px`,
+          left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
+          width: `${tooltipWidth}px`
+        };
+      } else if (box.right + tooltipWidth + 24 <= windowWidth) {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${Math.max(60, Math.min(box.top, windowHeight - 480))}px`,
+          left: `${box.right + 20}px`,
+          width: `${tooltipWidth}px`
+        };
+      } else if (box.left >= tooltipWidth + 24) {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${Math.max(60, Math.min(box.top, windowHeight - 480))}px`,
+          left: `${box.left - tooltipWidth - 20}px`,
+          width: `${tooltipWidth}px`
+        };
+      } else {
+        const spaceBelow = windowHeight - box.bottom;
+        const tooltipTop = spaceBelow >= 220 
+          ? box.bottom + 16 
+          : Math.max(16, windowHeight - 340);
+        const tooltipLeft = Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20));
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${tooltipTop}px`,
+          left: `${tooltipLeft}px`,
+          width: `${tooltipWidth}px`
+        };
+      }
+    } else if (module === 'gl-part-9' && (currentPath === 'accounting-view-transaction' || targetSelector === '#tour-view-transaction-screen' || currentStep === 6)) {
       // Step 6: popup strictly on the LEFT side of the screen
       const tooltipWidth = 350;
       tooltipStyle = {
@@ -2539,10 +2745,249 @@ export default function PracticeSpotlightTour({
           <h4 className="font-bold text-gray-900 text-xs">
             {stepTitle}
           </h4>
-          <p className="text-gray-600 text-[11px] mt-1 leading-relaxed">
+          {stepSubtitle && (
+            <div className="text-[11px] font-semibold text-[#1072ba] mt-1 leading-snug">
+              💡 {stepSubtitle}
+            </div>
+          )}
+          <p className="text-gray-600 text-[11px] mt-1.5 leading-relaxed">
             {stepInstruction}
           </p>
         </div>
+
+        {/* Quick autofill & interactive actions for CASA Part 1 */}
+        {module === 'casa-part-1' && (
+          <div className="space-y-2 mt-2">
+            {currentPath === 'admin-create-savings-product' && (
+              <>
+                {targetSelector === '#tour-casa-form-details' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin mẫu Tab DETAILS:
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Product Name: <strong>TKB Current Account</strong></div>
+                      <div>Short Name: <strong>TKCA</strong></div>
+                      <div>Description: <strong>Basic VND CASA Product · Demo</strong></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-casa-details'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Details & Sang Currency ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-form-currency' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin mẫu Tab CURRENCY:
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Currency: <strong>Vietnamese Dong (VND)</strong></div>
+                      <div>Decimal Places: <strong>0</strong></div>
+                      <div>In multiples of: <strong>1</strong></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-casa-currency'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Currency & Sang Terms ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-form-terms' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin mẫu Tab TERMS:
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Nominal Interest: <strong>0%</strong></div>
+                      <div>Compounding: <strong>Daily</strong> | Posting: <strong>Monthly</strong></div>
+                      <div>Calculated using: <strong>Daily Balance</strong></div>
+                      <div>Days in Year: <strong>365 Days</strong></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-casa-terms'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Terms & Mở Preview ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-form-settings' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin mẫu Tab SETTINGS:
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Min Opening Balance: <strong>0 VND</strong></div>
+                      <div>Lock-in Period: <strong>Để trống</strong></div>
+                      <div>Overdraft / Rút chuyển khoản: <strong>Không chọn</strong></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-casa-settings'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Settings & Sang Charges ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-form-charges' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Tab CHARGES (Biểu phí):
+                    </div>
+                    <p className="text-[10px] text-gray-600">
+                      Sản phẩm CASA cơ bản này mở miễn phí, không gán phí dịch vụ bắt buộc.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextBtn = document.getElementById('tour-casa-charges-next-btn');
+                        if (nextBtn) nextBtn.click();
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang Tab ACCOUNTING ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-form-accounting' && (
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-[#1072ba]">
+                      Thông tin mẫu Tab ACCOUNTING (Cash Based):
+                    </div>
+                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                      <div>Phương pháp: <strong>Cash Based</strong></div>
+                      <div>Saving reference: <strong>110201 Settlement Bank</strong></div>
+                      <div>Saving control: <strong>210102 Current Account Deposits</strong></div>
+                      <div>Interest on savings: <strong>510101 Savings Interest Exp</strong></div>
+                      <div>Fees & Penalty: <strong>420102 & 420103</strong></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-casa-accounting'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Accounting (Cash) & Sang Preview ➔
+                    </button>
+                  </div>
+                )}
+
+                {targetSelector === '#tour-casa-preview-card' && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                    <div className="text-[11px] font-bold text-emerald-900">
+                      Rà soát & Kích hoạt sản phẩm CASA:
+                    </div>
+                    <p className="text-[10px] text-emerald-800">
+                      Mọi tham số đã hoàn thiện. Bấm nút Submit màu xanh để chính thức kích hoạt sản phẩm trên hệ thống!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-casa'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bấm Submit tạo sản phẩm CASA ➔
+                    </button>
+                  </div>
+                )}
+
+                <div className="pt-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('practice-fill-casa-all'));
+                    }}
+                    className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
+                  >
+                    ⚡ Điền nhanh toàn bộ & đến Preview
+                  </button>
+                </div>
+              </>
+            )}
+
+            {currentPath === 'admin-savings-products' && (
+              <>
+                {savingsProducts.some(p => p.shortName === 'TKCA') ? (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                      <div className="font-bold text-emerald-900 mb-0.5">
+                        ✓ Đã tạo thành công sản phẩm TKB Current Account (TKCA)!
+                      </div>
+                      <div>Sản phẩm CASA đã sẵn sàng trên hệ thống core banking.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                        if (navigate) navigate('clients');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục: Tạo CIF Khách Hàng (Phần 2) ➔
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('admin-create-savings-product');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Mở biểu mẫu + Create Savings Product ➔
+                  </button>
+                )}
+              </>
+            )}
+
+            {currentPath === 'admin-products' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-savings-products');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Chọn Savings Products ➔
+              </button>
+            )}
+
+            {currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-products' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-products');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Đến trang Quản lý Products ➔
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
@@ -3538,7 +3983,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'gl-part-9' && currentPath === 'accounting-view-transaction') ||
+            {(module === 'casa-part-1' && savingsProducts.some(p => p.shortName === 'TKCA'))
+              ? 'Nhấn nút "Tiếp tục: Tạo CIF Khách Hàng" phía trên để sang Phần 2'
+              : (module === 'gl-part-9' && currentPath === 'accounting-view-transaction') ||
              (module === 'gl-part-8' && currentPath === 'accounting-view-rule') ||
              (module === 'gl-part-7' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-manual-opex'))) ||
              (module === 'gl-part-6' && currentPath === 'accounting-journal' && Boolean(typeof document !== 'undefined' && document.getElementById('tour-journal-entry-target'))) ||

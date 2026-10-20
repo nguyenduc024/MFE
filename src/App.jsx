@@ -967,6 +967,10 @@ export default function App() {
         offices={offices}
         currencies={currencies}
         glAccounts={glAccounts}
+        savingsProducts={savingsProducts}
+        clients={clients}
+        savingsAccounts={savingsAccounts}
+        onAddSavingsProduct={handleAddSavingsProduct}
         financialActivities={financialActivities}
         accountingRules={accountingRules}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
