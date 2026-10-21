@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Menu, ArrowUp, ArrowDown, Lock, Calculator, ArrowRight, ChevronRight, X
+  Menu, ArrowUp, ArrowDown, Lock, Calculator, ArrowRight, ChevronRight, ChevronDown, X
 } from 'lucide-react';
 
 /**
