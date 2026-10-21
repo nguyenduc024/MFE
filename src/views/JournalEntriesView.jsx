@@ -141,6 +141,36 @@ export const SCREENSHOT_SAMPLE_JOURNAL_ENTRIES = [
     currency: 'VND',
     debit: null,
     credit: 1000000
+  },
+  {
+    id: '85',
+    office: 'Thu Duc Transaction Office',
+    txId: 'RD4',
+    txDate: '13 October 2026',
+    type: 'ASSET',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '110201',
+    glName: 'Settlement Bank Account',
+    currency: 'VND',
+    debit: 500000,
+    credit: null,
+    isRdDepositTarget: true
+  },
+  {
+    id: '86',
+    office: 'Thu Duc Transaction Office',
+    txId: 'RD4',
+    txDate: '13 October 2026',
+    type: 'LIABILITY',
+    createdBy: 'mifos',
+    submittedDate: '13 October 2026 00:00:00',
+    glCode: '210104',
+    glName: 'Recurring Deposits',
+    currency: 'VND',
+    debit: null,
+    credit: 500000,
+    isRdDepositTarget: true
   }
 ];
 
@@ -273,13 +303,22 @@ export default function JournalEntriesView({
       setIsFiltered(true);
     };
 
+    const handleFilterRdDeposit = () => {
+      setSelectedOffice('Thu Duc Transaction Office');
+      setTxDateFrom('10/01/2026');
+      setTxDateTo('10/31/2026');
+      setIsFiltered(true);
+    };
+
     window.addEventListener('practice-filter-journal-dates', handleFilterDates);
     window.addEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
     window.addEventListener('practice-filter-transfer-journal', handleFilterTransfer);
+    window.addEventListener('practice-filter-rd-deposit-journal', handleFilterRdDeposit);
     return () => {
       window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
       window.removeEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
       window.removeEventListener('practice-filter-transfer-journal', handleFilterTransfer);
+      window.removeEventListener('practice-filter-rd-deposit-journal', handleFilterRdDeposit);
     };
   }, []);
 
@@ -293,6 +332,7 @@ export default function JournalEntriesView({
     const customFlattened = (customJournalEntries || []).flatMap((rec) => {
       const rows = [];
       const isManualOpex = rec.referenceNumber === 'TKB-OPEX-202610-001' || String(rec.id).includes('OPEX') || rec.comments?.includes('OPEX');
+      const isRdDeposit = rec.entryType === 'RECURRING_DEPOSIT' || rec.referenceNumber === 'RD4';
       (rec.debits || []).forEach((d, dIdx) => {
         rows.push({
           id: `${rec.id}-${dIdx}`,
@@ -307,7 +347,8 @@ export default function JournalEntriesView({
           currency: rec.currency,
           debit: d.amount,
           credit: null,
-          isManualTarget: isManualOpex
+          isManualTarget: isManualOpex,
+          isRdDepositTarget: isRdDeposit
         });
       });
       (rec.credits || []).forEach((c, cIdx) => {
@@ -324,7 +365,8 @@ export default function JournalEntriesView({
           currency: rec.currency,
           debit: null,
           credit: c.amount,
-          isManualTarget: isManualOpex
+          isManualTarget: isManualOpex,
+          isRdDepositTarget: isRdDeposit
         });
       });
       return rows;
@@ -720,9 +762,38 @@ export default function JournalEntriesView({
                   </tbody>
                 )}
 
+                {/* Recurring Deposit Target Entries (Phân hệ 03: Tiết kiệm gửi góp) */}
+                {displayedEntries.some(item => item.isRdDepositTarget || item.txId === 'RD4' || item.id === '85' || item.id === '86') && (
+                  <tbody id="tour-journal-entry-rd-deposit" className="border-b-2 border-sky-500">
+                    {displayedEntries.filter(item => item.isRdDepositTarget || item.txId === 'RD4' || item.id === '85' || item.id === '86').map((item, index) => (
+                      <tr
+                        key={`rd-dep-${item.id}-${item.glCode}-${index}`}
+                        className="border-b border-sky-100 bg-sky-50/70 hover:bg-sky-50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px] font-semibold text-sky-900">{item.txId}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-semibold text-[#1072ba]">{item.glCode}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glName}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
+
                 {/* Other standard screenshot journal entries */}
                 <tbody>
-                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68').map((item, index) => (
+                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68' && !item.isRdDepositTarget && item.txId !== 'RD4' && item.id !== '85' && item.id !== '86').map((item, index) => (
                     <tr
                       key={`${item.id}-${item.glCode}-${index}`}
                       className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"

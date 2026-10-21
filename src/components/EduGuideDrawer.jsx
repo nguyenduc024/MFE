@@ -41,7 +41,8 @@ export default function EduGuideDrawer({
   onResetFixedDepositAccounts,
   recurringDepositProducts = [],
   onResetRecurringDepositProducts,
-  onResetRecurringDepositAccounts
+  onResetRecurringDepositAccounts,
+  hasCheckedRdJournal = false
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -250,9 +251,11 @@ export default function EduGuideDrawer({
       (s.externalId === 'TKB-RD-TDU-002' && (s.depositType === 'Recurring Deposit' || s.accountType === 'Recurring Deposit' || s.productName?.toLowerCase().includes('goal')))
     );
     if (!rd) return 0;
-    if ((rd.status === 'Active' || rd.status === 'Activated') && (rd.hasDeposited || Number(rd.balance) >= 500000)) return 100;
-    if (rd.status === 'Active' || rd.status === 'Activated') return 80;
-    if (rd.status === 'Approved') return 60;
+    const hasDeposited = Boolean(rd.hasDeposited || Number(rd.balance) >= 500000);
+    if ((rd.status === 'Active' || rd.status === 'Activated') && hasDeposited && hasCheckedRdJournal) return 100;
+    if ((rd.status === 'Active' || rd.status === 'Activated') && hasDeposited) return 90;
+    if (rd.status === 'Active' || rd.status === 'Activated') return 75;
+    if (rd.status === 'Approved') return 55;
     return 30;
   };
 
@@ -3284,10 +3287,21 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">10</span>
-                  <span>Nộp Tiền Vào Quỹ Tiết Kiệm Gửi Góp (Deposit) &amp; Kết Thúc Phân Hệ 03</span>
+                  <span>Nộp Tiền Vào Quỹ Tiết Kiệm Gửi Góp (Deposit)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tại giao diện chi tiết tài khoản Active, nhấp vào menu <strong>(≡)</strong> và chọn <strong>Deposit</strong> (Hình 1). Nhập ngày giao dịch <strong>10/13/2026</strong>, số tiền <strong>500,000.00 VND</strong>, phương thức <strong>Money Transfer</strong> và nhấn <strong>Submit</strong> (Hình 2). Số dư tài khoản cập nhật <strong>₫500,000.00</strong> (viền đỏ theo Hình 3), đồng thời bảng Recurring Deposit Accounts trên hồ sơ khách hàng Lan Ngoc Pham ghi nhận số dư <strong>500,000.00 VND</strong>. Kết thúc thành công Phân hệ 03!
+                  Tại giao diện chi tiết tài khoản Active, nhấp vào menu <strong>(≡)</strong> và chọn <strong>Deposit</strong> (Hình 1). Nhập ngày giao dịch <strong>10/13/2026</strong>, số tiền <strong>500,000.00 VND</strong>, phương thức <strong>Money Transfer</strong> và nhấn <strong>Submit</strong> (Hình 2). Số dư tài khoản cập nhật <strong>₫500,000.00</strong> (viền đỏ theo Hình 3), đồng thời bảng Recurring Deposit Accounts trên hồ sơ khách hàng Lan Ngoc Pham ghi nhận số dư <strong>500,000.00 VND</strong>.
+                </p>
+              </div>
+
+              {/* Bước 11 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">11</span>
+                  <span>Kiểm Tra Nhật Ký Hạch Toán Tự Động (Journal Entries) &amp; Kết Thúc Phân Hệ 03</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Từ thanh điều hướng, truy cập <strong>Accounting &gt; Journal Entries</strong>. Hệ thống tự động ghi nhận 2 bút toán sổ cái cho giao dịch nộp tiền: <strong>Nợ TK 110201 (Settlement Bank Account) 500,000.00 VND</strong> và <strong>Có TK 210104 (Recurring Deposits) 500,000.00 VND</strong>. Kết thúc thành công toàn bộ Phân hệ 03!
                 </p>
               </div>
             </div>
@@ -4015,7 +4029,7 @@ export default function EduGuideDrawer({
             isSavingPart4Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>Đã hoàn thành 100% Phân hệ 03: Tiết kiệm gửi góp &amp; Nộp tiền vào quỹ 000000004!</span>
+                  <span>Đã hoàn thành 100% Phân hệ 03: Tiết kiệm gửi góp &amp; Đối soát sổ cái tự động 000000004!</span>
                 </div>
                 <button
                   type="button"

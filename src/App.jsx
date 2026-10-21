@@ -173,6 +173,7 @@ export default function App() {
   const [contraAccountConfigEnabled, setContraAccountConfigEnabled] = useState(false);
   const [hasOpeningBalanceSubmitted, setHasOpeningBalanceSubmitted] = useState(false);
   const [customJournalEntries, setCustomJournalEntries] = useState([]);
+  const [hasCheckedRdJournal, setHasCheckedRdJournal] = useState(false);
 
   // Router navigation helper
   const navigate = (path, params = {}) => {
@@ -187,6 +188,12 @@ export default function App() {
     }
     if (params.editMode !== undefined) {
       setRoleInitialEditMode(Boolean(params.editMode));
+    }
+    if (path === 'accounting-journal') {
+      const rd = selectedRecurringDeposit || savingsAccounts.find(s => s.accountNo === '000000004');
+      if (rd?.hasDeposited || Number(rd?.balance) >= 500000) {
+        setHasCheckedRdJournal(true);
+      }
     }
     setCurrentPath(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1296,6 +1303,36 @@ export default function App() {
               };
               setSelectedRecurringDeposit(updated);
               setSavingsAccounts(prev => [updated, ...prev.filter(s => s.accountNo !== updated.accountNo)]);
+
+              // Automatically record accounting Journal Entry for Recurring Deposit (110201 Settlement Bank Account / 210104 Recurring Deposits)
+              const journalEntry = {
+                id: 'RD-DEP-001',
+                referenceNumber: 'RD4',
+                txDate: '13 October 2026',
+                submittedDate: '13 October 2026 00:00:00',
+                office: 'Thu Duc Transaction Office',
+                currency: 'VND',
+                comments: 'Deposit transaction for Recurring Deposit 000000004 (Lan Ngoc Pham)',
+                entryType: 'RECURRING_DEPOSIT',
+                debits: [
+                  {
+                    glCode: '110201',
+                    name: 'Settlement Bank Account',
+                    type: 'ASSET',
+                    amount: numAmount
+                  }
+                ],
+                credits: [
+                  {
+                    glCode: '210104',
+                    name: 'Recurring Deposits',
+                    type: 'LIABILITY',
+                    amount: numAmount
+                  }
+                ]
+              };
+              setCustomJournalEntries(prev => [journalEntry, ...prev.filter(e => e.id !== 'RD-DEP-001')]);
+
               navigate('recurring-deposit-detail');
             }}
             onCancel={() => navigate('recurring-deposit-detail')}
@@ -1792,6 +1829,7 @@ export default function App() {
         recurringDepositProducts={recurringDepositProducts}
         clients={clients}
         savingsAccounts={savingsAccounts}
+        hasCheckedRdJournal={hasCheckedRdJournal}
         onResetSavingsProducts={() => {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
         }}
@@ -1806,6 +1844,9 @@ export default function App() {
         }}
         onResetRecurringDepositAccounts={() => {
           setSavingsAccounts(prev => prev.filter(s => s.accountNo !== '000000004'));
+          setSelectedRecurringDeposit(null);
+          setHasCheckedRdJournal(false);
+          setCustomJournalEntries(prev => prev.filter(e => e.id !== 'RD-DEP-001'));
         }}
         onResetClients={() => {
           setClients(prev => prev.filter(c => c.id !== '11' && c.id !== '12' && c.externalId !== 'TKB-CIF-TDU-001' && c.externalId !== 'TKB-CIF-TDU-002' && !c.displayName?.toLowerCase().includes('minh quang tran') && !c.displayName?.toLowerCase().includes('lan ngoc pham')));
@@ -1900,6 +1941,7 @@ export default function App() {
         hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}
         onSubmitOpeningBalances={() => setHasOpeningBalanceSubmitted(true)}
         customJournalEntries={customJournalEntries}
+        hasCheckedRdJournal={hasCheckedRdJournal}
         navigate={navigate}
         onLoadAllRoles={() => {
           setRoles([...FULL_BACKUP_ROLES]);
