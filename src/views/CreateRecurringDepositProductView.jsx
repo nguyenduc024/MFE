@@ -175,13 +175,13 @@ export default function CreateRecurringDepositProductView({
     chargeId: '',
 
     // Step 7: ACCOUNTING (Image 4)
-    accountingRule: 'Cash',
-    savingReferenceAccountId: '110201',
-    savingControlAccountId: '210104', // (210104) Recurring Deposits
-    transfersInSuspenseAccountId: '220201', // (220201) Clearing Payable
-    interestOnSavingsAccountId: '510101', // (510101) Savings Interest Expense
-    incomeFromFeeAccountId: '420102', // (420102) Savings Service Fee Income
-    incomeFromPenaltyAccountId: '420108', // (420108) Recurring Deposit Penalty Income
+    accountingRule: 'None',
+    savingReferenceAccountId: '',
+    savingControlAccountId: '',
+    transfersInSuspenseAccountId: '',
+    interestOnSavingsAccountId: '',
+    incomeFromFeeAccountId: '',
+    incomeFromPenaltyAccountId: '',
     advancedAccountingRules: false
   });
 
@@ -259,9 +259,21 @@ export default function CreateRecurringDepositProductView({
         chartFromDate: '10/13/2026',
         chartEndDate: '',
         chartDescription: 'Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.',
-        isPrimaryGroupingByAmount: false,
-        slabs: [{ ...DEFAULT_RD_SLAB }]
+        isPrimaryGroupingByAmount: false
       }));
+    };
+
+    const handleOpenSlabModal = () => {
+      setSlabForm({
+        periodType: 'Months',
+        periodFrom: '',
+        periodTo: '',
+        amountRangeFrom: '',
+        amountRangeTo: '',
+        interest: '',
+        description: ''
+      });
+      setShowSlabModal(true);
     };
 
     const handleAutofillSlabForm = () => {
@@ -361,6 +373,8 @@ export default function CreateRecurringDepositProductView({
     window.addEventListener('practice-autofill-rd-terms', handleAutofillTerms);
     window.addEventListener('practice-autofill-rd-settings', handleAutofillSettings);
     window.addEventListener('practice-autofill-rd-chart', handleAutofillChart);
+    window.addEventListener('practice-autofill-rd-chart-info', handleAutofillChart);
+    window.addEventListener('practice-open-rd-slab-modal', handleOpenSlabModal);
     window.addEventListener('practice-autofill-rd-slab-form', handleAutofillSlabForm);
     window.addEventListener('practice-confirm-add-rd-slab', handleConfirmAddSlab);
     window.addEventListener('practice-autofill-rd-accounting', handleAutofillAccounting);
@@ -374,6 +388,8 @@ export default function CreateRecurringDepositProductView({
       window.removeEventListener('practice-autofill-rd-terms', handleAutofillTerms);
       window.removeEventListener('practice-autofill-rd-settings', handleAutofillSettings);
       window.removeEventListener('practice-autofill-rd-chart', handleAutofillChart);
+      window.removeEventListener('practice-autofill-rd-chart-info', handleAutofillChart);
+      window.removeEventListener('practice-open-rd-slab-modal', handleOpenSlabModal);
       window.removeEventListener('practice-autofill-rd-slab-form', handleAutofillSlabForm);
       window.removeEventListener('practice-confirm-add-rd-slab', handleConfirmAddSlab);
       window.removeEventListener('practice-autofill-rd-accounting', handleAutofillAccounting);
@@ -1043,7 +1059,18 @@ export default function CreateRecurringDepositProductView({
                   <button
                     type="button"
                     id="tour-rd-add-slab-btn"
-                    onClick={() => setShowSlabModal(true)}
+                    onClick={() => {
+                      setSlabForm({
+                        periodType: 'Months',
+                        periodFrom: '',
+                        periodTo: '',
+                        amountRangeFrom: '',
+                        amountRangeTo: '',
+                        interest: '',
+                        description: ''
+                      });
+                      setShowSlabModal(true);
+                    }}
                     className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 shadow-2xs cursor-pointer transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -1053,7 +1080,7 @@ export default function CreateRecurringDepositProductView({
 
                 {/* Slabs Table matching Image 2 */}
                 {formData.slabs.length > 0 && (
-                  <div className="pt-2 overflow-x-auto border border-gray-200 rounded-[2px] bg-white">
+                  <div id="tour-rd-slabs-table" className="pt-2 overflow-x-auto border border-gray-200 rounded-[2px] bg-white">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
                         <tr>
@@ -1210,6 +1237,7 @@ export default function CreateRecurringDepositProductView({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
+                  id="tour-rd-accounting-cash-radio"
                   name="accountingRule"
                   value="Cash"
                   checked={formData.accountingRule === 'Cash'}
@@ -1231,95 +1259,105 @@ export default function CreateRecurringDepositProductView({
               </label>
             </div>
 
-            {/* Assets */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-xs font-semibold text-gray-800">Assets</h3>
-              <div className="max-w-md">
-                <FloatingSelect
-                  label="Saving reference *"
-                  value={formData.savingReferenceAccountId}
-                  onChange={(e) => setFormData({ ...formData, savingReferenceAccountId: e.target.value })}
-                >
-                  <option value="110201">(110201) Settlement Bank Account</option>
-                  <option value="110101">(110101) Vault Cash VND</option>
-                </FloatingSelect>
+            {formData.accountingRule === 'Cash' && (
+              <div className="space-y-6 animate-in fade-in duration-150">
+                {/* Assets */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-semibold text-gray-800">Assets</h3>
+                  <div className="max-w-md">
+                    <FloatingSelect
+                      label="Saving reference *"
+                      value={formData.savingReferenceAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingReferenceAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="110201">(110201) Settlement Bank Account</option>
+                      <option value="110101">(110101) Vault Cash VND</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Liabilities */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-semibold text-gray-800">Liabilities</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Saving control *"
+                      value={formData.savingControlAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingControlAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="210104">(210104) Recurring Deposits</option>
+                      <option value="210103">(210103) Fixed Deposits</option>
+                      <option value="210101">(210101) Demand Deposits (CASA)</option>
+                    </FloatingSelect>
+
+                    <FloatingSelect
+                      label="Savings transfers in suspense *"
+                      value={formData.transfersInSuspenseAccountId}
+                      onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="220201">(220201) Clearing Payable</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Expenses */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-semibold text-gray-800">Expenses</h3>
+                  <div className="max-w-md">
+                    <FloatingSelect
+                      label="Interest on savings *"
+                      value={formData.interestOnSavingsAccountId}
+                      onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="510101">(510101) Savings Interest Expense</option>
+                      <option value="510102">(510102) Fixed Deposit Interest Expense</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Income */}
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs font-semibold text-gray-800">Income</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Income from fees *"
+                      value={formData.incomeFromFeeAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="420102">(420102) Savings Service Fee Income</option>
+                    </FloatingSelect>
+
+                    <FloatingSelect
+                      label="Income from penalties *"
+                      value={formData.incomeFromPenaltyAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      <option value="420108">(420108) Recurring Deposit Penalty Income</option>
+                      <option value="420107">(420107) Fixed Deposit Penalty Income</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Advanced Accounting Rules */}
+                <div className="pt-3">
+                  <label className="flex items-center space-x-2 text-xs text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.advancedAccountingRules}
+                      onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
+                      className="rounded-[2px] border-gray-300 text-[#1072ba]"
+                    />
+                    <span className="font-semibold text-gray-800">Advanced Accounting Rules</span>
+                  </label>
+                </div>
               </div>
-            </div>
-
-            {/* Liabilities */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-xs font-semibold text-gray-800">Liabilities</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                <FloatingSelect
-                  label="Saving control *"
-                  value={formData.savingControlAccountId}
-                  onChange={(e) => setFormData({ ...formData, savingControlAccountId: e.target.value })}
-                >
-                  <option value="210104">(210104) Recurring Deposits</option>
-                  <option value="210103">(210103) Fixed Deposits</option>
-                  <option value="210101">(210101) Demand Deposits (CASA)</option>
-                </FloatingSelect>
-
-                <FloatingSelect
-                  label="Savings transfers in suspense *"
-                  value={formData.transfersInSuspenseAccountId}
-                  onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
-                >
-                  <option value="220201">(220201) Clearing Payable</option>
-                </FloatingSelect>
-              </div>
-            </div>
-
-            {/* Expenses */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-xs font-semibold text-gray-800">Expenses</h3>
-              <div className="max-w-md">
-                <FloatingSelect
-                  label="Interest on savings *"
-                  value={formData.interestOnSavingsAccountId}
-                  onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
-                >
-                  <option value="510101">(510101) Savings Interest Expense</option>
-                  <option value="510102">(510102) Fixed Deposit Interest Expense</option>
-                </FloatingSelect>
-              </div>
-            </div>
-
-            {/* Income */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-xs font-semibold text-gray-800">Income</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                <FloatingSelect
-                  label="Income from fees *"
-                  value={formData.incomeFromFeeAccountId}
-                  onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
-                >
-                  <option value="420102">(420102) Savings Service Fee Income</option>
-                </FloatingSelect>
-
-                <FloatingSelect
-                  label="Income from penalties *"
-                  value={formData.incomeFromPenaltyAccountId}
-                  onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
-                >
-                  <option value="420108">(420108) Recurring Deposit Penalty Income</option>
-                  <option value="420107">(420107) Fixed Deposit Penalty Income</option>
-                </FloatingSelect>
-              </div>
-            </div>
-
-            {/* Advanced Accounting Rules */}
-            <div className="pt-3">
-              <label className="flex items-center space-x-2 text-xs text-gray-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.advancedAccountingRules}
-                  onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
-                  className="rounded-[2px] border-gray-300 text-[#1072ba]"
-                />
-                <span className="font-semibold text-gray-800">Advanced Accounting Rules</span>
-              </label>
-            </div>
+            )}
 
             {/* Bottom Actions */}
             <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
