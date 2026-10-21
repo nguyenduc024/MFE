@@ -2366,5 +2366,17 @@ export const EDU_MODULES = [
     objective: "Thực hiện nghiệp vụ chuyển khoản nội bộ (Account Transfer) số tiền 1.000.000 VND từ tài khoản CASA 000000001 (Minh Quang Tran) sang tài khoản CASA 000000002 (Lan Ngoc Pham). Kiểm tra biến động số dư của 2 tài khoản và đối soát 4 bút toán tự động hạch toán trong Sổ Nhật ký chung (Journal Entries).",
     targetMenu: "clients",
     subPath: "account-transfer"
+  },
+  {
+    id: "saving-part-1",
+    moduleNumber: "03",
+    moduleTitle: "Phân hệ 03: Saving",
+    partNumber: "1",
+    name: "Phần 1: Tạo Sản Phẩm Tiền Gửi Có Kỳ Hạn (Create Fixed Deposit Product)",
+    shortLabel: "Phần 1: Tạo SP Fixed Deposit",
+    title: "Thiết Lập Sản Phẩm Tiền Gửi Tiết Kiệm Có Kỳ Hạn (TKB Fixed Deposit - TKFD)",
+    objective: "Thiết lập sản phẩm tiền gửi tiết kiệm có kỳ hạn TKB Fixed Deposit (TKFD) theo chuẩn Core Banking Mifos X, cấu hình đơn vị tiền tệ VND, định mức số tiền gửi 1.000.000 - 1.000.000.000 VND, kỳ hạn gửi từ 3 đến 12 tháng, và khởi tạo Biểu lãi suất tiết kiệm có kỳ hạn (Interest Rate Chart).",
+    targetMenu: "admin-fixed-deposit-products",
+    subPath: "fixed-deposit-products"
   }
 ];

@@ -32,6 +32,8 @@ import LoanProductsView from './views/LoanProductsView';
 import SavingsProductsView from './views/SavingsProductsView';
 import ProductsView from './views/ProductsView';
 import CreateSavingsProductView from './views/CreateSavingsProductView';
+import FixedDepositProductsView from './views/FixedDepositProductsView';
+import CreateFixedDepositProductView from './views/CreateFixedDepositProductView';
 import ClientsView from './views/ClientsView';
 import CreateClientView from './views/CreateClientView';
 import CreateUserView from './views/CreateUserView';
@@ -89,6 +91,7 @@ export default function App() {
   const [glAccounts, setGlAccounts] = useState(INITIAL_GL_ACCOUNTS);
   const [loanProducts, setLoanProducts] = useState(INITIAL_LOAN_PRODUCTS);
   const [savingsProducts, setSavingsProducts] = useState(INITIAL_SAVINGS_PRODUCTS);
+  const [fixedDepositProducts, setFixedDepositProducts] = useState([]);
   const [clients, setClients] = useState(INITIAL_CLIENTS);
   const [tellers, setTellers] = useState(INITIAL_TELLERS);
   const [loans, setLoans] = useState(() =>
@@ -851,6 +854,7 @@ export default function App() {
             onNavigateHome={() => navigate('home')}
             onNavigateSavingsProducts={() => navigate('admin-savings-products')}
             onNavigateLoanProducts={() => navigate('admin-loan-products')}
+            onNavigateFixedDepositProducts={() => navigate('admin-fixed-deposit-products')}
           />
         )}
 
@@ -891,6 +895,32 @@ export default function App() {
               setPracticeActive(true);
             }}
             isPracticeActive={practiceActive}
+          />
+        )}
+
+        {currentPath === 'admin-fixed-deposit-products' && (
+          <FixedDepositProductsView
+            fixedDepositProducts={fixedDepositProducts}
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateCreateFixedDepositProduct={() => navigate('admin-create-fixed-deposit-product')}
+            onStartPractice={() => {
+              setPracticeModule('saving-part-1');
+              setPracticeActive(true);
+            }}
+            isPracticeActive={practiceActive}
+          />
+        )}
+
+        {currentPath === 'admin-create-fixed-deposit-product' && (
+          <CreateFixedDepositProductView
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateFixedDepositProducts={() => navigate('admin-fixed-deposit-products')}
+            onSaveProduct={(newProd) => {
+              setFixedDepositProducts(prev => [newProd, ...prev]);
+              navigate('admin-fixed-deposit-products');
+            }}
           />
         )}
 
@@ -1256,6 +1286,9 @@ export default function App() {
           if (targetModule === 'gl-part-9') {
             setCustomJournalEntries(prev => prev.filter(e => e.entryType !== 'FREQUENT_POSTING' && e.id !== 'a2f68debe1a7'));
             setCurrentPath('home');
+          }
+          if (targetModule === 'saving-part-1') {
+            setCurrentPath('admin-products');
           }
           if (targetModule === 'casa-part-1') {
             if (currentPath !== 'admin-create-savings-product') {
