@@ -12,19 +12,21 @@ function FloatingInput({
   required = false,
   disabled = false,
   placeholder = '',
+  prefix = null,
   rightIcon = null,
-  className = ''
+  className = '',
+  id = ''
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value !== undefined && value !== null && String(value).trim().length > 0;
-  const isFloated = isFocused || hasValue || Boolean(placeholder);
+  const isFloated = isFocused || hasValue;
 
   return (
-    <div className={`relative pt-3.5 pb-1 border-b transition-colors ${
+    <div className={`relative pt-3.5 pb-1 border-b transition-colors duration-200 ${
       isFocused ? 'border-[#1072ba]' : 'border-gray-300'
     } ${className}`}>
       <label
-        className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
+        className={`absolute left-0 pointer-events-none origin-[0] select-none transition-all duration-200 ease-out z-10 ${
           isFloated
             ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : (disabled ? 'text-gray-400' : 'text-gray-500'))
             : 'top-3.5 text-xs ' + (disabled ? 'text-gray-400' : 'text-gray-500')
@@ -33,16 +35,24 @@ function FloatingInput({
         {label}
       </label>
       <div className="relative flex items-center">
+        {prefix && isFloated && (
+          <span className="text-xs font-semibold text-gray-700 select-none mr-2">
+            {prefix}
+          </span>
+        )}
         <input
+          id={id}
           type={type}
           required={required}
           disabled={disabled}
-          placeholder={isFloated && placeholder ? placeholder : ''}
+          placeholder={isFocused && !hasValue ? placeholder : ''}
           value={value ?? ''}
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 disabled:text-gray-400 disabled:cursor-not-allowed"
+          className={`w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 disabled:text-gray-400 disabled:cursor-not-allowed ${
+            prefix && isFloated ? 'text-right' : ''
+          }`}
         />
         {rightIcon && (
           <div className="absolute right-0 bottom-1 pointer-events-none text-gray-400">
@@ -64,18 +74,19 @@ function FloatingSelect({
   children,
   required = false,
   disabled = false,
-  className = ''
+  className = '',
+  id = ''
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value !== undefined && value !== null && String(value).trim().length > 0;
   const isFloated = isFocused || hasValue;
 
   return (
-    <div className={`relative pt-3.5 pb-1 border-b transition-colors ${
+    <div className={`relative pt-3.5 pb-1 border-b transition-colors duration-200 ${
       isFocused ? 'border-[#1072ba]' : 'border-gray-300'
     } ${className}`}>
       <label
-        className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
+        className={`absolute left-0 pointer-events-none origin-[0] select-none transition-all duration-200 ease-out z-10 ${
           isFloated
             ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : (disabled ? 'text-gray-400' : 'text-gray-500'))
             : 'top-3.5 text-xs ' + (disabled ? 'text-gray-400' : 'text-gray-500')
@@ -85,6 +96,7 @@ function FloatingSelect({
       </label>
       <div className="relative flex items-center">
         <select
+          id={id}
           required={required}
           disabled={disabled}
           value={value ?? ''}
@@ -92,7 +104,7 @@ function FloatingSelect({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`w-full bg-transparent text-xs outline-none pr-6 pt-0.5 cursor-pointer appearance-none disabled:cursor-not-allowed ${
-            disabled ? 'text-gray-400' : (!hasValue && !isFocused ? 'text-transparent' : 'text-gray-800')
+            disabled ? 'text-gray-400' : (!isFloated ? 'text-transparent' : 'text-gray-800')
           }`}
         >
           {children}
@@ -127,32 +139,32 @@ export default function CreateFixedDepositAccountView({
   const defaultProduct = fixedDepositProducts.find(p => p.shortName === 'TKFD' || p.name?.toLowerCase().includes('fixed')) || fixedDepositProducts[0];
 
   const [formData, setFormData] = useState({
-    // Step 1: DETAILS (Image 2)
-    productName: defaultProduct?.name || 'TKB Fixed Deposit',
-    productId: defaultProduct?.id || '1',
-    submittedOn: '10/13/2026',
-    fieldOfficer: 'Unassigned',
-    externalId: 'TKB-FD-TDU-001',
+    // Step 1: DETAILS (Image 2) - starts empty until user types or clicks autofill
+    productName: '',
+    productId: '',
+    submittedOn: '',
+    fieldOfficer: '',
+    externalId: '',
 
     // Step 2: TERMS (Image 3)
     currency: 'VND',
-    depositAmount: '1,000,000.00',
-    depositPeriod: '6',
-    depositPeriodType: 'Months',
-    compoundingPeriod: 'Monthly',
-    postingPeriod: 'Monthly',
-    interestCalculationType: 'Daily Balance',
-    daysInYear: '365 Days',
+    depositAmount: '',
+    depositPeriod: '',
+    depositPeriodType: '',
+    compoundingPeriod: '',
+    postingPeriod: '',
+    interestCalculationType: '',
+    daysInYear: '',
 
     // Step 3: SETTINGS (Image 4)
     lockinPeriodFrequency: '',
     lockinPeriodType: '',
-    minDepositTermFrequency: '3',
-    minDepositTermType: 'Months',
-    inMultiplesOfFrequency: '3',
-    inMultiplesOfType: 'Months',
-    maxDepositTermFrequency: '3',
-    maxDepositTermType: 'Months',
+    minDepositTermFrequency: '',
+    minDepositTermType: '',
+    inMultiplesOfFrequency: '',
+    inMultiplesOfType: '',
+    maxDepositTermFrequency: '',
+    maxDepositTermType: '',
     transferInterestToSavings: false,
     maturityInstructions: '',
     applyPenalInterest: false,
@@ -384,8 +396,13 @@ export default function CreateFixedDepositAccountView({
                 label="Product Name *"
                 required
                 value={formData.productName}
-                onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const prod = fixedDepositProducts.find(p => p.name === val);
+                  setFormData({ ...formData, productName: val, productId: prod?.id || '1' });
+                }}
               >
+                <option value=""></option>
                 <option value="TKB Fixed Deposit">TKB Fixed Deposit</option>
                 {fixedDepositProducts.filter(p => p.name !== 'TKB Fixed Deposit').map(p => (
                   <option key={p.id} value={p.name}>{p.name}</option>
@@ -456,23 +473,13 @@ export default function CreateFixedDepositAccountView({
           >
             {/* Row 1: Deposit Amount * */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-              <div className="relative pt-3.5 pb-1 border-b border-gray-300">
-                <label className="absolute left-0 -top-1 text-[11px] text-gray-500 font-medium select-none pointer-events-none">
-                  Deposit Amount *
-                </label>
-                <div className="flex items-center justify-between pt-0.5">
-                  <span className="text-xs font-semibold text-gray-700 select-none">
-                    VND
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    value={formData.depositAmount}
-                    onChange={(e) => setFormData({ ...formData, depositAmount: e.target.value })}
-                    className="w-full bg-transparent text-xs text-right text-gray-800 outline-none font-medium pr-2"
-                  />
-                </div>
-              </div>
+              <FloatingInput
+                label="Deposit Amount *"
+                required
+                prefix="VND"
+                value={formData.depositAmount}
+                onChange={(e) => setFormData({ ...formData, depositAmount: e.target.value })}
+              />
               <div />
             </div>
 
@@ -491,6 +498,7 @@ export default function CreateFixedDepositAccountView({
                 value={formData.depositPeriodType}
                 onChange={(e) => setFormData({ ...formData, depositPeriodType: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Days">Days</option>
                 <option value="Weeks">Weeks</option>
                 <option value="Months">Months</option>
@@ -506,6 +514,7 @@ export default function CreateFixedDepositAccountView({
                 value={formData.compoundingPeriod}
                 onChange={(e) => setFormData({ ...formData, compoundingPeriod: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Daily">Daily</option>
                 <option value="Monthly">Monthly</option>
                 <option value="Semi-Annual">Semi-Annual</option>
@@ -518,6 +527,7 @@ export default function CreateFixedDepositAccountView({
                 value={formData.postingPeriod}
                 onChange={(e) => setFormData({ ...formData, postingPeriod: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Monthly">Monthly</option>
                 <option value="Quarterly">Quarterly</option>
                 <option value="BiAnnual">BiAnnual</option>
@@ -533,6 +543,7 @@ export default function CreateFixedDepositAccountView({
                 value={formData.interestCalculationType}
                 onChange={(e) => setFormData({ ...formData, interestCalculationType: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Daily Balance">Daily Balance</option>
                 <option value="Average Daily Balance">Average Daily Balance</option>
               </FloatingSelect>
@@ -543,6 +554,7 @@ export default function CreateFixedDepositAccountView({
                 value={formData.daysInYear}
                 onChange={(e) => setFormData({ ...formData, daysInYear: e.target.value })}
               >
+                <option value=""></option>
                 <option value="360 Days">360 Days</option>
                 <option value="365 Days">365 Days</option>
               </FloatingSelect>
@@ -618,6 +630,7 @@ export default function CreateFixedDepositAccountView({
                   value={formData.minDepositTermType}
                   onChange={(e) => setFormData({ ...formData, minDepositTermType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -642,6 +655,7 @@ export default function CreateFixedDepositAccountView({
                   value={formData.inMultiplesOfType}
                   onChange={(e) => setFormData({ ...formData, inMultiplesOfType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -666,6 +680,7 @@ export default function CreateFixedDepositAccountView({
                   value={formData.maxDepositTermType}
                   onChange={(e) => setFormData({ ...formData, maxDepositTermType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -910,26 +925,26 @@ export default function CreateFixedDepositAccountView({
                   </div>
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Sản phẩm:</span>
-                    <span className="font-semibold text-[#1072ba]">{formData.productName}</span>
+                    <span className="font-semibold text-[#1072ba]">{formData.productName || 'TKB Fixed Deposit'}</span>
                   </div>
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Ngày lập hồ sơ:</span>
-                    <span className="font-semibold text-gray-900">{formData.submittedOn}</span>
+                    <span className="font-semibold text-gray-900">{formData.submittedOn || '10/13/2026'}</span>
                   </div>
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Mã hồ sơ (External ID):</span>
-                    <span className="font-mono font-semibold text-gray-900">{formData.externalId}</span>
+                    <span className="font-mono font-semibold text-gray-900">{formData.externalId || 'TKB-FD-TDU-001'}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Số tiền gốc gửi:</span>
-                    <span className="font-bold text-[#1072ba]">đ{formData.depositAmount}</span>
+                    <span className="font-bold text-[#1072ba]">đ{formData.depositAmount || '1,000,000.00'}</span>
                   </div>
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Kỳ hạn gửi:</span>
-                    <span className="font-semibold text-gray-900">{formData.depositPeriod} Tháng (Maturity: 13 April 2027)</span>
+                    <span className="font-semibold text-gray-900">{formData.depositPeriod || '6'} Tháng (Maturity: 13 April 2027)</span>
                   </div>
                   <div className="flex justify-between border-b border-gray-100 pb-2">
                     <span className="text-gray-500">Lãi suất áp dụng:</span>

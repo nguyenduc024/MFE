@@ -16,17 +16,17 @@ function FloatingInput({
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value !== undefined && value !== null && String(value).trim().length > 0;
-  const isFloated = isFocused || hasValue || Boolean(placeholder);
+  const isFloated = isFocused || hasValue;
 
   return (
-    <div className={`relative pt-3.5 pb-1 border-b transition-colors ${
+    <div className={`relative pt-3.5 pb-1 border-b transition-colors duration-200 ${
       isFocused ? 'border-[#1072ba]' : 'border-gray-300'
     } ${className}`}>
       <label
-        className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
+        className={`absolute left-0 pointer-events-none origin-[0] select-none transition-all duration-200 ease-out z-10 ${
           isFloated
-            ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : 'text-gray-500')
-            : 'top-3.5 text-xs text-gray-500'
+            ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : (disabled ? 'text-gray-400' : 'text-gray-500'))
+            : 'top-3.5 text-xs ' + (disabled ? 'text-gray-400' : 'text-gray-500')
         }`}
       >
         {label}
@@ -35,7 +35,7 @@ function FloatingInput({
         type={type}
         required={required}
         disabled={disabled}
-        placeholder={isFloated && placeholder ? placeholder : ''}
+        placeholder={isFocused && !hasValue ? placeholder : ''}
         value={value ?? ''}
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
@@ -63,11 +63,11 @@ function FloatingSelect({
   const isFloated = isFocused || hasValue;
 
   return (
-    <div className={`relative pt-3.5 pb-1 border-b transition-colors ${
+    <div className={`relative pt-3.5 pb-1 border-b transition-colors duration-200 ${
       isFocused ? 'border-[#1072ba]' : 'border-gray-300'
     } ${className}`}>
       <label
-        className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
+        className={`absolute left-0 pointer-events-none origin-[0] select-none transition-all duration-200 ease-out z-10 ${
           isFloated
             ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : (disabled ? 'text-gray-400' : 'text-gray-500'))
             : 'top-3.5 text-xs ' + (disabled ? 'text-gray-400' : 'text-gray-500')
@@ -84,7 +84,7 @@ function FloatingSelect({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`w-full bg-transparent text-xs outline-none pr-6 pt-0.5 cursor-pointer appearance-none disabled:cursor-not-allowed ${
-            disabled ? 'text-gray-400' : (!hasValue && !isFocused ? 'text-transparent' : 'text-gray-800')
+            disabled ? 'text-gray-400' : (!isFloated ? 'text-transparent' : 'text-gray-800')
           }`}
         >
           {children}
@@ -161,28 +161,28 @@ export default function CreateFixedDepositProductView({
     description: '',
 
     // Step 2: CURRENCY (Image 2)
-    currency: 'Vietnamese Dong',
-    decimalPlaces: '0',
-    currencyMultiplesOf: '1',
+    currency: '',
+    decimalPlaces: '',
+    currencyMultiplesOf: '',
 
     // Step 3: TERMS (Image 3)
     minDepositAmount: '',
     defaultDepositAmount: '',
     maxDepositAmount: '',
-    interestCompoundingPeriod: 'Monthly',
-    interestPostingPeriod: 'Monthly',
-    interestCalculationUsing: 'Daily Balance',
-    daysInYear: '365 Days',
+    interestCompoundingPeriod: '',
+    interestPostingPeriod: '',
+    interestCalculationUsing: '',
+    daysInYear: '',
 
     // Step 4: SETTINGS (Image 4)
     lockinPeriodFrequency: '',
     lockinPeriodType: '',
     minDepositTermFrequency: '',
-    minDepositTermType: 'Months',
+    minDepositTermType: '',
     inMultiplesOfFrequency: '',
-    inMultiplesOfType: 'Months',
+    inMultiplesOfType: '',
     maxDepositTermFrequency: '',
-    maxDepositTermType: 'Months',
+    maxDepositTermType: '',
     applyPenalInterest: false,
     penalInterest: '',
     penalInterestPeriod: '',
@@ -575,6 +575,7 @@ export default function CreateFixedDepositProductView({
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Vietnamese Dong">Vietnamese Dong</option>
                 <option value="US Dollar">US Dollar</option>
                 <option value="Euro">Euro</option>
@@ -656,6 +657,7 @@ export default function CreateFixedDepositProductView({
                 value={formData.interestCompoundingPeriod}
                 onChange={(e) => setFormData({ ...formData, interestCompoundingPeriod: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Daily">Daily</option>
                 <option value="Monthly">Monthly</option>
                 <option value="Quarterly">Quarterly</option>
@@ -669,6 +671,7 @@ export default function CreateFixedDepositProductView({
                 value={formData.interestPostingPeriod}
                 onChange={(e) => setFormData({ ...formData, interestPostingPeriod: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Monthly">Monthly</option>
                 <option value="Quarterly">Quarterly</option>
                 <option value="BiAnnual">BiAnnual</option>
@@ -683,6 +686,7 @@ export default function CreateFixedDepositProductView({
                 value={formData.interestCalculationUsing}
                 onChange={(e) => setFormData({ ...formData, interestCalculationUsing: e.target.value })}
               >
+                <option value=""></option>
                 <option value="Daily Balance">Daily Balance</option>
                 <option value="Average Daily Balance">Average Daily Balance</option>
               </FloatingSelect>
@@ -693,6 +697,7 @@ export default function CreateFixedDepositProductView({
                 value={formData.daysInYear}
                 onChange={(e) => setFormData({ ...formData, daysInYear: e.target.value })}
               >
+                <option value=""></option>
                 <option value="360 Days">360 Days</option>
                 <option value="365 Days">365 Days</option>
               </FloatingSelect>
@@ -768,6 +773,7 @@ export default function CreateFixedDepositProductView({
                   value={formData.minDepositTermType}
                   onChange={(e) => setFormData({ ...formData, minDepositTermType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -792,6 +798,7 @@ export default function CreateFixedDepositProductView({
                   value={formData.inMultiplesOfType}
                   onChange={(e) => setFormData({ ...formData, inMultiplesOfType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -816,6 +823,7 @@ export default function CreateFixedDepositProductView({
                   value={formData.maxDepositTermType}
                   onChange={(e) => setFormData({ ...formData, maxDepositTermType: e.target.value })}
                 >
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
