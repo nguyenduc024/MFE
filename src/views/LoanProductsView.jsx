@@ -96,24 +96,30 @@ export default function LoanProductsView({
         <table className="w-full text-left text-xs">
           <thead className="border-b border-gray-200 text-gray-600 font-medium bg-white">
             <tr>
-              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-1/2">
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-5/12">
                 Name
               </th>
-              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-1/2">
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-3/12">
                 Short Name
+              </th>
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-2/12">
+                Expiry Date
+              </th>
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-2/12">
+                Status
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={2} className="py-8 text-center text-gray-400 italic">
+                <td colSpan={4} className="py-8 text-center text-gray-400 italic">
                   Chưa có sản phẩm cho vay nào. Hãy nhấn "+ Create Loan Product" ở góc trên bên phải để tạo gói vay mới.
                 </td>
               </tr>
             ) : (
               filteredProducts.map((p, idx) => {
-                const isTarget = p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan';
+                const isTarget = p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan';
                 return (
                   <tr 
                     key={p.id || idx}
@@ -127,6 +133,12 @@ export default function LoanProductsView({
                     </td>
                     <td className="py-3.5 px-6 font-mono font-medium text-gray-700">
                       {p.shortName}
+                    </td>
+                    <td className="py-3.5 px-6 text-gray-500">
+                      {p.expiryDate || ''}
+                    </td>
+                    <td className="py-3.5 px-6">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#5cb85c]" title="Active" />
                     </td>
                   </tr>
                 );

@@ -2420,10 +2420,10 @@ export const EDU_MODULES = [
     moduleNumber: "04",
     moduleTitle: "Phân hệ 04: Loans",
     partNumber: "1",
-    name: "Phần 1: Tạo Sản Phẩm Cho Vay (TKB Personal Loan - Loan)",
+    name: "Phần 1: Tạo Sản Phẩm Cho Vay (TKB Personal Loan - TKPL)",
     shortLabel: "Phần 1: Tạo SP Personal Loan",
     title: "Thiết Lập Sản Phẩm Tín Dụng Cho Vay Cá Nhân (TKB Personal Loan)",
-    objective: "Thiết lập sản phẩm tín dụng cho vay cá nhân trả góp TKB Personal Loan (mã viết tắt: Loan, External ID: TKB-PRD-PL-001) theo đúng quy trình Admin -> Products -> Loan Products -> Create Loan Product. Cấu hình chi tiết các tab: DETAILS, CURRENCY, SETTINGS, TERMS, CHARGES, ACCOUNTING trên hệ thống Core Banking Mifos X.",
+    objective: "Thiết lập sản phẩm tín dụng cho vay cá nhân trả góp TKB Personal Loan (mã viết tắt: TKPL, External ID: TKB-PRD-PL-001) theo đúng quy trình Admin -> Products -> Loan Products -> Create Loan Product. Cấu hình chi tiết các tab: DETAILS, CURRENCY, SETTINGS, TERMS, CHARGES, ACCOUNTING, PREVIEW trên hệ thống Core Banking Mifos X.",
     targetMenu: "admin-products",
     subPath: "loan-products"
   }

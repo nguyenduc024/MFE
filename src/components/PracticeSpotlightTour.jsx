@@ -1578,7 +1578,7 @@ export default function PracticeSpotlightTour({
     }
   } else if (module === 'loan-part-1') {
     const hasLoanProductCreated = loanProducts.some(p => 
-      p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
+      p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
     );
 
     if (currentPath === 'admin-products') {
@@ -1591,9 +1591,9 @@ export default function PracticeSpotlightTour({
       if (hasLoanProductCreated) {
         currentStep = 13;
         targetSelector = '#tour-loan-product-row-loan';
-        stepTitle = 'Bước 13 / 13: Hoàn tất tạo gói vay TKB Personal Loan!';
-        stepSubtitle = 'Sản phẩm TKB Personal Loan (mã: Loan) đã được tạo và kích hoạt thành công trên Core Banking!';
-        stepInstruction = 'Sản phẩm cho vay cá nhân trả góp TKB Personal Loan đã xuất hiện trên danh mục sản phẩm tín dụng. Nhấn nút "Hoàn thành phần thực hành (Phân hệ 04 - Phần 1)" bên dưới để hoàn tất bài học.';
+        stepTitle = 'Bước 13 / 13: Hoàn tất tạo gói vay TKB Personal Loan (Hình 2)!';
+        stepSubtitle = 'Sản phẩm TKB Personal Loan (mã: TKPL) đã được tạo và kích hoạt thành công trên Core Banking!';
+        stepInstruction = 'Sản phẩm cho vay cá nhân trả góp TKB Personal Loan (TKPL) đã xuất hiện trên danh mục sản phẩm tín dụng với trạng thái hoạt động (chấm tròn xanh). Nhấn nút "Hoàn thành phần thực hành (Phân hệ 04 - Phần 1)" bên dưới để hoàn tất bài học.';
       } else {
         currentStep = 4;
         targetSelector = '#tour-create-loan-product-btn';
@@ -1675,15 +1675,15 @@ export default function PracticeSpotlightTour({
       } else if (hasAccounting) {
         currentStep = 11;
         targetSelector = '#tour-loan-accounting-form';
-        stepTitle = 'Bước 11 / 13: Thiết lập tab ACCOUNTING (Hạch toán kế toán)';
-        stepSubtitle = 'Cấu hình phương thức kế toán Cash/Accrual và liên kết các tài khoản sổ cái GL.';
-        stepInstruction = 'Chọn quy tắc kế toán Cash hoặc Accrual và liên kết các tài khoản sổ cái GL tương ứng: TK 110201, TK 120101, TK 410001, TK 420001, TK 520001. Sau đó nhấn Next để chuyển sang tab Preview.';
+        stepTitle = 'Bước 11 / 13: Thiết lập tab ACCOUNTING (Hạch toán kế toán - Hình 1)';
+        stepSubtitle = 'Chọn phương thức Cash và ánh xạ đầy đủ 17 tài khoản sổ cái GL.';
+        stepInstruction = 'Chọn quy tắc kế toán Cash và liên kết 17 tài khoản sổ cái GL tương ứng: Nguồn vốn (110201), Dư nợ (120101), Trung gian (130101), Doanh thu lãi (410101), Phí (420109), Phạt (420103), Thu hồi (420110), Tổn thất xóa nợ (520101), Thu quá (220202)... Bấm nút "Điền mẫu Accounting (Cash) & Sang Preview" bên dưới để hoàn tất nhanh.';
       } else if (hasPreview) {
         currentStep = 12;
         targetSelector = '#tour-loan-preview-card';
-        stepTitle = 'Bước 12 / 13: Rà soát tổng thể & Bấm Submit tạo gói vay';
-        stepSubtitle = 'Kiểm tra toàn bộ các thông số trước khi chính thức tạo sản phẩm.';
-        stepInstruction = 'Rà soát kỹ các thông tin: Details, Currency, Settings, Terms, Charges, Accounting. Sau đó bấm nút "Submit (Tạo gói vay)" màu xanh bên dưới để tạo sản phẩm.';
+        stepTitle = 'Bước 12 / 13: Rà soát tab PREVIEW & Submit tạo gói vay (Hình 3 & 4)';
+        stepSubtitle = 'Kiểm tra toàn bộ 5 phân mục: Details, Currency, Terms, Settings, Accounting.';
+        stepInstruction = 'Rà soát kỹ các thông số gói vay cá nhân TKB Personal Loan (mã: TKPL). Sau đó bấm nút "Submit" màu xanh ở cuối biểu mẫu để chính thức tạo sản phẩm trên Core Banking.';
       } else {
         currentStep = 5;
         targetSelector = '#tour-loan-stepper';
@@ -7089,11 +7089,12 @@ export default function PracticeSpotlightTour({
                       type="button"
                       onClick={() => {
                         window.dispatchEvent(new CustomEvent('practice-fill-loan-accounting'));
+                        setLoanFilledSteps(prev => ({ ...prev, accounting: true }));
                         window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 7 } }));
                       }}
                       className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Điền mẫu Accounting &amp; Sang Preview &rarr;
+                      Điền mẫu Accounting (Cash) &amp; Sang Preview &rarr;
                     </button>
                   </div>
                 );
@@ -7108,9 +7109,9 @@ export default function PracticeSpotlightTour({
                         const submitBtn = document.getElementById('tour-loan-preview-submit-btn');
                         if (submitBtn) submitBtn.click();
                       }}
-                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                     >
-                      Submit tạo gói vay (TKB Personal Loan)
+                      Submit tạo gói vay (TKB Personal Loan - TKPL)
                     </button>
                   </div>
                 );
@@ -8140,7 +8141,7 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'loan-part-1' && loanProducts.some(p => p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'))
+            {(module === 'loan-part-1' && loanProducts.some(p => p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-4' && (hasCheckedRdJournal || currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && savingsAccounts.some(s => s.accountNo === '000000004' && (s.status === 'Active' || s.status === 'Activated') && (s.hasDeposited || Number(s.balance) >= 500000)))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'

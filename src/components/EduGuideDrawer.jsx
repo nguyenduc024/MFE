@@ -279,7 +279,7 @@ export default function EduGuideDrawer({
 
   const calculateLoanPart1Progress = () => {
     const hasProduct = (loanProducts || []).some(
-      p => p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
+      p => p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
     );
     return hasProduct ? 100 : 0;
   };
@@ -3369,10 +3369,10 @@ export default function EduGuideDrawer({
                 Phân hệ 04: Loans &bull; Phần 1
               </span>
               <h3 className="text-base font-bold text-gray-900 mt-0.5">
-                Tạo Sản Phẩm Cho Vay Cá Nhân (TKB Personal Loan - Loan)
+                Tạo Sản Phẩm Cho Vay Cá Nhân (TKB Personal Loan - TKPL)
               </h3>
               <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                Hướng dẫn khai báo gói vay tín dụng tiêu dùng cá nhân trả góp <strong>TKB Personal Loan</strong> (mã viết tắt: <code>Loan</code>, External ID: <code>TKB-PRD-PL-001</code>) theo đúng chuẩn Mifos X. Thực hiện tuần tự qua menu <strong>Admin &gt; Products &gt; Loan Products &gt; Create Loan Product</strong> và cấu hình chi tiết từng tab theo đúng bộ tài liệu.
+                Hướng dẫn khai báo gói vay tín dụng tiêu dùng cá nhân trả góp <strong>TKB Personal Loan</strong> (mã viết tắt: <code>TKPL</code>, External ID: <code>TKB-PRD-PL-001</code>) theo đúng chuẩn Mifos X. Thực hiện tuần tự qua menu <strong>Admin &gt; Products &gt; Loan Products &gt; Create Loan Product</strong> và cấu hình chi tiết từng tab theo đúng bộ tài liệu.
               </p>
             </div>
 
@@ -3382,7 +3382,7 @@ export default function EduGuideDrawer({
                 Thông số gói vay chuẩn TKB Personal Loan:
               </div>
               <div className="grid grid-cols-2 gap-2 text-gray-700">
-                <div>&bull; Mã sản phẩm: <strong className="font-mono text-gray-900">Loan</strong></div>
+                <div>&bull; Mã sản phẩm: <strong className="font-mono text-gray-900">TKPL</strong></div>
                 <div>&bull; External ID: <strong className="font-mono text-gray-900">TKB-PRD-PL-001</strong></div>
                 <div>&bull; Hạn mức chuẩn: <strong className="font-mono text-emerald-700">10,000,000 VND</strong></div>
                 <div>&bull; Khung hạn mức: <strong className="font-mono text-gray-900">5M - 50M VND</strong></div>
@@ -3419,7 +3419,7 @@ export default function EduGuideDrawer({
                   <span>Khai Báo Tab DETAILS (Thông Tin Chung - Hình 1)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Khai báo các trường: Product Name: <strong>TKB Personal Loan</strong>, Short Name: <strong>Loan</strong>, External Id: <strong>TKB-PRD-PL-001</strong>, Start Date: <strong>10/13/2026</strong>, Description: <em>Personal installment loan with monthly repayments and declining balance interest calculation.</em> Sau đó nhấn <strong>Next</strong>.
+                  Khai báo các trường: Product Name: <strong>TKB Personal Loan</strong>, Short Name: <strong>TKPL</strong>, External Id: <strong>TKB-PRD-PL-001</strong>, Start Date: <strong>10/13/2026</strong>, Description: <em>Personal installment loan with monthly repayments and declining balance interest calculation.</em> Sau đó nhấn <strong>Next</strong>.
                 </p>
               </div>
 
@@ -3471,10 +3471,10 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
-                  <span>Kiểm Tra Tab CHARGES &amp; Tab ACCOUNTING</span>
+                  <span>Kiểm Tra Tab CHARGES &amp; Tab ACCOUNTING (Hình 1)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tab <strong>Charges</strong> để trống (gói vay miễn phí khởi tạo). Tab <strong>Accounting</strong> chọn phương thức hạch toán Cash/Accrual và liên kết các tài khoản sổ cái GL. Nhấn <strong>Next</strong> để sang tab Preview.
+                  Tab <strong>Charges</strong> để trống (gói vay miễn phí khởi tạo). Tab <strong>Accounting</strong> chọn phương thức hạch toán <strong>Cash</strong> và liên kết đầy đủ 17 tài khoản sổ cái GL: Nguồn vốn (110201 Settlement Bank Account), Dư nợ (120101 Retail Loan Principal), Trung gian (130101 Clearing Receivable), Thu lãi (410101), Thu phí (420109), Phạt (420103), Thu hồi (420110), Tổn thất nợ xấu (520101), Thu quá (220202)... Nhấn <strong>Next</strong> để sang tab Preview.
                 </p>
               </div>
 
@@ -3482,10 +3482,10 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">8</span>
-                  <span>Rà Soát Tab PREVIEW &amp; Nhấn Submit Tạo Gói Vay</span>
+                  <span>Rà Soát Tab PREVIEW &amp; Nhấn Submit Tạo Gói Vay (Hình 3 &amp; 4)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Rà soát toàn bộ các thông số cấu hình của gói vay. Nhấn nút <strong>Submit (Tạo gói vay)</strong> màu xanh. Hệ thống lưu thành công gói vay <strong>TKB Personal Loan (Loan)</strong> vào danh mục sản phẩm.
+                  Rà soát toàn bộ các thông số cấu hình của gói vay qua 5 phân mục: Details, Currency, Terms, Settings, Accounting. Nhấn nút <strong>Submit</strong> màu xanh. Hệ thống lưu thành công gói vay <strong>TKB Personal Loan (TKPL)</strong> vào danh mục sản phẩm tín dụng với trạng thái hoạt động (chấm tròn xanh - Hình 2).
                 </p>
               </div>
             </div>
@@ -4270,7 +4270,7 @@ export default function EduGuideDrawer({
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
-                Bắt Đầu Thực Hành Tạo Sản Phẩm Cho Vay (Loan)
+                Bắt Đầu Thực Hành Tạo Sản Phẩm Cho Vay (TKPL)
               </button>
             )
           ) : activePartId === 'casa-part-5' ? (

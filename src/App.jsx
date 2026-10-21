@@ -1856,7 +1856,7 @@ export default function App() {
         savingsAccounts={savingsAccounts}
         hasCheckedRdJournal={hasCheckedRdJournal}
         onResetLoanProducts={() => {
-          setLoanProducts(prev => prev.filter(p => p.shortName !== 'Loan' && p.externalId !== 'TKB-PRD-PL-001' && p.name !== 'TKB Personal Loan'));
+          setLoanProducts(prev => prev.filter(p => p.shortName !== 'Loan' && p.shortName !== 'TKPL' && p.externalId !== 'TKB-PRD-PL-001' && p.name !== 'TKB Personal Loan'));
         }}
         onResetSavingsProducts={() => {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));

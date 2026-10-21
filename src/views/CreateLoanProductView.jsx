@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Check, Calendar, ChevronDown, X, Info } from 'lucide-react';
+import { Pencil, Check, Calendar, ChevronDown, X, Info, Eye } from 'lucide-react';
 
 /**
  * Reusable Floating Label Input Component (Material underline style matching screenshot)
@@ -203,9 +203,23 @@ export default function CreateLoanProductView({
     accountingRule: 'None',
     fundSourceAccountId: '',
     loanPortfolioAccountId: '',
+    transferInSuspenseAccountId: '',
     interestIncomeAccountId: '',
     feeIncomeAccountId: '',
-    lossesWrittenOffAccountId: ''
+    penaltyIncomeAccountId: '',
+    recoveryIncomeAccountId: '',
+    chargeOffInterestAccountId: '',
+    chargeOffFeeAccountId: '',
+    chargeOffPenaltyAccountId: '',
+    goodwillInterestAccountId: '',
+    goodwillFeeAccountId: '',
+    goodwillPenaltyAccountId: '',
+    lossesWrittenOffAccountId: '',
+    goodwillExpenseAccountId: '',
+    chargeOffExpenseAccountId: '',
+    chargeOffFraudExpenseAccountId: '',
+    overpaymentLiabilityAccountId: '',
+    advancedAccountingRules: false
   });
 
   // Event listeners for practice guide / autofill helpers
@@ -214,7 +228,7 @@ export default function CreateLoanProductView({
       setFormData(prev => ({
         ...prev,
         name: 'TKB Personal Loan',
-        shortName: 'Loan',
+        shortName: 'TKPL',
         externalId: 'TKB-PRD-PL-001',
         fund: '',
         includeInLoanCounter: false,
@@ -313,9 +327,23 @@ export default function CreateLoanProductView({
         accountingRule: 'Cash',
         fundSourceAccountId: '110201',
         loanPortfolioAccountId: '120101',
-        interestIncomeAccountId: '410001',
-        feeIncomeAccountId: '420001',
-        lossesWrittenOffAccountId: '520001'
+        transferInSuspenseAccountId: '130101',
+        interestIncomeAccountId: '410101',
+        feeIncomeAccountId: '420109',
+        penaltyIncomeAccountId: '420103',
+        recoveryIncomeAccountId: '420110',
+        chargeOffInterestAccountId: '410101',
+        chargeOffFeeAccountId: '420109',
+        chargeOffPenaltyAccountId: '420103',
+        goodwillInterestAccountId: '410101',
+        goodwillFeeAccountId: '420109',
+        goodwillPenaltyAccountId: '420103',
+        lossesWrittenOffAccountId: '520101',
+        goodwillExpenseAccountId: '520104',
+        chargeOffExpenseAccountId: '520105',
+        chargeOffFraudExpenseAccountId: '520106',
+        overpaymentLiabilityAccountId: '220202',
+        advancedAccountingRules: false
       }));
     };
 
@@ -376,7 +404,7 @@ export default function CreateLoanProductView({
     const createdProduct = {
       id: String(Date.now()),
       name: formData.name || 'TKB Personal Loan',
-      shortName: formData.shortName || 'Loan',
+      shortName: formData.shortName || 'TKPL',
       externalId: formData.externalId || 'TKB-PRD-PL-001',
       description: formData.description || 'Personal installment loan with monthly repayments and declining balance interest calculation.',
       currencyCode: 'VND',
@@ -394,7 +422,8 @@ export default function CreateLoanProductView({
       interestMethod: formData.interestMethod || 'Declining Balance',
       amortization: formData.amortization || 'Equal installments',
       accountingRule: formData.accountingRule || 'Cash',
-      status: 'Active'
+      status: 'Active',
+      expiryDate: formData.closeDate || ''
     };
 
     if (onSaveProduct) {
@@ -466,6 +495,8 @@ export default function CreateLoanProductView({
                 }`}>
                   {isCompleted ? (
                     <Check className="w-4 h-4 stroke-[2.5]" />
+                  ) : st.id === 7 ? (
+                    <Eye className="w-3.5 h-3.5" />
                   ) : (
                     <Pencil className="w-3.5 h-3.5" />
                   )}
@@ -1355,10 +1386,7 @@ export default function CreateLoanProductView({
         {/* Tab 6: ACCOUNTING */}
         {currentStep === 6 && (
           <form id="tour-loan-accounting-form" onSubmit={handleNext} className="space-y-6 pt-2">
-            <div className="space-y-4">
-              <div className="text-xs font-semibold text-gray-800">
-                Accounting Rule (Quy Tắc Hạch Toán Kế Toán)
-              </div>
+            <div className="space-y-5">
               <div className="flex items-center space-x-6 text-xs text-gray-700">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -1406,52 +1434,234 @@ export default function CreateLoanProductView({
                 </label>
               </div>
 
-              {formData.accountingRule !== 'None' && (
-                <div className="space-y-4 pt-4 border-t border-gray-100">
-                  <div className="text-xs font-semibold text-gray-700">
-                    Ánh xạ tài khoản sổ cái GL cho gói vay:
+              {formData.accountingRule === 'Cash' && (
+                <div className="space-y-6 pt-4 border-t border-gray-100">
+                  {/* 1. Assets */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-bold text-[#1072ba] uppercase tracking-wide">
+                      Assets
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+                      <FloatingSelect
+                        id="tour-loan-acc-fundsource"
+                        label="Fund source *"
+                        required
+                        value={formData.fundSourceAccountId}
+                        onChange={(e) => setFormData({ ...formData, fundSourceAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="110201">(110201) Settlement Bank Account</option>
+                        <option value="110101">(110101) Cash at Vault</option>
+                        <option value="110102">(110102) Cash at Teller</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        id="tour-loan-acc-loanportfolio"
+                        label="Loan portfolio *"
+                        required
+                        value={formData.loanPortfolioAccountId}
+                        onChange={(e) => setFormData({ ...formData, loanPortfolioAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="120101">(120101) Retail Loan Principal</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        id="tour-loan-acc-transfersuspense"
+                        label="Transfer in suspense *"
+                        required
+                        value={formData.transferInSuspenseAccountId}
+                        onChange={(e) => setFormData({ ...formData, transferInSuspenseAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="130101">(130101) Clearing Receivable</option>
+                      </FloatingSelect>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
-                    <FloatingSelect
-                      label="Fund Source (Nguồn giải ngân)"
-                      value={formData.fundSourceAccountId || '110201'}
-                      onChange={(e) => setFormData({ ...formData, fundSourceAccountId: e.target.value })}
-                    >
-                      <option value="110201">(110201) Settlement Bank Account</option>
-                      <option value="110102">(110102) Cash at Teller</option>
-                    </FloatingSelect>
 
-                    <FloatingSelect
-                      label="Loan Portfolio (Dư nợ cho vay)"
-                      value={formData.loanPortfolioAccountId || '120101'}
-                      onChange={(e) => setFormData({ ...formData, loanPortfolioAccountId: e.target.value })}
-                    >
-                      <option value="120101">(120101) Retail Loan Principal</option>
-                    </FloatingSelect>
+                  {/* 2. Income */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <h3 className="text-xs font-bold text-[#1072ba] uppercase tracking-wide">
+                      Income
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+                      <FloatingSelect
+                        id="tour-loan-acc-interestincome"
+                        label="Income from interest *"
+                        required
+                        value={formData.interestIncomeAccountId}
+                        onChange={(e) => setFormData({ ...formData, interestIncomeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="410101">(410101) Loan Interest Income</option>
+                      </FloatingSelect>
 
-                    <FloatingSelect
-                      label="Interest Income (Doanh thu lãi vay)"
-                      value={formData.interestIncomeAccountId || '410001'}
-                      onChange={(e) => setFormData({ ...formData, interestIncomeAccountId: e.target.value })}
-                    >
-                      <option value="410001">(410001) Interest on Retail Loans</option>
-                    </FloatingSelect>
+                      <FloatingSelect
+                        id="tour-loan-acc-feeincome"
+                        label="Income from fees *"
+                        required
+                        value={formData.feeIncomeAccountId}
+                        onChange={(e) => setFormData({ ...formData, feeIncomeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420109">(420109) Loan Fee Income</option>
+                      </FloatingSelect>
 
-                    <FloatingSelect
-                      label="Fee Income (Thu phí dịch vụ)"
-                      value={formData.feeIncomeAccountId || '420001'}
-                      onChange={(e) => setFormData({ ...formData, feeIncomeAccountId: e.target.value })}
-                    >
-                      <option value="420001">(420001) Loan Fee Income</option>
-                    </FloatingSelect>
+                      <FloatingSelect
+                        id="tour-loan-acc-penaltyincome"
+                        label="Income from penalties *"
+                        required
+                        value={formData.penaltyIncomeAccountId}
+                        onChange={(e) => setFormData({ ...formData, penaltyIncomeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420103">(420103) Loan Penalty Income</option>
+                      </FloatingSelect>
 
-                    <FloatingSelect
-                      label="Losses Written Off (Tổn thất xử lý nợ)"
-                      value={formData.lossesWrittenOffAccountId || '520001'}
-                      onChange={(e) => setFormData({ ...formData, lossesWrittenOffAccountId: e.target.value })}
-                    >
-                      <option value="520001">(520001) Bad Debt Expense</option>
-                    </FloatingSelect>
+                      <FloatingSelect
+                        id="tour-loan-acc-recoveryincome"
+                        label="Income from Recovery Repayments *"
+                        required
+                        value={formData.recoveryIncomeAccountId}
+                        onChange={(e) => setFormData({ ...formData, recoveryIncomeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420110">(420110) Loan Recovery Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from ChargeOff Interest"
+                        value={formData.chargeOffInterestAccountId}
+                        onChange={(e) => setFormData({ ...formData, chargeOffInterestAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="410101">(410101) Loan Interest Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from ChargeOff Fees"
+                        value={formData.chargeOffFeeAccountId}
+                        onChange={(e) => setFormData({ ...formData, chargeOffFeeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420109">(420109) Loan Fee Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from ChargeOff Penalty"
+                        value={formData.chargeOffPenaltyAccountId}
+                        onChange={(e) => setFormData({ ...formData, chargeOffPenaltyAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420103">(420103) Loan Penalty Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from Goodwill Credit Interest"
+                        value={formData.goodwillInterestAccountId}
+                        onChange={(e) => setFormData({ ...formData, goodwillInterestAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="410101">(410101) Loan Interest Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from Goodwill Credit Fees"
+                        value={formData.goodwillFeeAccountId}
+                        onChange={(e) => setFormData({ ...formData, goodwillFeeAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420109">(420109) Loan Fee Income</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Income from Goodwill Credit Penalty"
+                        value={formData.goodwillPenaltyAccountId}
+                        onChange={(e) => setFormData({ ...formData, goodwillPenaltyAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="420103">(420103) Loan Penalty Income</option>
+                      </FloatingSelect>
+                    </div>
+                  </div>
+
+                  {/* 3. Expenses */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <h3 className="text-xs font-bold text-[#1072ba] uppercase tracking-wide">
+                      Expenses
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+                      <FloatingSelect
+                        id="tour-loan-acc-losseswrittenoff"
+                        label="Losses written off *"
+                        required
+                        value={formData.lossesWrittenOffAccountId}
+                        onChange={(e) => setFormData({ ...formData, lossesWrittenOffAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="520101">(520101) Loan Write-off Expense</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Expenses from Goodwill Credit"
+                        value={formData.goodwillExpenseAccountId}
+                        onChange={(e) => setFormData({ ...formData, goodwillExpenseAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="520104">(520104) Loan Goodwill Credit Expense</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="ChargeOff Expense"
+                        value={formData.chargeOffExpenseAccountId}
+                        onChange={(e) => setFormData({ ...formData, chargeOffExpenseAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="520105">(520105) Loan Charge-off Expense</option>
+                      </FloatingSelect>
+
+                      <FloatingSelect
+                        label="Charge Off Fraud Expense"
+                        value={formData.chargeOffFraudExpenseAccountId}
+                        onChange={(e) => setFormData({ ...formData, chargeOffFraudExpenseAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="520106">(520106) Loan Fraud Charge-off Expense</option>
+                      </FloatingSelect>
+                    </div>
+                  </div>
+
+                  {/* 4. Liabilities */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    <h3 className="text-xs font-bold text-[#1072ba] uppercase tracking-wide">
+                      Liabilities
+                    </h3>
+                    <div className="w-full md:w-1/2">
+                      <FloatingSelect
+                        id="tour-loan-acc-overpayment"
+                        label="Over payment liability *"
+                        required
+                        value={formData.overpaymentLiabilityAccountId}
+                        onChange={(e) => setFormData({ ...formData, overpaymentLiabilityAccountId: e.target.value })}
+                      >
+                        <option value=""> </option>
+                        <option value="220202">(220202) Loan Overpayment Liability</option>
+                      </FloatingSelect>
+                    </div>
+                  </div>
+
+                  {/* 5. Advanced Accounting Rules */}
+                  <div className="pt-3 border-t border-gray-100 flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="tour-loan-acc-advanced"
+                      checked={formData.advancedAccountingRules}
+                      onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
+                      className="w-4 h-4 text-[#1072ba] rounded border-gray-300 focus:ring-0 cursor-pointer"
+                    />
+                    <label htmlFor="tour-loan-acc-advanced" className="text-xs text-gray-700 cursor-pointer select-none">
+                      Advanced Accounting Rules
+                    </label>
                   </div>
                 </div>
               )}
@@ -1480,71 +1690,312 @@ export default function CreateLoanProductView({
         {/* Tab 7: PREVIEW */}
         {currentStep === 7 && (
           <div id="tour-loan-preview-card" className="space-y-6 pt-2">
-            <div className="border border-gray-200 rounded-[2px] overflow-hidden text-xs">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 font-bold text-gray-800">
-                Rà soát thông tin sản phẩm gói vay (TKB Personal Loan)
-              </div>
-              <div className="p-4 space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-3 border-b border-gray-100">
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Product Name:</span>
-                    <span className="font-semibold text-gray-800">{formData.name || 'TKB Personal Loan'}</span>
+            <div className="border border-gray-200 rounded-[2px] p-6 space-y-6 bg-white text-xs">
+              
+              {/* Section 1: Details */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-[#1072ba]">
+                  Details
+                </h3>
+                <div className="space-y-1.5 divide-y divide-gray-50">
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Name:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.name || 'TKB Personal Loan'}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Short Name:</span>
-                    <span className="font-mono font-bold text-[#1072ba]">{formData.shortName || 'Loan'}</span>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Short Name:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.shortName || 'TKPL'}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">External Id:</span>
-                    <span className="font-mono text-gray-700">{formData.externalId || 'TKB-PRD-PL-001'}</span>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">External Id:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.externalId || 'TKB-PRD-PL-001'}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Start Date:</span>
-                    <span className="text-gray-700">{formData.startDate || '10/13/2026'}</span>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Include in Customer Loan Counter:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.includeInLoanCounter ? 'Yes' : 'No'}</span>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-3 border-b border-gray-100">
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Currency:</span>
-                    <span className="font-semibold text-gray-800">{formData.currency || 'Vietnamese Dong'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Principal Default:</span>
-                    <span className="font-mono font-bold text-emerald-700">{Number(formData.defaultPrincipal || 10000000).toLocaleString('en-US')} VND</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Repayments:</span>
-                    <span className="font-semibold text-gray-800">{formData.defaultRepayments || 12} Kỳ (1 Months)</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Nominal Interest Rate:</span>
-                    <span className="font-mono font-bold text-emerald-700">{formData.defaultInterestRate || 12}% / Năm</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Amortization:</span>
-                    <span className="text-gray-800">{formData.amortization || 'Equal installments'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Interest Method:</span>
-                    <span className="text-gray-800">{formData.interestMethod || 'Declining Balance'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Days in Year:</span>
-                    <span className="text-gray-800">{formData.daysInYear || '365 Days'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[11px]">Accounting Rule:</span>
-                    <span className="font-bold text-purple-700">{formData.accountingRule || 'Cash'}</span>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Description:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.description || 'Personal installment loan with monthly repayments and declining balance interest calculation.'}</span>
                   </div>
                 </div>
               </div>
+
+              {/* Section 2: Currency */}
+              <div className="space-y-3 pt-3 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-[#1072ba]">
+                  Currency
+                </h3>
+                <div className="space-y-1.5 divide-y divide-gray-50">
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Currency:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.currency ? `${formData.currency} [VND]` : 'Vietnamese Dong [VND]'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Decimal Places:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.decimalPlaces !== '' ? formData.decimalPlaces : '0'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Currency in multiples of:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.currencyMultiplesOf || '1'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Installment in multiples of:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.installmentMultiplesOf || '1'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Terms */}
+              <div className="space-y-3 pt-3 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-[#1072ba]">
+                  Terms
+                </h3>
+                <div className="space-y-1.5 divide-y divide-gray-50">
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Principal:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">
+                      {Number(formData.defaultPrincipal || 10000000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Min: {Number(formData.minPrincipal || 5000000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, Max: {Number(formData.maxPrincipal || 50000000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Allow Approved / Disbursed Amounts Over Applied:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.allowDisbursalAboveApplied ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Installment day calculation from:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.installmentDayCalculationFrom || 'Disbursement Date'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Repayments:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">
+                      {formData.defaultRepayments || '12'} (Min: {formData.minRepayments || '6'}, Max: {formData.maxRepayments || '24'})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Linked to floating interest rates:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.isLinkedToFloatingInterestRates ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Nominal interest rate:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">
+                      {formData.defaultInterestRate || '12'} (Min: {formData.minInterestRate || '10'}, Max: {formData.maxInterestRate || '16'}) {formData.interestRateFrequency || 'Per year'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Terms vary based on loan cycle:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.termsVaryBasedOnLoanCycle ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Repay Every:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.repaidEveryFrequency || '1'} {formData.repaidEveryFrequencyType || 'Months'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Settings */}
+              <div className="space-y-3 pt-3 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-[#1072ba]">
+                  Settings
+                </h3>
+                <div className="space-y-1.5 divide-y divide-gray-50">
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Amortization:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.amortization || 'Equal installments'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Is Equal Amortization?:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.isEqualAmortization ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Interest Method:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.interestMethod || 'Declining Balance'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Interest Calculation Period:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.interestCalculationPeriod || 'Daily'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Repayment strategy:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.repaymentStrategy || 'Interest, Principal, Penalties, Fees Order'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Loan Schedule Type:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.loanScheduleType || 'Cumulative'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Enable Multiple Disbursals:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.enableMultipleDisbursals ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Place Guarantee Funds On-Hold:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.placeGuaranteeFundsOnHold ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Arrears tolerance:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.arrearsTolerance !== '' ? formData.arrearsTolerance : '0'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Days in year:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.daysInYear || '365 Days'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Days in month:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.daysInMonth || 'Actual'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Use Global Configuration to the Event (notifications):</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.useGlobalConfigForRepaymentEvent ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Due days for repayment event:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.dueDaysForRepaymentEvent || '1'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Overdue days for repayment event:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.overdueDaysForRepaymentEvent || '1'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Overdue days for NPA:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.overdueDaysForNPA || '90'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Account moves out of NPA only after all arrears have been cleared:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.accountMovesOutOfNpa ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-12 py-1">
+                    <span className="col-span-5 text-gray-600 font-medium">Allow overriding select terms and settings in loan accounts:</span>
+                    <span className="col-span-7 text-gray-900 font-normal">{formData.allowOverridingSelectTerms ? 'Yes' : 'No'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Accounting */}
+              <div className="space-y-4 pt-3 border-t border-gray-100">
+                <h3 className="text-sm font-semibold text-[#1072ba]">
+                  Accounting
+                </h3>
+                <div className="grid grid-cols-12 py-1">
+                  <span className="col-span-5 text-gray-600 font-medium">Type:</span>
+                  <span className="col-span-7 text-gray-900 font-normal">{formData.accountingRule || 'Cash'}</span>
+                </div>
+
+                {formData.accountingRule === 'Cash' && (
+                  <div className="space-y-4 pl-2">
+                    {/* Assets */}
+                    <div className="space-y-1.5">
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                        Assets
+                      </h4>
+                      <div className="space-y-1 divide-y divide-gray-50 pl-2">
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Fund source:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(110201) Settlement Bank Account</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Loan portfolio:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(120101) Retail Loan Principal</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Transfer in suspense:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(130101) Clearing Receivable</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Income */}
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                        Income
+                      </h4>
+                      <div className="space-y-1 divide-y divide-gray-50 pl-2">
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from interest:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(410101) Loan Interest Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from fees:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420109) Loan Fee Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from penalties:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420103) Loan Penalty Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from Recovery Repayments:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420110) Loan Recovery Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from ChargeOff Interest:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(410101) Loan Interest Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from ChargeOff Fees:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420109) Loan Fee Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from ChargeOff Penalty:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420103) Loan Penalty Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from Goodwill Credit Interest:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(410101) Loan Interest Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from Goodwill Credit Fees:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420109) Loan Fee Income</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Income from Goodwill Credit Penalty:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(420103) Loan Penalty Income</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Expenses */}
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                        Expenses
+                      </h4>
+                      <div className="space-y-1 divide-y divide-gray-50 pl-2">
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Losses written off:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(520101) Loan Write-off Expense</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Expenses from Goodwill Credit:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(520104) Loan Goodwill Credit Expense</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">ChargeOff Expense:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(520105) Loan Charge-off Expense</span>
+                        </div>
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Charge Off Fraud Expense:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(520106) Loan Fraud Charge-off Expense</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Liabilities */}
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                        Liabilities
+                      </h4>
+                      <div className="space-y-1 divide-y divide-gray-50 pl-2">
+                        <div className="grid grid-cols-12 py-0.5">
+                          <span className="col-span-5 text-gray-600">Over payment liability:</span>
+                          <span className="col-span-7 text-gray-900 font-normal">(220202) Loan Overpayment Liability</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
 
-            {/* Step Action Buttons */}
+            {/* Step Action Buttons matching Image 4 */}
             <div className="pt-6 border-t border-gray-100 flex items-center justify-center space-x-3">
               <button
                 type="button"
@@ -1555,11 +2006,18 @@ export default function CreateLoanProductView({
               </button>
               <button
                 type="button"
+                onClick={onNavigateLoanProducts}
+                className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-xs font-semibold px-5 py-2 rounded-[2px] transition-colors shadow-2xs cursor-pointer select-none"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
                 id="tour-loan-preview-submit-btn"
                 onClick={handleSubmit}
-                className="bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold px-6 py-2 rounded-[2px] transition-colors shadow-xs cursor-pointer select-none"
+                className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold px-6 py-2 rounded-[2px] transition-colors shadow-xs cursor-pointer select-none"
               >
-                Submit (Tạo gói vay)
+                Submit
               </button>
             </div>
           </div>
