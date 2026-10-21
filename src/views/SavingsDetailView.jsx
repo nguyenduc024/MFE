@@ -1,293 +1,497 @@
 import React, { useState } from 'react';
 import { 
-  ArrowLeft, PiggyBank, DollarSign, Calendar, 
-  ArrowUpRight, ArrowDownLeft, CheckCircle2, Clock, 
-  AlertCircle, Plus, Minus
+  Menu, ArrowUp, ArrowDown, Lock, Calculator, ArrowRight, ChevronRight, X
 } from 'lucide-react';
 
-export default function SavingsDetailView({ savings, onBack, onDeposit, onWithdraw }) {
-  const [showDepositModal, setShowDepositModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [amount, setAmount] = useState(1000000);
+/**
+ * Format date string to Mifos display format: DD MMMM YYYY (e.g. "13 October 2026")
+ */
+function formatDisplayDate(dateVal, fallback = '13 October 2026') {
+  if (!dateVal) return fallback;
 
-  if (!savings) return null;
-
-  const handleDepositSubmit = (e) => {
-    e.preventDefault();
-    if (onDeposit) {
-      onDeposit(savings.id, Number(amount));
+  // Handle YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
+    const [year, month, day] = dateVal.split('-');
+    const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+    if (!isNaN(d.getTime())) {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
     }
-    setShowDepositModal(false);
-    alert(`Đã nộp thành công ${Number(amount).toLocaleString('vi-VN')} VND vào tài khoản #${savings.accountNo}! Bút toán kế toán đã tự động ghi nhận.`);
-  };
+  }
 
-  const handleWithdrawSubmit = (e) => {
-    e.preventDefault();
-    if (onWithdraw) {
-      onWithdraw(savings.id, Number(amount));
+  // Handle MM/DD/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateVal)) {
+    const [month, day, year] = dateVal.split('/');
+    const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+    if (!isNaN(d.getTime())) {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
     }
-    setShowWithdrawModal(false);
-    alert(`Đã rút thành công ${Number(amount).toLocaleString('vi-VN')} VND từ tài khoản #${savings.accountNo}!`);
-  };
+  }
 
-  // Sample transactions
-  const transactions = [
-    { id: "101", date: "2026-10-10", type: "DEPOSIT", amount: 2000000, balanceAfter: savings.balance, desc: "Nộp tiền mặt tại quầy giao dịch (Deposit)" },
-    { id: "100", date: "2026-09-01", type: "DEPOSIT", amount: 5000000, balanceAfter: savings.balance - 2000000, desc: "Chuyển khoản nộp tiền định kỳ" },
-    { id: "98", date: "2026-08-15", type: "OPENING", amount: savings.balance - 7000000, balanceAfter: savings.balance - 7000000, desc: "Khởi tạo số dư mở tài khoản ban đầu" }
-  ];
+  return dateVal;
+}
+
+/**
+ * Format currency with 'đ' symbol prefix matching Mifos screenshot: "đ0.00" or "đ5,000,000.00"
+ */
+function formatMifosCurrency(amount) {
+  if (amount === undefined || amount === null || amount === '' || Number(amount) === 0) {
+    return 'đ0.00';
+  }
+  const num = typeof amount === 'number' ? amount : parseFloat(String(amount).replace(/,/g, ''));
+  if (isNaN(num)) return 'đ0.00';
+  return `đ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export default function SavingsDetailView({ 
+  savings, 
+  onBack, 
+  onNavigateHome, 
+  onNavigateClients, 
+  onNavigateDeposit,
+  onNavigateWithdraw 
+}) {
+  const [activeTab, setActiveTab] = useState('general'); // 'general', 'transactions', 'charges', 'documents', 'notes', 'standing'
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!savings) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-12 text-center text-gray-500 font-sans">
+        No savings account selected.
+      </div>
+    );
+  }
+
+  const clientName = savings.clientName || 'Minh Quang Tran';
+  const productName = savings.productName || 'TKB Current Account';
+  const accountNo = savings.accountNo || '000000001';
+  const balance = savings.balance || 0;
+  const transactions = savings.transactions || (balance > 0 ? [
+    {
+      id: '1',
+      date: savings.lastActive || '2026-10-13',
+      transactionType: 'Deposit',
+      amount: balance,
+      balanceAfter: balance,
+      paymentType: 'Money Transfer',
+      desc: 'Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.'
+    }
+  ] : []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto px-6 py-5 select-none font-sans text-gray-800">
+      
+      {/* 1. Header & Breadcrumb matching Image 1: General | Home / Clients / Minh Quang Tran / Savings / TKB Current Account (000000001) / General */}
+      <div className="flex items-center space-x-2.5 mb-4">
+        <h1 className="text-xl font-normal text-[#212529]">
+          General
+        </h1>
+        <span className="text-gray-300 font-light text-base">|</span>
+        <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5 flex-wrap">
+          <span 
+            onClick={onNavigateHome} 
+            className="text-gray-600 hover:underline cursor-pointer"
+          >
+            Home
+          </span>
+          <span className="text-gray-400">/</span>
+          <span 
+            onClick={onNavigateClients} 
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            Clients
+          </span>
+          <span className="text-gray-400">/</span>
+          <span 
+            onClick={onBack} 
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            {clientName}
+          </span>
+          <span className="text-gray-400">/</span>
+          <span 
+            onClick={onBack} 
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            Savings
+          </span>
+          <span className="text-gray-400">/</span>
+          <span 
+            onClick={() => setActiveTab('general')} 
+            className="text-[#1072ba] hover:underline cursor-pointer"
+          >
+            {productName} ({accountNo})
+          </span>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-500">General</span>
+        </div>
+      </div>
+
+      {/* 2. Main Blue Banner Card matching Image 1 & Image 2 */}
+      <div className="bg-[#1072ba] text-white rounded-t-[3px] p-6 shadow-sm relative">
+        <div className="flex items-start justify-between">
+          
+          {/* Left: Money Hand Silhouette badge & Product info */}
+          <div className="flex items-start space-x-5">
+            <div className="w-14 h-14 bg-white/10 rounded-[2px] flex items-center justify-center border border-white/20 p-2">
+              <svg className="w-10 h-10 text-white fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-3.74-1.47-3.74-3.18 0-1.61 1.25-2.85 2.67-3.21V5h2.67v1.51c1.54.34 2.76 1.39 2.91 3.09h-1.99c-.16-.86-.74-1.45-2.25-1.45-1.39 0-2.31.6-2.31 1.48 0 .82.59 1.34 2.61 1.83 2.64.64 3.8 1.49 3.8 3.26 0 1.54-1.12 2.87-2.74 3.37z" />
+              </svg>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 bg-[#28a745] inline-block rounded-[1px]" />
+                <h2 className="text-sm font-bold text-white tracking-normal">
+                  Savings Product : {productName} {accountNo}
+                </h2>
+              </div>
+              <div className="text-xs text-white/90">
+                Client Name: {clientName}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Account Overview & Hamburger Action Menu matching Image 1 & 2 */}
+          <div className="flex items-start space-x-6">
+            <div id="tour-savings-account-overview" className="text-right text-xs text-white space-y-1">
+              <div className="font-semibold text-white/90 tracking-wide text-[11px]">
+                Account Overview
+              </div>
+              <div className="space-x-1.5">
+                <span className="text-white/80">Current Balance</span>
+                <span className="font-bold text-white text-xs">{formatMifosCurrency(balance)}</span>
+              </div>
+              <div className="space-x-1.5">
+                <span className="text-white/80">Available Balance</span>
+                <span className="font-bold text-white text-xs">{formatMifosCurrency(balance)}</span>
+              </div>
+            </div>
+
+            {/* Hamburger button matching Image 1 & 2 */}
+            <div className="relative">
+              <button
+                type="button"
+                id="tour-savings-action-menu"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-1 text-white hover:bg-white/10 rounded-[2px] transition-colors cursor-pointer"
+                title="Savings Actions"
+              >
+                <Menu className="w-5 h-5 text-white" />
+              </button>
+
+              {/* Dropdown Menu matching Image 2 */}
+              {menuOpen && (
+                <div className="absolute right-0 top-8 w-52 bg-white text-gray-800 rounded-[2px] shadow-xl border border-gray-100 py-1 z-50 text-xs animate-in fade-in duration-100 font-sans">
+                  {/* Deposit */}
+                  <div 
+                    id="tour-savings-menu-deposit"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (onNavigateDeposit) onNavigateDeposit();
+                    }}
+                    className="px-4 py-2 hover:bg-sky-50 hover:text-[#1072ba] cursor-pointer flex items-center space-x-2.5 font-normal border-b border-gray-100"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5 text-gray-600" />
+                    <span>Deposit</span>
+                  </div>
+
+                  {/* Block Deposit */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal">
+                    <Lock className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Block Deposit</span>
+                  </div>
+
+                  {/* Withdrawal */}
+                  <div 
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (onNavigateWithdraw) onNavigateWithdraw();
+                    }}
+                    className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Withdrawal</span>
+                  </div>
+
+                  {/* Block Withdrawal */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal">
+                    <Lock className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Block Withdrawal</span>
+                  </div>
+
+                  {/* Block Account */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal">
+                    <Lock className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Block Account</span>
+                  </div>
+
+                  {/* Hold Amount */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal">
+                    <Lock className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Hold Amount</span>
+                  </div>
+
+                  {/* Calculate Interest */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal border-t border-gray-100">
+                    <Calculator className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Calculate Interest</span>
+                  </div>
+
+                  {/* Post Interest As On */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center space-x-2.5 font-normal">
+                    <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Post Interest As On</span>
+                  </div>
+
+                  {/* More */}
+                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center justify-between font-normal border-t border-gray-100">
+                    <span>More</span>
+                    <ChevronRight className="w-3 h-3 text-gray-400" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      {/* 3. Navigation Tabs matching Image 1: General | Transactions | Charges | Documents | Notes | Standing Instructions */}
+      <div className="bg-[#f8f9fa] border-x border-b border-gray-200 px-6 flex items-center space-x-8 text-xs select-none">
         <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-sky-800 font-semibold"
+          type="button"
+          onClick={() => setActiveTab('general')}
+          className={`py-3 transition-colors ${
+            activeTab === 'general'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại hồ sơ khách hàng ({savings.clientName})</span>
+          General
         </button>
 
-        <span className="text-xs font-mono text-gray-500">
-          Account #: <strong className="text-gray-900">{savings.accountNo}</strong>
-        </span>
+        <button
+          type="button"
+          onClick={() => setActiveTab('transactions')}
+          className={`py-3 transition-colors ${
+            activeTab === 'transactions'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
+        >
+          Transactions
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('charges')}
+          className={`py-3 transition-colors ${
+            activeTab === 'charges'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
+        >
+          Charges
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('documents')}
+          className={`py-3 transition-colors ${
+            activeTab === 'documents'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
+        >
+          Documents
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('notes')}
+          className={`py-3 transition-colors ${
+            activeTab === 'notes'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
+        >
+          Notes
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('standing')}
+          className={`py-3 transition-colors ${
+            activeTab === 'standing'
+              ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-semibold'
+              : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+          }`}
+        >
+          Standing Instructions
+        </button>
       </div>
 
-      {/* Header Profile Card */}
-      <div className="mifos-panel p-5 bg-white">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center shadow-md">
-              <PiggyBank className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900">
-                  {savings.productName} #{savings.accountNo}
-                </h1>
-                <span className="text-xs text-emerald-700 font-bold inline-flex items-center">
-                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-1.5" />
-                  {savings.status}
-                </span>
+      {/* 4. Tab Content: General matching Image 1 */}
+      {activeTab === 'general' && (
+        <div className="bg-white border-x border-b border-gray-200 p-6 space-y-8">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+            
+            {/* Left Column: Savings Details matching Image 1 */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-gray-800">
+                Savings Details
+              </h3>
+              
+              <div className="border border-gray-200 rounded-[2px] divide-y divide-gray-100 text-xs">
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-5 text-gray-600">External Id</span>
+                  <span className="col-span-7 font-normal text-gray-900">{savings.externalId || 'Not Provided'}</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-5 text-gray-600">Activated On</span>
+                  <span className="col-span-7 font-normal text-gray-900">{formatDisplayDate(savings.openedDate || savings.lastActive, '13 October 2026')}</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-5 text-gray-600">Field Officer</span>
+                  <span className="col-span-7 font-normal text-gray-900">{savings.staffName || 'Unassigned'}</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-5 text-gray-600">Currency</span>
+                  <span className="col-span-7 font-normal text-gray-900">Vietnamese Dong [VND]</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-5 text-gray-600">Nominal Interest Rate</span>
+                  <span className="col-span-7 font-normal text-gray-900">{savings.interestRate || '0%'}</span>
+                </div>
               </div>
-              <div className="text-xs text-gray-600 mt-0.5">
-                Chủ tài khoản: <strong className="text-emerald-900">{savings.clientName}</strong>, Loại hình: <strong>{savings.accountType}</strong>
+            </div>
+
+            {/* Right Column: Account Summary matching Image 1 */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-gray-800">
+                Account Summary
+              </h3>
+
+              <div className="border border-gray-200 rounded-[2px] divide-y divide-gray-100 text-xs">
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-7 text-gray-600">Interest Earned Not Posted</span>
+                  <span className="col-span-5 font-normal text-gray-900 text-right">đ0.00</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-7 text-gray-600">Interest Compounding Period</span>
+                  <span className="col-span-5 font-normal text-gray-900">Daily</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-7 text-gray-600">Interest Posting Period</span>
+                  <span className="col-span-5 font-normal text-gray-900">Monthly</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-7 text-gray-600">Interest Calculated Using</span>
+                  <span className="col-span-5 font-normal text-gray-900">Daily Balance</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                  <span className="col-span-7 text-gray-600">Days in Year</span>
+                  <span className="col-span-5 font-normal text-gray-900">365 Days</span>
+                </div>
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-7 text-gray-600">Last Active Transaction Date</span>
+                  <span className="col-span-5 font-normal text-gray-900">{formatDisplayDate(savings.lastActive, '13 October 2026')}</span>
+                </div>
               </div>
             </div>
+
           </div>
 
-          <div className="flex items-center space-x-2">
+          {/* Section: Performance History matching Image 1 */}
+          <div className="space-y-2 pt-2">
+            <h3 className="text-xs font-semibold text-gray-800">
+              Performance History
+            </h3>
+            <div className="w-full h-[1px] bg-gray-200" />
+          </div>
+
+        </div>
+      )}
+
+      {/* 5. Tab Content: Transactions */}
+      {activeTab === 'transactions' && (
+        <div className="bg-white border-x border-b border-gray-200 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-gray-800">
+              Transactions History
+            </h3>
             <button
-              onClick={() => setShowDepositModal(true)}
-              className="mifos-btn-success px-3.5 py-2 rounded text-xs font-bold flex items-center gap-1.5 shadow-sm"
+              type="button"
+              onClick={onNavigateDeposit}
+              className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-3.5 py-1.5 rounded-[3px] shadow-2xs transition-colors cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Deposit (Nộp Tiền)</span>
-            </button>
-            <button
-              onClick={() => setShowWithdrawModal(true)}
-              className="mifos-btn-default px-3.5 py-2 rounded text-xs font-bold flex items-center gap-1.5 border shadow-sm text-rose-700 hover:bg-rose-50 border-rose-200"
-            >
-              <Minus className="w-4 h-4" />
-              <span>Withdrawal (Rút Tiền)</span>
+              Deposit
             </button>
           </div>
-        </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-emerald-100 text-xs">
-          <div>
-            <div className="text-gray-400 text-[11px]">Số dư khả dụng hiện tại</div>
-            <div className="font-mono font-bold text-emerald-800 text-base mt-0.5">
-              {savings.balance.toLocaleString('vi-VN')} VND
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-400 text-[11px]">Ngày mở tài khoản</div>
-            <div className="font-bold text-gray-800 mt-0.5">
-              {savings.openedDate || '2026-08-10'}
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-400 text-[11px]">Hạn mức tối thiểu</div>
-            <div className="font-mono font-bold text-gray-800 mt-0.5">
-              50.000 VND
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-400 text-[11px]">Lãi suất áp dụng</div>
-            <div className="font-bold text-emerald-700 mt-0.5">
-              {savings.interestRate ? `${savings.interestRate}%/năm` : '0.2%/năm (Không kỳ hạn)'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Transaction History Table */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-emerald-700" />
-            <span>Account Transactions (Lịch Sử Giao Dịch Tài Khoản)</span>
-          </h2>
-        </div>
-
-        <div className="mifos-panel overflow-hidden">
-          <table className="w-full text-left mifos-table">
-            <thead>
-              <tr>
-                <th className="w-16">Tx #</th>
-                <th>Transaction Date</th>
-                <th>Transaction Type</th>
-                <th className="text-right">Debit (Rút)</th>
-                <th className="text-right">Credit (Nộp)</th>
-                <th className="text-right">Balance After (Số Dư Sau GD)</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t) => {
-                const isDeposit = t.type === 'DEPOSIT' || t.type === 'OPENING';
-                return (
-                  <tr key={t.id}>
-                    <td className="font-mono text-xs text-gray-400">#{t.id}</td>
-                    <td className="font-mono text-xs text-gray-700">{t.date}</td>
-                    <td>
-                      <span className={`text-xs font-bold ${
-                        isDeposit ? 'text-emerald-700' : 'text-rose-700'
-                      }`}>
-                        {isDeposit ? 'Nộp tiền (Deposit)' : 'Rút tiền (Withdraw)'}
-                      </span>
+          <div className="overflow-x-auto border border-gray-200 rounded-[2px]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
+                <tr>
+                  <th className="py-2.5 px-3 font-normal">ID</th>
+                  <th className="py-2.5 px-3 font-normal">Office</th>
+                  <th className="py-2.5 px-3 font-normal">Transaction Date</th>
+                  <th className="py-2.5 px-3 font-normal">Transaction Type</th>
+                  <th className="py-2.5 px-3 font-normal text-right">Amount (VND)</th>
+                  <th className="py-2.5 px-3 font-normal text-right">Balance After</th>
+                  <th className="py-2.5 px-3 font-normal">Payment Type</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {transactions.length > 0 ? (
+                  transactions.map((t) => (
+                    <tr key={t.id} className="hover:bg-gray-50">
+                      <td className="py-2.5 px-3 font-mono text-gray-700">{t.id}</td>
+                      <td className="py-2.5 px-3 text-gray-800">Thu Duc Transaction Office</td>
+                      <td className="py-2.5 px-3 text-gray-800">{formatDisplayDate(t.date, '13 October 2026')}</td>
+                      <td className="py-2.5 px-3 font-medium text-emerald-700">{t.transactionType || t.type}</td>
+                      <td className="py-2.5 px-3 font-mono text-right text-gray-900 font-medium">
+                        {Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-right text-gray-900">
+                        {Number(t.balanceAfter || t.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-600">{t.paymentType || 'Money Transfer'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="py-8 text-center text-gray-400">
+                      No transactions recorded yet.
                     </td>
-                    <td className="text-right font-mono text-xs text-rose-700">
-                      {!isDeposit ? `${t.amount.toLocaleString('vi-VN')} VND` : '—'}
-                    </td>
-                    <td className="text-right font-mono text-xs font-bold text-emerald-700">
-                      {isDeposit ? `${t.amount.toLocaleString('vi-VN')} VND` : '—'}
-                    </td>
-                    <td className="text-right font-mono text-xs font-bold text-gray-800">
-                      {t.balanceAfter.toLocaleString('vi-VN')} VND
-                    </td>
-                    <td className="text-xs text-gray-600 max-w-xs">{t.desc}</td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
+
+      {/* 6. Authentic Mifos System Footer matching screenshot */}
+      <div className="pt-16 pb-6 text-center text-[11px] text-gray-400 space-y-1 select-none font-sans">
+        <div className="flex items-center justify-center space-x-6">
+          <span>Mifos 250331-</span>
+          <span>Fineract 1.16.0-SNAPSHOT</span>
+        </div>
+        <div>http://192.168.56.101:8080</div>
+        <div className="text-gray-500 font-medium">Mifos X by Mifos</div>
       </div>
 
-      {/* Deposit Modal */}
-      {showDepositModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded shadow-2xl max-w-md w-full border border-gray-200 overflow-hidden animate-in zoom-in-95">
-            <div className="px-5 py-3.5 bg-emerald-700 text-white flex items-center justify-between">
-              <h3 className="font-bold text-sm flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                <span>Deposit to Savings Account (Nộp Tiền Vào Tài Khoản)</span>
-              </h3>
-            </div>
-
-            <form onSubmit={handleDepositSubmit} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Khách hàng & Tài khoản</label>
-                <input
-                  type="text"
-                  disabled
-                  value={`${savings.clientName} - #${savings.accountNo}`}
-                  className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Số tiền nộp (VND) *</label>
-                <input
-                  type="number"
-                  required
-                  min="50000"
-                  step="50000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-emerald-600 font-mono text-sm font-bold text-emerald-800"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-gray-200 flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDepositModal(false)}
-                  className="mifos-btn-default px-4 py-1.5 rounded font-medium border"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="mifos-btn-success px-4 py-1.5 rounded font-bold shadow-xs"
-                >
-                  Xác nhận nộp tiền
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Withdraw Modal */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded shadow-2xl max-w-md w-full border border-gray-200 overflow-hidden animate-in zoom-in-95">
-            <div className="px-5 py-3.5 bg-rose-700 text-white flex items-center justify-between">
-              <h3 className="font-bold text-sm flex items-center gap-2">
-                <Minus className="w-4 h-4" />
-                <span>Withdrawal from Savings Account (Rút Tiền)</span>
-              </h3>
-            </div>
-
-            <form onSubmit={handleWithdrawSubmit} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Khách hàng & Tài khoản</label>
-                <input
-                  type="text"
-                  disabled
-                  value={`${savings.clientName} - #${savings.accountNo} (Số dư: ${savings.balance.toLocaleString('vi-VN')} VND)`}
-                  className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-700 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-gray-700 mb-1">Số tiền rút (VND) *</label>
-                <input
-                  type="number"
-                  required
-                  min="50000"
-                  max={savings.balance}
-                  step="50000"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-rose-600 font-mono text-sm font-bold text-rose-800"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-gray-200 flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowWithdrawModal(false)}
-                  className="mifos-btn-default px-4 py-1.5 rounded font-medium border"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="mifos-btn-danger px-4 py-1.5 rounded font-bold shadow-xs"
-                >
-                  Xác nhận rút tiền
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

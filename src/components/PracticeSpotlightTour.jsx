@@ -120,6 +120,10 @@ export default function PracticeSpotlightTour({
   const [cifGeneralFilled, setCifGeneralFilled] = useState(false);
   const [cifLanFilled, setCifLanFilled] = useState(false);
 
+  // Phân hệ 02 - Phần 3 state (CASA Deposit: Minh Quang Tran)
+  const [casaDepositPopup, setCasaDepositPopup] = useState(false);
+  const [depositFilled, setDepositFilled] = useState(false);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
@@ -139,6 +143,9 @@ export default function PracticeSpotlightTour({
         setCasaCifPopup(false);
         setCifGeneralFilled(false);
         setCifLanFilled(false);
+      } else if (module === 'casa-part-3') {
+        setCasaDepositPopup(false);
+        setDepositFilled(false);
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -219,6 +226,17 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [clients, isActive, module, currentPath, casaCifPopup]);
+
+  // Track if CASA Deposit was completed (Phân hệ 02 - Phần 3)
+  useEffect(() => {
+    if (isActive && module === 'casa-part-3') {
+      const account = savingsAccounts.find(s => s.accountNo === '000000001');
+      const hasDeposited = account && (Number(account.balance) >= 5000000 || Number(account.accountBalance) >= 5000000);
+      if (hasDeposited && currentPath === 'savings-detail' && !casaDepositPopup) {
+        setCasaDepositPopup(true);
+      }
+    }
+  }, [savingsAccounts, isActive, module, currentPath, casaDepositPopup]);
 
   // Track if Financial Activity Mapping was submitted / created (GL Part 5)
   useEffect(() => {
@@ -618,6 +636,55 @@ export default function PracticeSpotlightTour({
         stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
         stepInstruction = 'Bấm vào menu "Institution > Clients" trên thanh menu trên cùng để truy cập danh sách khách hàng.';
       }
+    }
+  } else if (module === 'casa-part-3') {
+    const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+    const isDeposited = account001 && (Number(account001.balance) >= 5000000 || Number(account001.accountBalance) >= 5000000);
+
+    if (currentPath === 'clients') {
+      currentStep = 1;
+      targetSelector = '#tour-client-row-minh';
+      stepTitle = 'Bước 1 / 5: Chọn khách hàng Minh Quang Tran';
+      stepSubtitle = 'Mở hồ sơ khách hàng để truy cập danh sách tài khoản tiền gửi CASA.';
+      stepInstruction = 'Tìm khách hàng Minh Quang Tran (Mã định danh 000000011 / TKB-CIF-TDU-001) trong danh sách và nhấp vào dòng của khách hàng để mở trang chi tiết.';
+    } else if (currentPath === 'client-detail') {
+      currentStep = 2;
+      targetSelector = '#tour-saving-row-000000001';
+      stepTitle = 'Bước 2 / 5: Chọn tài khoản CASA (000000001)';
+      stepSubtitle = 'Truy cập thông tin chi tiết tài khoản tiền gửi TKB Current Account.';
+      stepInstruction = 'Tại bảng Saving Accounts, nhấp vào liên kết tài khoản 000000001 (TKB Current Account) để mở màn hình quản lý nghiệp vụ tài khoản.';
+    } else if (currentPath === 'savings-detail') {
+      if (isDeposited) {
+        currentStep = 5;
+        targetSelector = '#tour-savings-account-overview';
+        stepTitle = 'Bước 5 / 5: Hoàn tất nạp tiền vào tài khoản CASA';
+        stepSubtitle = 'Số dư khả dụng của tài khoản 000000001 đã được cập nhật thành công lên 5,000,000.00 VND.';
+        stepInstruction = 'Kiểm tra số dư tại Account Overview: Current Balance đ5,000,000.00 và Available Balance đ5,000,000.00. Tab Transactions cũng đã ghi nhận giao dịch nộp tiền. Bấm nút "Hoàn tất bài thực hành CASA" bên dưới để kết thúc.';
+      } else {
+        currentStep = 3;
+        targetSelector = '#tour-savings-action-menu';
+        stepTitle = 'Bước 3 / 5: Mở danh mục tác vụ & chọn Deposit';
+        stepSubtitle = 'Thực hiện nộp tiền mặt hoặc chuyển khoản vào tài khoản tiền gửi thanh toán.';
+        stepInstruction = 'Nhấp vào nút menu tác vụ (biểu tượng 3 dấu gạch ngang) ở góc trên bên phải khung màu xanh, sau đó chọn "Deposit" để mở biểu mẫu nộp tiền vào tài khoản.';
+      }
+    } else if (currentPath === 'savings-deposit') {
+      currentStep = 4;
+      targetSelector = '#tour-deposit-savings-form';
+      if (!depositFilled) {
+        stepTitle = 'Bước 4 / 5: Khai báo giao dịch nạp tiền CASA';
+        stepSubtitle = 'Nhập thông tin giao dịch nộp 5,000,000 VND vào tài khoản 000000001.';
+        stepInstruction = 'Khai báo các thông tin: Ngày giao dịch (10/13/2026), Số tiền gửi (5,000,000.00 VND), Phương thức thanh toán (Money Transfer), và Ghi chú (Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001). Bấm nút "Điền dữ liệu mẫu Nạp tiền" bên dưới để điền tự động.';
+      } else {
+        stepTitle = 'Bước 4 / 5: Rà soát dữ liệu giao dịch';
+        stepSubtitle = 'Dữ liệu nộp tiền đã được điền. Vui lòng kiểm tra lại trước khi bấm Submit.';
+        stepInstruction = 'Kiểm tra kỹ các trường đã điền: Transaction Date (10/13/2026), Transaction Amount (VND 5,000,000.00), Payment Type (Money Transfer), và Notes. Sau khi xem lại xong, bạn có thể bấm nút "Submit" màu xanh trên form hoặc bấm nút "Bấm Submit nạp tiền" bên dưới để hoàn tất giao dịch.';
+      }
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1 / 5: Truy cập danh sách khách hàng (Clients)';
+      stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -2714,6 +2781,89 @@ export default function PracticeSpotlightTour({
     );
   }
 
+  // CASA Part 3 completion modal (Deposit Money To Saving Account)
+  if (module === 'casa-part-3' && casaDepositPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Nạp tiền CASA thành công
+            </span>
+            <button
+              onClick={() => setCasaDepositPopup(false)}
+              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <h3 className="text-base font-bold text-gray-900 leading-snug">
+            Giao dịch nộp 5,000,000 VND vào tài khoản CASA thành công!
+          </h3>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Hệ thống Core Banking đã hoàn tất hạch toán giao dịch nạp tiền ban đầu cho tài khoản tiền gửi thanh toán của khách hàng Minh Quang Tran:
+          </p>
+
+          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-2 font-sans">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Khách hàng:</span>
+              <strong className="text-gray-900">Minh Quang Tran (000000011)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tài khoản CASA:</span>
+              <strong className="text-[#1072ba]">000000001 (TKB Current Account)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Ngày giao dịch:</span>
+              <span className="text-gray-800 font-mono">10/13/2026</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Phương thức thanh toán:</span>
+              <span className="text-gray-800">Money Transfer</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Số tiền nạp:</span>
+              <strong className="text-emerald-700 font-mono">5,000,000.00 VND</strong>
+            </div>
+            <div className="flex justify-between border-t border-gray-200 pt-1.5">
+              <span className="text-gray-500">Số dư khả dụng mới:</span>
+              <strong className="text-emerald-700 font-mono text-sm">đ5,000,000.00</strong>
+            </div>
+            <div className="text-[11px] text-gray-500 pt-1 border-t border-gray-100">
+              Ghi chú: Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCasaDepositPopup(false);
+              }}
+              className="py-2 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors"
+            >
+              Xem chi tiết tài khoản
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCasaDepositPopup(false);
+                if (onClose) onClose();
+                if (navigate) navigate('clients');
+              }}
+              className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+            >
+              Hoàn thành bài thực hành CASA
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tooltip position calculation
   const padding = 6;
   const box = targetRect ? {
@@ -2745,7 +2895,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn') {
         tooltipStyle = {
@@ -2754,7 +2904,44 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${Math.max(60, box.top)}px`,
+          left: `${Math.max(16, box.left - tooltipWidth - 24)}px`,
+          width: `${tooltipWidth}px`
+        };
+      } else if (targetSelector === '#tour-client-row-minh' || targetSelector === '#tour-saving-row-000000001' || targetSelector === '#tour-saving-link-000000001') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${box.bottom + 16}px`,
+          left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+          width: `${tooltipWidth}px`
+        };
+      } else if (targetSelector === '#tour-deposit-savings-form') {
+        if (box.right + tooltipWidth + 24 <= windowWidth) {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${Math.max(60, Math.min(box.top, windowHeight - 480))}px`,
+            left: `${box.right + 24}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else if (box.left >= tooltipWidth + 24) {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${Math.max(60, Math.min(box.top, windowHeight - 480))}px`,
+            left: `${box.left - tooltipWidth - 24}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${box.bottom + 16}px`,
+            left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+            width: `${tooltipWidth}px`
+          };
+        }
+      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -3524,6 +3711,125 @@ export default function PracticeSpotlightTour({
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {/* Quick autofill & interactive actions for CASA Part 3 (Deposit Money to Saving Account) */}
+        {module === 'casa-part-3' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1: clients view */}
+            {currentPath === 'clients' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetClient = clients.find(c => 
+                    c.accountNo === '000000011' || 
+                    c.externalId === 'TKB-CIF-TDU-001' || 
+                    c.displayName?.toLowerCase().includes('minh quang tran')
+                  ) || clients[0];
+                  if (navigate) navigate('client-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở hồ sơ Minh Quang Tran
+              </button>
+            )}
+
+            {/* Step 2: client-detail view */}
+            {currentPath === 'client-detail' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('savings-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở chi tiết tài khoản CASA (000000001)
+              </button>
+            )}
+
+            {/* Step 3: savings-detail view */}
+            {currentPath === 'savings-detail' && (() => {
+              const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+              const isDeposited = account001 && (Number(account001.balance) >= 5000000 || Number(account001.accountBalance) >= 5000000);
+              
+              if (!isDeposited) {
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('savings-deposit');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Mở biểu mẫu Deposit (Nộp tiền)
+                  </button>
+                );
+              }
+
+              return (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                    <div className="font-bold text-emerald-900 mb-0.5">
+                      Giao dịch nạp tiền thành công!
+                    </div>
+                    <div>Tài khoản 000000001 đã có số dư khả dụng đ5,000,000.00. Tab Transactions đã ghi nhận giao dịch nộp tiền.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCasaDepositPopup(true);
+                    }}
+                    className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Hoàn tất bài thực hành CASA
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Step 4: savings-deposit view */}
+            {currentPath === 'savings-deposit' && (
+              <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                <div className="text-[11px] font-bold text-[#1072ba]">
+                  Thông tin giao dịch nộp tiền mẫu:
+                </div>
+                <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                  <div>Transaction Date: <strong>10/13/2026</strong></div>
+                  <div>Transaction Amount: <strong>VND 5,000,000.00</strong></div>
+                  <div>Payment Type: <strong>Money Transfer</strong></div>
+                  <div>Notes: <strong>Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.</strong></div>
+                </div>
+
+                {!depositFilled ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('practice-autofill-deposit'));
+                      setDepositFilled(true);
+                    }}
+                    className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Điền dữ liệu mẫu Nạp tiền
+                  </button>
+                ) : (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                      Dữ liệu nạp tiền đã được điền vào biểu mẫu. Hãy rà soát lại thông tin trước khi gửi.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-deposit'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bấm Submit nạp tiền
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -4521,7 +4827,11 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'casa-part-1' && savingsProducts.some(p => p.shortName === 'TKCA'))
+            {(module === 'casa-part-3' && currentStep === 5)
+              ? 'Nhấn nút "Hoàn tất bài thực hành CASA" phía trên để kết thúc'
+              : (module === 'casa-part-2' && currentStep === 8)
+              ? 'Nhấn nút "Hoàn tất bài thực hành CIF" phía trên để kết thúc'
+              : (module === 'casa-part-1' && savingsProducts.some(p => p.shortName === 'TKCA'))
               ? 'Nhấn nút "Tiếp tục: Tạo CIF Khách Hàng" phía trên để sang Phần 2'
               : (module === 'gl-part-9' && currentPath === 'accounting-view-transaction') ||
              (module === 'gl-part-8' && currentPath === 'accounting-view-rule') ||

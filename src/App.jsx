@@ -39,6 +39,7 @@ import UserDetailView from './views/UserDetailView';
 import ClientDetailView from './views/ClientDetailView';
 import LoanDetailView from './views/LoanDetailView';
 import SavingsDetailView from './views/SavingsDetailView';
+import DepositSavingsAccountView from './views/DepositSavingsAccountView';
 import CreateSavingsAccountView from './views/CreateSavingsAccountView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
@@ -323,16 +324,57 @@ export default function App() {
     }));
   };
 
-  const handleDeposit = (savingsId, amount) => {
+  const handleDeposit = (savingsIdOrData, amountParam) => {
+    let savingsId = '1';
+    let amount = 5000000;
+    let txDate = '2026-10-13';
+    let paymentType = 'Money Transfer';
+    let notes = 'Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.';
+
+    if (typeof savingsIdOrData === 'object' && savingsIdOrData !== null) {
+      savingsId = savingsIdOrData.savingsId || (selectedSavings ? selectedSavings.id : '1');
+      amount = Number(savingsIdOrData.amount) || 5000000;
+      txDate = savingsIdOrData.transactionDate || '2026-10-13';
+      paymentType = savingsIdOrData.paymentType || 'Money Transfer';
+      notes = savingsIdOrData.notes || notes;
+    } else {
+      savingsId = savingsIdOrData;
+      amount = Number(amountParam) || 5000000;
+    }
+
+    let updatedTarget = null;
+
     setSavingsAccounts(prev => prev.map(s => {
-      if (s.id === savingsId) {
-        return {
-          ...s,
-          balance: s.balance + amount
+      if (s.id === savingsId || s.accountNo === '000000001' || (selectedSavings && s.id === selectedSavings.id)) {
+        const currentBal = Number(s.balance) || 0;
+        const newBalance = currentBal + amount;
+        const newTx = {
+          id: String((s.transactions?.length || 0) + 1),
+          date: txDate,
+          type: 'DEPOSIT',
+          transactionType: 'Deposit',
+          amount: amount,
+          balanceAfter: newBalance,
+          paymentType: paymentType,
+          desc: notes
         };
+        const existingTxs = s.transactions || [];
+        const updated = {
+          ...s,
+          balance: newBalance,
+          lastActive: txDate,
+          transactions: [newTx, ...existingTxs]
+        };
+        updatedTarget = updated;
+        return updated;
       }
       return s;
     }));
+
+    if (updatedTarget) {
+      setSelectedSavings(updatedTarget);
+    }
+    navigate('savings-detail');
   };
 
   const handleWithdraw = (savingsId, amount) => {
@@ -849,8 +891,21 @@ export default function App() {
           <SavingsDetailView
             savings={selectedSavings}
             onBack={() => navigate('client-detail')}
-            onDeposit={handleDeposit}
-            onWithdraw={handleWithdraw}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateDeposit={() => navigate('savings-deposit')}
+            onNavigateWithdraw={() => navigate('savings-deposit')}
+          />
+        )}
+
+        {currentPath === 'savings-deposit' && (
+          <DepositSavingsAccountView
+            savings={selectedSavings}
+            onCancel={() => navigate('savings-detail')}
+            onSubmitDeposit={handleDeposit}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateClientDetail={() => navigate('client-detail')}
           />
         )}
           </main>
@@ -1000,8 +1055,10 @@ export default function App() {
           }
           if (targetModule === 'casa-part-3') {
             const targetClient = clients.find(c => c.id === '11' || c.displayName?.includes('Minh Quang Tran')) || clients[0];
-            setSelectedClient(targetClient);
-            setCurrentPath('client-detail');
+            if (targetClient) setSelectedClient(targetClient);
+            const targetSavings = savingsAccounts.find(s => s.accountNo === '000000001' || s.clientId === '11');
+            if (targetSavings) setSelectedSavings(targetSavings);
+            setCurrentPath('clients');
           }
           setPracticeActive(true);
         }}
@@ -1016,7 +1073,17 @@ export default function App() {
           setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.clientId !== '12' && s.accountNo !== '000000001' && s.accountNo !== '000000002'));
         }}
         onResetSavingsAccounts={() => {
-          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.clientId !== '12' && s.accountNo !== '000000001' && s.accountNo !== '000000002'));
+          setSavingsAccounts(prev => prev.map(s => {
+            if (s.accountNo === '000000001') {
+              return {
+                ...s,
+                balance: null,
+                lastActive: '2026-10-13',
+                transactions: []
+              };
+            }
+            return s;
+          }));
         }}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
         hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}

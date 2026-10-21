@@ -195,12 +195,12 @@ export default function EduGuideDrawer({
     return 0;
   };
 
-  // Tính toán tiến độ Phân hệ 02 - Phần 3: Cấp Tài Khoản CASA Cho Khách Hàng Quang Minh Tran
+  // Tính toán tiến độ Phân hệ 02 - Phần 3: Nạp Tiền Vào Tài Khoản CASA (Minh Quang Tran)
   const calculateCasaPart3Progress = () => {
     const hasCASA = savingsAccounts.some(s => 
       (s.accountNo === '000000001' || s.externalId === 'TKB-CASA-001' || s.productName?.toLowerCase().includes('current')) && 
       (String(s.clientId) === '11' || s.clientName?.toLowerCase().includes('minh quang tran')) &&
-      parseFloat(s.balance) >= 12000000
+      parseFloat(s.balance) >= 5000000
     );
     return hasCASA ? 100 : 0;
   };
@@ -372,7 +372,7 @@ export default function EduGuideDrawer({
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
                         {item.id === 'casa-part-1' ? 'Tạo sản phẩm TKB Current Account (TKCA)' : 
                          item.id === 'casa-part-2' ? 'Tạo hồ sơ CIF Minh Quang Tran & Lan Ngoc Pham' :
-                         'Cấp tài khoản CASA 000000001 (12.000.000 VND)'}
+                         'Nạp 5.000.000 VND vào tài khoản CASA 000000001'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -2301,7 +2301,7 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
-            BÀI HỌC: PHÂN HỆ 02 - PHẦN 3: CẤP TÀI KHOẢN CASA
+            BÀI HỌC: PHÂN HỆ 02 - PHẦN 3: NẠP TIỀN TÀI KHOẢN CASA
             ========================================================== */}
         {activePartId === 'casa-part-3' && (
           <div className="space-y-6 animate-in fade-in duration-100">
@@ -2310,10 +2310,10 @@ export default function EduGuideDrawer({
                 Phân Hệ 02: Account / CASA
               </span>
               <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
-                {currentModule.title}
+                Nạp Tiền Vào Tài Khoản CASA (Minh Quang Tran - Account 000000001)
               </h3>
               <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                {currentModule.objective}
+                Thực hiện nghiệp vụ nộp tiền vào tài khoản tiền gửi thanh toán (Deposit Money To Saving Account) số tiền 5.000.000 VND cho khách hàng Minh Quang Tran thông qua hình thức Money Transfer và kiểm tra cập nhật số dư, lịch sử giao dịch.
               </p>
             </div>
 
@@ -2322,47 +2322,57 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                  <span>Truy cập Chi tiết Khách Hàng (Client Detail)</span>
+                  <span>Chọn Khách Hàng Minh Quang Tran</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Đường dẫn: <strong className="text-gray-900">Clients &gt; Chọn khách hàng Minh Quang Tran</strong> (hoặc bấm nút thao tác nhanh bên dưới).
+                  Đường dẫn: <strong>Clients &gt; Chọn khách hàng Minh Quang Tran (000000011)</strong> từ bảng danh sách.
                 </p>
               </div>
 
-              {/* Bước 2: Nút Hamburger */}
+              {/* Bước 2 */}
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                  <span>Mở Menu Thao Tác Hamburger & Chọn "+ Add Savings"</span>
+                  <span>Nhấp Chọn Tài Khoản Saving Product</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tại góc trên bên phải thanh banner xanh dương của khách hàng, bấm vào biểu tượng <strong>Menu</strong> và chọn <strong className="text-[#1072ba]">+ Add Savings (Cấp CASA)</strong>.
+                  Tại bảng <strong>Saving Accounts</strong> ở hồ sơ khách hàng, nhấp vào mã tài khoản <code>000000001</code> hoặc tên sản phẩm <strong>TKB Current Account</strong>.
                 </p>
               </div>
 
-              {/* Bước 3: Điền đơn đăng ký CASA */}
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                  <span>Nhập thông tin cấp tài khoản CASA</span>
+                  <span>Mở Menu Thao Tác & Chọn Deposit</span>
                 </div>
-                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
-                  <div><strong>Product *:</strong> <code>TKB Current Account (TKCA)</code></div>
-                  <div><strong>Submitted On *:</strong> <code>10/20/2026</code></div>
-                  <div><strong>Field Officer:</strong> <code>Dang, Quan</code></div>
-                  <div><strong>External ID:</strong> <code>TKB-CASA-001</code></div>
-                  <div><strong>Initial Deposit Amount:</strong> <strong className="text-emerald-700">12,000,000 VND</strong></div>
-                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại góc trên bên phải thanh banner xanh dương của tài khoản, bấm vào nút <strong>Menu 3 dấu gạch</strong> và chọn <strong>Deposit</strong>.
+                </p>
               </div>
 
               {/* Bước 4 */}
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
-                  <span>Xác nhận & Kiểm tra số dư tài khoản CASA</span>
+                  <span>Khai Báo Thông Tin Nộp Tiền (Deposit)</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Transaction Date *:</strong> <code>10/13/2026</code></div>
+                  <div><strong>Transaction Amount *:</strong> <strong className="text-emerald-700">5,000,000.00 VND</strong></div>
+                  <div><strong>Payment Type *:</strong> <code>Money Transfer</code></div>
+                  <div><strong>Notes:</strong> <code>Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.</code></div>
+                </div>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Xác Nhận & Kiểm Tra Số Dư Cập Nhật</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Nhấn <strong>Submit & Activate CASA</strong>. Hệ thống tự động chuyển về trang chi tiết khách hàng và hiển thị tài khoản <code>000000001</code> với số dư <strong>12,000,000.00 VND</strong> tại bảng <em>Saving Accounts</em>.
+                  Bấm <strong>Submit</strong> để thực hiện giao dịch. Hệ thống tự động ghi có và cập nhật <strong>Current Balance</strong> cũng như <strong>Available Balance</strong> thành <code>đ5,000,000.00</code>.
                 </p>
               </div>
             </div>

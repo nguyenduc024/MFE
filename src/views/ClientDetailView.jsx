@@ -539,12 +539,17 @@ export default function ClientDetailView({
                 <tbody className="divide-y divide-gray-100">
                   {currentAccounts.length > 0 ? (
                     currentAccounts.map((s) => (
-                      <tr key={s.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={s.id} 
+                        id={s.accountNo === '000000001' ? 'tour-saving-row-000000001' : undefined}
+                        onClick={() => onSelectSavings && onSelectSavings(s)}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
                         <td className="py-3 px-3 font-normal text-gray-900 flex items-center space-x-1.5">
                           <span className="w-2 h-2 bg-[#28a745] inline-block rounded-[1px]" />
                           <span 
-                            onClick={() => onSelectSavings && onSelectSavings(s)}
-                            className="text-gray-900 hover:text-[#1072ba] cursor-pointer"
+                            id={s.accountNo === '000000001' ? 'tour-saving-link-000000001' : undefined}
+                            className="text-[#1072ba] hover:underline font-medium cursor-pointer"
                           >
                             {s.accountNo}
                           </span>
