@@ -115,9 +115,10 @@ export default function PracticeSpotlightTour({
     accounting: false
   });
 
-  // Phân hệ 02 - Phần 2 state (CIF Creation)
+  // Phân hệ 02 - Phần 2 state (CIF Creation: Minh Quang Tran & Lan Ngoc Pham)
   const [casaCifPopup, setCasaCifPopup] = useState(false);
   const [cifGeneralFilled, setCifGeneralFilled] = useState(false);
+  const [cifLanFilled, setCifLanFilled] = useState(false);
 
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
@@ -137,6 +138,7 @@ export default function PracticeSpotlightTour({
       } else if (module === 'casa-part-2') {
         setCasaCifPopup(false);
         setCifGeneralFilled(false);
+        setCifLanFilled(false);
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -201,14 +203,18 @@ export default function PracticeSpotlightTour({
     }
   }, [savingsProducts, isActive, module, casaProductPopup]);
 
-  // Track if CIF was created (Phân hệ 02 - Phần 2)
+  // Track if both CIFs were created (Phân hệ 02 - Phần 2)
   useEffect(() => {
     if (isActive && module === 'casa-part-2') {
       const hasMinhTran = clients.some(c => 
         (c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')) &&
         c.status === 'Active'
       );
-      if (hasMinhTran && currentPath === 'client-detail' && !casaCifPopup) {
+      const hasLanPham = clients.some(c => 
+        (c.accountNo === '000000012' || c.externalId === 'TKB-CIF-TDU-002' || c.displayName?.toLowerCase().includes('lan ngoc pham')) &&
+        c.status === 'Active'
+      );
+      if (hasMinhTran && hasLanPham && currentPath === 'client-detail' && !casaCifPopup) {
         setCasaCifPopup(true);
       }
     }
@@ -516,45 +522,102 @@ export default function PracticeSpotlightTour({
     const hasMinhTranCreated = clients.some(c => 
       c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')
     );
+    const hasLanPhamCreated = clients.some(c => 
+      c.accountNo === '000000012' || c.externalId === 'TKB-CIF-TDU-002' || c.displayName?.toLowerCase().includes('lan ngoc pham')
+    );
 
-    if (currentPath === 'client-detail') {
-      currentStep = 4;
+    if (hasMinhTranCreated && hasLanPhamCreated) {
+      currentStep = 8;
       targetSelector = '#tour-client-detail-saving-table';
-      stepTitle = 'Bước 4 / 4: Hồ sơ CIF & Tài khoản CASA đã liên kết';
-      stepSubtitle = 'Khách hàng Minh Quang Tran đã được cấp mã định danh 000000011 và liên kết tài khoản CASA 000000001.';
-      stepInstruction = 'Kiểm tra thông tin khách hàng trên màn hình: CIF 000000011, Văn phòng PGD Thủ Đức, Trạng thái Active. Tại bảng Saving Accounts, tài khoản TKB Current Account đã hiển thị sẵn sàng.';
-    } else if (currentPath === 'create-client') {
-      if (typeof document !== 'undefined' && document.getElementById('tour-create-client-preview-card')) {
-        currentStep = 3;
-        targetSelector = '#tour-create-client-preview-card';
-        stepTitle = 'Bước 3 / 4: Rà soát thông tin tại Tab PREVIEW';
-        stepSubtitle = 'Kiểm tra toàn bộ thông số định danh CIF của khách hàng trước khi bấm Submit.';
-        stepInstruction = 'Rà soát các trường: Name (Minh Quang Tran), Office (Thu Duc Transaction Office), Legal Form (Person), Staff (Dang, Quan), DOB (06 April 2000), External Id (TKB-CIF-TDU-001), Mobile (0955738216), Email (quang2004@gmail.com), Savings Product (TKB Current Account), Submitted On Date (13 October 2026), Active? (Yes), Activation Date (13 October 2026). Sau khi xem xong, bấm nút "Submit" màu xanh để tạo hồ sơ!';
-      } else if (typeof document !== 'undefined' && document.getElementById('tour-create-client-family-container')) {
-        currentStep = 2;
-        targetSelector = '#tour-client-next-btn-step2';
-        stepTitle = 'Bước 2 / 4: Tab FAMILY MEMBERS (Người thân)';
-        stepSubtitle = 'Khách hàng chưa đăng ký người phụ thuộc hay thông tin gia đình.';
-        stepInstruction = 'Khách hàng Minh Quang Tran hiện chưa cần khai báo thành viên gia đình. Bạn xem qua giao diện rồi bấm nút "Next" bên dưới để chuyển sang Tab PREVIEW.';
+      stepTitle = 'Hoàn thành: Đã tạo 2 hồ sơ CIF & Tài khoản CASA';
+      stepSubtitle = 'Minh Quang Tran (000000011) và Lan Ngoc Pham (000000012) đã được kích hoạt thành công.';
+      stepInstruction = 'Kiểm tra thông tin tài khoản CASA của cả 2 khách hàng: 000000001 (Minh Quang Tran) và 000000002 (Lan Ngoc Pham). Bấm nút "Hoàn thành bài thực hành CIF" bên dưới để hoàn tất.';
+    } else if (hasMinhTranCreated && !hasLanPhamCreated) {
+      // Flow for Client 2: Lan Ngoc Pham
+      if (currentPath === 'client-detail') {
+        currentStep = 4;
+        targetSelector = '#tour-client-detail-saving-table';
+        stepTitle = 'Bước 4 / 8: CIF 1 đã tạo thành công - Tiếp tục tạo CIF 2';
+        stepSubtitle = 'Hồ sơ Minh Quang Tran (000000011) và tài khoản CASA 000000001 đã sẵn sàng.';
+        stepInstruction = 'Khách hàng Minh Quang Tran đã được cấp mã định danh 000000011 và tài khoản CASA 000000001. Tiếp theo, hãy tạo hồ sơ cho khách hàng thứ 2: Lan Ngoc Pham (TKB-CIF-TDU-002) theo kịch bản thực hành.';
+      } else if (currentPath === 'create-client') {
+        if (typeof document !== 'undefined' && document.getElementById('tour-create-client-preview-card')) {
+          currentStep = 8;
+          targetSelector = '#tour-create-client-preview-card';
+          stepTitle = 'Bước 8 / 8: Rà soát & Submit CIF 2 (Lan Ngoc Pham)';
+          stepSubtitle = 'Kiểm tra toàn bộ thông số định danh CIF của Lan Ngoc Pham trước khi bấm Submit.';
+          stepInstruction = 'Rà soát các trường: Name (Lan Ngoc Pham), Office (Thu Duc Transaction Office), Legal Form (Person), Staff (Unassigned), DOB (05 August 2004), External Id (TKB-CIF-TDU-002), Mobile (094462817), Email (ngoclan0805@gmail.com), Savings Product (TKB Current Account), Submitted On Date (13 October 2026), Active? (Yes), Activation Date (13 October 2026). Sau đó bấm "Submit" để tạo hồ sơ!';
+        } else if (typeof document !== 'undefined' && document.getElementById('tour-create-client-family-container')) {
+          currentStep = 7;
+          targetSelector = '#tour-client-next-btn-step2';
+          stepTitle = 'Bước 7 / 8: Tab FAMILY MEMBERS (Người thân)';
+          stepSubtitle = 'Khách hàng Lan Ngoc Pham chưa đăng ký người phụ thuộc.';
+          stepInstruction = 'Khách hàng Lan Ngoc Pham hiện chưa có thông tin người thân. Bấm nút "Next" bên dưới để chuyển sang Tab PREVIEW.';
+        } else {
+          currentStep = 6;
+          targetSelector = cifLanFilled ? '#tour-client-next-btn-step1' : '#tour-create-client-form-general';
+          stepTitle = cifLanFilled ? 'Bước 6 / 8: Rà soát dữ liệu Lan Ngoc Pham' : 'Bước 6 / 8: Khai báo thông tin CIF 2 (Lan Ngoc Pham)';
+          stepSubtitle = cifLanFilled ? 'Dữ liệu CIF 2 đã được điền vào biểu mẫu. Hãy rà soát lại trước khi bấm Next.' : 'Khai báo các trường thông tin CIF của khách hàng Lan Ngoc Pham tại PGD Thủ Đức.';
+          stepInstruction = cifLanFilled 
+            ? 'Kiểm tra các trường đã điền: Văn phòng Thủ Đức, Lan Ngoc Pham, TKB-CIF-TDU-002, DOB 8/5/2004, Staff Unassigned, Mobile 094462817, Active, Open Savings Account. Bấm nút "Next" bên dưới để tiếp tục.' 
+            : 'Nhập thông tin theo mẫu: Office (Thu Duc Transaction Office), Legal Form (Person), External Id (TKB-CIF-TDU-002), First Name (Lan), Middle Name (Ngoc), Last Name (Pham), DOB (8/5/2004), Staff (để trống - Unassigned), Mobile (094462817), Email (ngoclan0805@gmail.com), Active (Yes), Open Savings Account (Yes). Bấm nút "Điền dữ liệu mẫu CIF 2" bên dưới để điền nhanh.';
+        }
+      } else if (currentPath === 'clients') {
+        currentStep = 5;
+        targetSelector = '#tour-create-client-btn';
+        stepTitle = 'Bước 5 / 8: Bấm Create Client để tạo CIF 2';
+        stepSubtitle = 'Khởi tạo hồ sơ khách hàng thứ 2: Lan Ngoc Pham.';
+        stepInstruction = 'Bấm nút "+ Create Client" màu xanh ở góc trên bên phải để bắt đầu biểu mẫu tạo CIF thứ 2.';
+      } else {
+        currentStep = 5;
+        targetSelector = '#tour-nav-institution';
+        stepTitle = 'Bước 5 / 8: Truy cập phân hệ Clients';
+        stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+        stepInstruction = 'Bấm vào menu "Institution > Clients" để tiếp tục tạo khách hàng thứ 2.';
+      }
+    } else {
+      // Flow for Client 1: Minh Quang Tran
+      if (currentPath === 'client-detail') {
+        currentStep = 4;
+        targetSelector = '#tour-client-detail-saving-table';
+        stepTitle = 'Bước 4 / 8: Hồ sơ CIF 1 & Tài khoản CASA đã liên kết';
+        stepSubtitle = 'Khách hàng Minh Quang Tran đã được cấp mã định danh 000000011 và liên kết tài khoản CASA 000000001.';
+        stepInstruction = 'Kiểm tra thông tin khách hàng trên màn hình: CIF 000000011, Văn phòng PGD Thủ Đức, Trạng thái Active. Tại bảng Saving Accounts, tài khoản TKB Current Account đã hiển thị sẵn sàng.';
+      } else if (currentPath === 'create-client') {
+        if (typeof document !== 'undefined' && document.getElementById('tour-create-client-preview-card')) {
+          currentStep = 3;
+          targetSelector = '#tour-create-client-preview-card';
+          stepTitle = 'Bước 3 / 8: Rà soát thông tin tại Tab PREVIEW';
+          stepSubtitle = 'Kiểm tra toàn bộ thông số định danh CIF của khách hàng trước khi bấm Submit.';
+          stepInstruction = 'Rà soát các trường: Name (Minh Quang Tran), Office (Thu Duc Transaction Office), Legal Form (Person), Staff (Dang, Quan), DOB (06 April 2000), External Id (TKB-CIF-TDU-001), Mobile (0955738216), Email (quang2004@gmail.com), Savings Product (TKB Current Account), Submitted On Date (13 October 2026), Active? (Yes), Activation Date (13 October 2026). Sau khi xem xong, bấm nút "Submit" màu xanh để tạo hồ sơ!';
+        } else if (typeof document !== 'undefined' && document.getElementById('tour-create-client-family-container')) {
+          currentStep = 2;
+          targetSelector = '#tour-client-next-btn-step2';
+          stepTitle = 'Bước 2 / 8: Tab FAMILY MEMBERS (Người thân)';
+          stepSubtitle = 'Khách hàng chưa đăng ký người phụ thuộc hay thông tin gia đình.';
+          stepInstruction = 'Khách hàng Minh Quang Tran hiện chưa cần khai báo thành viên gia đình. Bạn xem qua giao diện rồi bấm nút "Next" bên dưới để chuyển sang Tab PREVIEW.';
+        } else {
+          currentStep = 1;
+          targetSelector = cifGeneralFilled ? '#tour-client-next-btn-step1' : '#tour-create-client-form-general';
+          stepTitle = cifGeneralFilled ? 'Bước 1 / 8: Rà soát & Chuyển sang Tab Tiếp theo' : 'Bước 1 / 8: Khai báo thông tin định danh (Tab GENERAL)';
+          stepSubtitle = cifGeneralFilled ? 'Dữ liệu CIF 1 đã được điền vào biểu mẫu. Hãy rà soát lại trước khi bấm Next.' : 'Khai báo đầy đủ các trường thông tin CIF của khách hàng tại Phòng giao dịch Thủ Đức.';
+          stepInstruction = cifGeneralFilled
+            ? 'Kiểm tra thông tin đã điền trên màn hình. Bấm nút "Next" bên dưới hoặc nút "Tiếp theo" trong hộp thoại để chuyển sang bước Family Members.'
+            : 'Nhập thông tin: Office (Thu Duc Transaction Office), Legal Form (Person), First Name (Minh), Middle Name (Quang), Last Name (Tran), DOB (4/6/2000), Staff (Dang, Quan), Mobile (0955738216), Email (quang2004@gmail.com), Active (Yes), Open Savings Account (Yes). Bấm nút "Điền dữ liệu mẫu CIF 1" bên dưới để điền nhanh và kiểm tra.';
+        }
+      } else if (currentPath === 'clients') {
+        currentStep = 1;
+        targetSelector = '#tour-create-client-btn';
+        stepTitle = 'Bước 1 / 8: Bấm nút Create Client';
+        stepSubtitle = 'Khởi tạo hồ sơ khách hàng mới (CIF) trong phân hệ Quản lý khách hàng.';
+        stepInstruction = 'Tại trang danh sách Clients, bấm nút "+ Create Client" màu xanh ở góc trên bên phải để bắt đầu biểu mẫu tạo CIF.';
       } else {
         currentStep = 1;
-        targetSelector = '#tour-create-client-form-general';
-        stepTitle = 'Bước 1 / 4: Khai báo thông tin định danh (Tab GENERAL)';
-        stepSubtitle = 'Khai báo đầy đủ các trường thông tin CIF của khách hàng tại Phòng giao dịch Thủ Đức.';
-        stepInstruction = 'Nhập thông tin: Office (Thu Duc Transaction Office), Legal Form (Person), First Name (Minh), Middle Name (Quang), Last Name (Tran), DOB (4/6/2000), Staff (Dang, Quan), Mobile (0955738216), Email (quang2004@gmail.com), Active (Yes), Open Savings Account (Yes). Bấm nút "Điền dữ liệu mẫu CIF" bên dưới để điền nhanh và kiểm tra.';
+        targetSelector = '#tour-nav-institution';
+        stepTitle = 'Bước 1 / 8: Truy cập phân hệ Clients';
+        stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+        stepInstruction = 'Bấm vào menu "Institution > Clients" trên thanh menu trên cùng để truy cập danh sách khách hàng.';
       }
-    } else if (currentPath === 'clients') {
-      currentStep = 1;
-      targetSelector = '#tour-create-client-btn';
-      stepTitle = 'Bước 1 / 4: Bấm nút Create Client';
-      stepSubtitle = 'Khởi tạo hồ sơ khách hàng mới (CIF) trong phân hệ Quản lý khách hàng.';
-      stepInstruction = 'Tại trang danh sách Clients, bấm nút "+ Create Client" màu xanh ở góc trên bên phải để bắt đầu biểu mẫu tạo CIF.';
-    } else {
-      currentStep = 1;
-      targetSelector = '#tour-nav-institution';
-      stepTitle = 'Bước 1 / 4: Truy cập phân hệ Clients';
-      stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
-      stepInstruction = 'Bấm vào menu "Institution > Clients" trên thanh menu trên cùng để truy cập danh sách khách hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -2574,37 +2637,52 @@ export default function PracticeSpotlightTour({
           </div>
 
           <h3 className="text-base font-bold text-gray-900 leading-snug">
-            Hồ sơ CIF: Minh Quang Tran (000000011) đã được kích hoạt!
+            Đã hoàn thành tạo 2 hồ sơ CIF (Minh Quang Tran & Lan Ngoc Pham)!
           </h3>
 
           <p className="text-xs text-gray-600 leading-relaxed">
-            Hồ sơ khách hàng cá nhân đã được tạo thành công tại Phòng giao dịch Thủ Đức và tự động liên kết tài khoản thanh toán CASA:
+            Hồ sơ cả hai khách hàng cá nhân đã được tạo thành công tại Phòng giao dịch Thủ Đức và tự động liên kết tài khoản tiền gửi thanh toán CASA:
           </p>
 
-          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-1.5 font-sans">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Khách hàng:</span>
-              <strong className="text-gray-900">Minh Quang Tran (Mã CIF: 000000011)</strong>
+          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-2.5 font-sans">
+            {/* CIF 1 */}
+            <div className="border-b border-gray-200 pb-2 space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">CIF 1:</span>
+                <strong className="text-gray-900">Minh Quang Tran (Mã CIF: 000000011)</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">External ID:</span>
+                <span className="font-mono text-gray-800">TKB-CIF-TDU-001</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Cán bộ quản lý:</span>
+                <span className="text-gray-800">Dang, Quan</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tài khoản CASA cấp tự động:</span>
+                <strong className="text-[#1072ba]">000000001 (TKB Current Account)</strong>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Chi nhánh / PGD:</span>
-              <strong className="text-gray-900">Thu Duc Transaction Office</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">External ID:</span>
-              <strong className="text-gray-900">TKB-CIF-TDU-001</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Cán bộ quản lý:</span>
-              <strong className="text-gray-900">Dang, Quan</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Tài khoản CASA cấp tự động:</span>
-              <strong className="text-[#1072ba]">000000001 (TKB Current Account)</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Số dư ban đầu:</span>
-              <strong className="text-gray-600">Trống (Sẵn sàng cấp vốn tại Phần 3)</strong>
+
+            {/* CIF 2 */}
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-gray-500">CIF 2:</span>
+                <strong className="text-gray-900">Lan Ngoc Pham (Mã CIF: 000000012)</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">External ID:</span>
+                <span className="font-mono text-gray-800">TKB-CIF-TDU-002</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Cán bộ quản lý:</span>
+                <span className="text-gray-800">Unassigned</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Tài khoản CASA cấp tự động:</span>
+                <strong className="text-[#1072ba]">000000002 (TKB Current Account)</strong>
+              </div>
             </div>
           </div>
 
@@ -2624,6 +2702,7 @@ export default function PracticeSpotlightTour({
               onClick={() => {
                 setCasaCifPopup(false);
                 if (onClose) onClose();
+                if (navigate) navigate('clients');
               }}
               className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
             >
@@ -2668,13 +2747,36 @@ export default function PracticeSpotlightTour({
   if (box) {
     if (module === 'casa-part-1' || module === 'casa-part-2') {
       const tooltipWidth = 340;
-      if (targetSelector === '#tour-create-savings-product-btn') {
+      if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(20, box.top + 36)}px`,
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
+      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn') {
+        if (box.right + tooltipWidth + 24 <= windowWidth) {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${Math.max(60, box.top - 40)}px`,
+            left: `${box.right + 24}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else if (box.left >= tooltipWidth + 24) {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${Math.max(60, box.top - 40)}px`,
+            left: `${box.left - tooltipWidth - 24}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${Math.max(20, box.bottom + 16)}px`,
+            left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+            width: `${tooltipWidth}px`
+          };
+        }
       } else if (box.right + tooltipWidth + 24 <= windowWidth) {
         tooltipStyle = {
           position: 'fixed',
@@ -2691,16 +2793,21 @@ export default function PracticeSpotlightTour({
         };
       } else {
         const spaceBelow = windowHeight - box.bottom;
-        const tooltipTop = spaceBelow >= 220 
-          ? box.bottom + 16 
-          : Math.max(16, windowHeight - 340);
-        const tooltipLeft = Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20));
-        tooltipStyle = {
-          position: 'fixed',
-          top: `${tooltipTop}px`,
-          left: `${tooltipLeft}px`,
-          width: `${tooltipWidth}px`
-        };
+        if (spaceBelow >= 180) {
+          tooltipStyle = {
+            position: 'fixed',
+            top: `${box.bottom + 16}px`,
+            left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else {
+          tooltipStyle = {
+            position: 'fixed',
+            top: '80px',
+            left: `${Math.max(16, windowWidth - tooltipWidth - 24)}px`,
+            width: `${tooltipWidth}px`
+          };
+        }
       }
     } else if (module === 'gl-part-9' && (currentPath === 'accounting-view-transaction' || targetSelector === '#tour-view-transaction-screen' || currentStep === 6)) {
       // Step 6: popup strictly on the LEFT side of the screen
@@ -3238,95 +3345,120 @@ export default function PracticeSpotlightTour({
         {/* Quick autofill & interactive actions for CASA Part 2 */}
         {module === 'casa-part-2' && (
           <div className="space-y-2 mt-2">
-            {currentPath === 'create-client' && (
-              <>
-                {targetSelector === '#tour-create-client-form-general' && (
-                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
-                    <div className="text-[11px] font-bold text-[#1072ba]">
-                      Thông tin hồ sơ CIF mẫu (Minh Quang Tran):
-                    </div>
-                    <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
-                      <div>Office: <strong>Thu Duc Transaction Office</strong></div>
-                      <div>Legal Form: <strong>Person</strong> | Staff: <strong>Dang, Quan</strong></div>
-                      <div>Họ và tên: <strong>Minh Quang Tran</strong></div>
-                      <div>External ID: <strong>TKB-CIF-TDU-001</strong></div>
-                      <div>DOB: <strong>4/6/2000</strong> (06 April 2000)</div>
-                      <div>Mobile: <strong>0955738216</strong> | Email: <strong>quang2004@gmail.com</strong></div>
-                      <div>Submitted On: <strong>10/13/2026</strong> | Active: <strong>Yes</strong></div>
-                      <div>Savings Product: <strong>TKB Current Account</strong></div>
-                    </div>
+            {currentPath === 'create-client' && (() => {
+              const hasMinhTran = clients.some(c => 
+                c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')
+              );
+              const isTargetLan = hasMinhTran;
 
-                    {!cifGeneralFilled ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          window.dispatchEvent(new CustomEvent('practice-autofill-cif-general'));
-                          setCifGeneralFilled(true);
-                        }}
-                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                      >
-                        Điền dữ liệu mẫu CIF (Minh Quang Tran)
-                      </button>
-                    ) : (
-                      <div className="space-y-1.5 pt-1">
-                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
-                          Dữ liệu CIF đã được điền vào biểu mẫu. Hãy rà soát lại các trường thông tin trên màn hình trước khi tiếp tục.
-                        </div>
+              return (
+                <>
+                  {/* Step 1: GENERAL */}
+                  {(targetSelector === '#tour-create-client-form-general' || targetSelector === '#tour-client-next-btn-step1') && (
+                    <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                      <div className="text-[11px] font-bold text-[#1072ba]">
+                        {isTargetLan 
+                          ? 'Thông tin hồ sơ CIF mẫu (Lan Ngoc Pham):' 
+                          : 'Thông tin hồ sơ CIF mẫu (Minh Quang Tran):'}
+                      </div>
+                      <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                        <div>Office: <strong>Thu Duc Transaction Office</strong></div>
+                        <div>Legal Form: <strong>Person</strong> | Staff: <strong>{isTargetLan ? 'Unassigned' : 'Dang, Quan'}</strong></div>
+                        <div>Họ và tên: <strong>{isTargetLan ? 'Lan Ngoc Pham' : 'Minh Quang Tran'}</strong></div>
+                        <div>External ID: <strong>{isTargetLan ? 'TKB-CIF-TDU-002' : 'TKB-CIF-TDU-001'}</strong></div>
+                        <div>DOB: <strong>{isTargetLan ? '8/5/2004' : '4/6/2000'}</strong> ({isTargetLan ? '05 August 2004' : '06 April 2000'})</div>
+                        <div>Mobile: <strong>{isTargetLan ? '094462817' : '0955738216'}</strong> | Email: <strong>{isTargetLan ? 'ngoclan0805@gmail.com' : 'quang2004@gmail.com'}</strong></div>
+                        <div>Submitted On: <strong>10/13/2026</strong> | Active: <strong>Yes</strong></div>
+                        <div>Savings Product: <strong>TKB Current Account</strong></div>
+                      </div>
+
+                      {!(isTargetLan ? cifLanFilled : cifGeneralFilled) ? (
                         <button
                           type="button"
                           onClick={() => {
-                            window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
+                            if (isTargetLan) {
+                              window.dispatchEvent(new CustomEvent('practice-autofill-cif-lan'));
+                              setCifLanFilled(true);
+                            } else {
+                              window.dispatchEvent(new CustomEvent('practice-autofill-cif-minh'));
+                              setCifGeneralFilled(true);
+                            }
                           }}
                           className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                         >
-                          Tiếp theo (Sang Family Members)
+                          {isTargetLan 
+                            ? 'Điền dữ liệu mẫu CIF 2 (Lan Ngoc Pham)' 
+                            : 'Điền dữ liệu mẫu CIF 1 (Minh Quang Tran)'}
                         </button>
+                      ) : (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                            {isTargetLan
+                              ? 'Dữ liệu CIF 2 (Lan Ngoc Pham) đã được điền. Hãy rà soát lại thông tin trước khi tiếp tục.'
+                              : 'Dữ liệu CIF 1 (Minh Quang Tran) đã được điền. Hãy rà soát lại thông tin trước khi tiếp tục.'}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
+                            }}
+                            className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                          >
+                            Tiếp theo (Sang Family Members)
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Step 2: FAMILY MEMBERS */}
+                  {targetSelector === '#tour-client-next-btn-step2' && (
+                    <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                      <div className="text-[11px] font-bold text-[#1072ba]">
+                        Tab FAMILY MEMBERS:
                       </div>
-                    )}
-                  </div>
-                )}
-
-                {targetSelector === '#tour-client-next-btn-step2' && (
-                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
-                    <div className="text-[11px] font-bold text-[#1072ba]">
-                      Tab FAMILY MEMBERS:
+                      <p className="text-[10px] text-gray-600">
+                        {isTargetLan 
+                          ? 'Khách hàng Lan Ngoc Pham chưa đăng ký người phụ thuộc hay thông tin gia đình.' 
+                          : 'Khách hàng Minh Quang Tran chưa đăng ký người phụ thuộc hay thông tin gia đình.'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Chuyển sang Tab PREVIEW
+                      </button>
                     </div>
-                    <p className="text-[10px] text-gray-600">
-                      Khách hàng Minh Quang Tran hiện chưa cần đăng ký người phụ thuộc hay thành viên gia đình.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-next-cif-step'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Chuyển sang Tab PREVIEW
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                {targetSelector === '#tour-create-client-preview-card' && (
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
-                    <div className="text-[11px] font-bold text-emerald-900">
-                      Rà soát & Hoàn tất tạo CIF:
+                  {/* Step 3: PREVIEW */}
+                  {(targetSelector === '#tour-create-client-preview-card' || targetSelector === '#tour-client-submit-btn') && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                      <div className="text-[11px] font-bold text-emerald-900">
+                        {isTargetLan ? 'Rà soát & Hoàn tất tạo CIF 2 (Lan Ngoc Pham):' : 'Rà soát & Hoàn tất tạo CIF 1 (Minh Quang Tran):'}
+                      </div>
+                      <p className="text-[10px] text-emerald-800">
+                        {isTargetLan
+                          ? 'Kiểm tra lại toàn bộ thông tin tại bảng tóm tắt bên trái. Bấm nút Submit màu xanh để tạo hồ sơ và kích hoạt tài khoản CASA 000000002!'
+                          : 'Kiểm tra lại toàn bộ thông tin tại bảng tóm tắt bên trái. Bấm nút Submit màu xanh để tạo hồ sơ khách hàng và kích hoạt tài khoản CASA!'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-submit-cif'));
+                        }}
+                        className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        {isTargetLan ? 'Bấm Submit tạo CIF 2' : 'Bấm Submit tạo CIF 1'}
+                      </button>
                     </div>
-                    <p className="text-[10px] text-emerald-800">
-                      Kiểm tra lại toàn bộ thông tin tại bảng tóm tắt bên trái. Bấm nút Submit màu xanh để tạo hồ sơ khách hàng và kích hoạt tài khoản CASA!
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-submit-cif'));
-                      }}
-                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Bấm Submit tạo CIF
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+                  )}
+                </>
+              );
+            })()}
 
             {currentPath === 'clients' && (
               <button
@@ -3340,26 +3472,58 @@ export default function PracticeSpotlightTour({
               </button>
             )}
 
-            {currentPath === 'client-detail' && (
-              <div className="space-y-2 pt-1 border-t border-gray-100">
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
-                  <div className="font-bold text-emerald-900 mb-0.5">
-                    Đã tạo thành công CIF: Minh Quang Tran (000000011)!
+            {currentPath === 'client-detail' && (() => {
+              const hasMinhTran = clients.some(c => 
+                c.accountNo === '000000011' || c.externalId === 'TKB-CIF-TDU-001' || c.displayName?.toLowerCase().includes('minh quang tran')
+              );
+              const hasLanPham = clients.some(c => 
+                c.accountNo === '000000012' || c.externalId === 'TKB-CIF-TDU-002' || c.displayName?.toLowerCase().includes('lan ngoc pham')
+              );
+
+              if (hasMinhTran && !hasLanPham) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-relaxed">
+                      <div className="font-bold text-sky-950 mb-0.5">
+                        Đã tạo CIF 1: Minh Quang Tran (000000011)!
+                      </div>
+                      <div>Tài khoản CASA 000000001 đã được cấp. Bây giờ hãy tiếp tục tạo hồ sơ cho khách hàng thứ 2: Lan Ngoc Pham.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCifLanFilled(false);
+                        if (navigate) navigate('create-client');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục tạo Khách hàng 2 (Lan Ngoc Pham)
+                    </button>
                   </div>
-                  <div>Tài khoản CASA 000000001 (TKB Current Account) đã được cấp và hiển thị trong danh mục Saving Accounts.</div>
+                );
+              }
+
+              return (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                    <div className="font-bold text-emerald-900 mb-0.5">
+                      Đã hoàn thành tạo 2 hồ sơ CIF (Minh Quang Tran & Lan Ngoc Pham)!
+                    </div>
+                    <div>Cả 2 tài khoản CASA (000000001 & 000000002) đã được cấp và hiển thị trong danh mục Saving Accounts.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onClose) onClose();
+                      if (navigate) navigate('clients');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Hoàn tất bài thực hành CIF
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onClose) onClose();
-                    if (navigate) navigate('client-detail');
-                  }}
-                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                >
-                  Hoàn tất bài thực hành CIF
-                </button>
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
 

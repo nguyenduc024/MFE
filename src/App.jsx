@@ -103,11 +103,14 @@ export default function App() {
           openedDate: '2026-10-13'
         };
       }
-      if (s.id === '3') {
+      if (s.id === '2') {
         return {
           ...s,
           clientId: '12',
-          clientName: 'Lan Ngoc Pham'
+          clientName: 'Lan Ngoc Pham',
+          balance: null,
+          lastActive: '2026-10-13',
+          openedDate: '2026-10-13'
         };
       }
       return s;
@@ -238,10 +241,19 @@ export default function App() {
   };
 
   const handleAddClient = (newClient) => {
-    const nextAccountNo = newClient.accountNo || String(clients.length + 1).padStart(9, '0');
+    const isClient2 = newClient.externalId === 'TKB-CIF-TDU-002' || 
+                      (newClient.firstname && newClient.firstname.toLowerCase().includes('lan')) ||
+                      (newClient.displayName && newClient.displayName.toLowerCase().includes('lan ngoc pham'));
+    const isClient1 = newClient.externalId === 'TKB-CIF-TDU-001' || 
+                      (newClient.firstname && newClient.firstname.toLowerCase().includes('minh')) ||
+                      (newClient.displayName && newClient.displayName.toLowerCase().includes('minh quang tran'));
+
+    const nextAccountNo = newClient.accountNo || (isClient2 ? '000000012' : isClient1 ? '000000011' : String(clients.length + 1).padStart(9, '0'));
+    const clientId = newClient.id || (isClient2 ? '12' : isClient1 ? '11' : String(Date.now()));
+
     const clientWithAccount = {
       ...newClient,
-      id: newClient.id || String(Date.now()),
+      id: clientId,
       accountNo: nextAccountNo
     };
 
@@ -257,20 +269,23 @@ export default function App() {
 
     // If client requested to open savings account, create linked CASA account
     if (newClient.openSavingsAccount) {
+      const savingsAccountNo = isClient2 ? '000000002' : isClient1 ? '000000001' : String(savingsAccounts.length + 1).padStart(9, '0');
+      const savingsId = isClient2 ? '2' : isClient1 ? '1' : String(Date.now() + 1);
+
       const newSavingsAcc = {
-        id: String(Date.now() + 1),
+        id: savingsId,
         clientId: clientWithAccount.id,
         clientName: clientWithAccount.displayName,
-        accountNo: '000000001',
+        accountNo: savingsAccountNo,
         productName: newClient.savingsProduct || 'TKB Current Account',
         accountType: 'Savings (Thanh toán)',
-        balance: null, // empty initial balance as per screenshot Image 4
+        balance: null, // empty initial balance as per screenshot Image 2
         lastActive: '2026-10-13',
         status: 'Active',
         openedDate: '2026-10-13'
       };
       setSavingsAccounts(prev => {
-        const filtered = prev.filter(s => s.accountNo !== '000000001' || s.clientId !== clientWithAccount.id);
+        const filtered = prev.filter(s => s.accountNo !== savingsAccountNo || s.clientId !== clientWithAccount.id);
         return [newSavingsAcc, ...filtered];
       });
     }
@@ -997,11 +1012,11 @@ export default function App() {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
         }}
         onResetClients={() => {
-          setClients(prev => prev.filter(c => c.id !== '11' && c.externalId !== 'TKB-CIF-TDU-001' && !c.displayName?.toLowerCase().includes('minh quang tran')));
-          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.accountNo !== '000000001'));
+          setClients(prev => prev.filter(c => c.id !== '11' && c.id !== '12' && c.externalId !== 'TKB-CIF-TDU-001' && c.externalId !== 'TKB-CIF-TDU-002' && !c.displayName?.toLowerCase().includes('minh quang tran') && !c.displayName?.toLowerCase().includes('lan ngoc pham')));
+          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.clientId !== '12' && s.accountNo !== '000000001' && s.accountNo !== '000000002'));
         }}
         onResetSavingsAccounts={() => {
-          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.accountNo !== '000000001'));
+          setSavingsAccounts(prev => prev.filter(s => s.clientId !== '11' && s.clientId !== '12' && s.accountNo !== '000000001' && s.accountNo !== '000000002'));
         }}
         contraAccountConfigEnabled={contraAccountConfigEnabled}
         hasOpeningBalanceSubmitted={hasOpeningBalanceSubmitted}

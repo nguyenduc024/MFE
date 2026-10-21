@@ -201,7 +201,7 @@ export default function ClientDetailView({
                   </div>
                   <div className="grid grid-cols-12">
                     <span className="col-span-5 text-white/80">External Id</span>
-                    <span className="col-span-7 font-medium">{client.externalId || 'TKB-CIF-TDU-001'}</span>
+                    <span className="col-span-7 font-medium">{client.externalId || (client.accountNo === '000000012' ? 'TKB-CIF-TDU-002' : 'TKB-CIF-TDU-001')}</span>
                   </div>
                   <div className="grid grid-cols-12">
                     <span className="col-span-5 text-white/80">Activation Date</span>
@@ -209,7 +209,7 @@ export default function ClientDetailView({
                   </div>
                   <div className="grid grid-cols-12">
                     <span className="col-span-5 text-white/80">Staff</span>
-                    <span className="col-span-7 font-medium">{client.staffName || 'Dang, Quan'}</span>
+                    <span className="col-span-7 font-medium">{client.staffName ? client.staffName : (client.staffId ? 'Dang, Quan' : 'Unassigned')}</span>
                   </div>
                 </div>
 
@@ -217,11 +217,11 @@ export default function ClientDetailView({
                 <div className="space-y-1.5">
                   <div className="grid grid-cols-12">
                     <span className="col-span-5 text-white/80">Mobile Number</span>
-                    <span className="col-span-7 font-medium">{client.mobileNo || '955738216'}</span>
+                    <span className="col-span-7 font-medium">{client.mobileNo ? (client.mobileNo.startsWith('0') ? client.mobileNo.slice(1) : client.mobileNo) : (client.accountNo === '000000012' ? '94462817' : '955738216')}</span>
                   </div>
                   <div className="grid grid-cols-12">
                     <span className="col-span-5 text-white/80">Email</span>
-                    <span className="col-span-7 font-medium">{client.email || 'quang2004@gmail.com'}</span>
+                    <span className="col-span-7 font-medium">{client.email || (client.accountNo === '000000012' ? 'ngoclan0805@gmail.com' : 'quang2004@gmail.com')}</span>
                   </div>
                 </div>
               </div>

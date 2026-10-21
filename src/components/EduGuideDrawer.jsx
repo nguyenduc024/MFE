@@ -178,14 +178,21 @@ export default function EduGuideDrawer({
     return hasProduct ? 100 : (savingsProducts.length > 0 ? 50 : 0);
   };
 
-  // Tính toán tiến độ Phân hệ 02 - Phần 2: Tạo Hồ Sơ Khách Hàng CIF (Minh Quang Tran)
+  // Tính toán tiến độ Phân hệ 02 - Phần 2: Tạo Hồ Sơ Khách Hàng CIF (Minh Quang Tran & Lan Ngoc Pham)
   const calculateCasaPart2Progress = () => {
-    const hasClient = clients.some(c => 
+    const hasMinh = clients.some(c => 
       c.displayName?.toLowerCase().includes('minh quang tran') || 
       c.externalId === 'TKB-CIF-TDU-001' || 
       c.accountNo === '000000011'
     );
-    return hasClient ? 100 : 0;
+    const hasLan = clients.some(c => 
+      c.displayName?.toLowerCase().includes('lan ngoc pham') || 
+      c.externalId === 'TKB-CIF-TDU-002' || 
+      c.accountNo === '000000012'
+    );
+    if (hasMinh && hasLan) return 100;
+    if (hasMinh || hasLan) return 50;
+    return 0;
   };
 
   // Tính toán tiến độ Phân hệ 02 - Phần 3: Cấp Tài Khoản CASA Cho Khách Hàng Quang Minh Tran
@@ -364,7 +371,7 @@ export default function EduGuideDrawer({
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
                         {item.id === 'casa-part-1' ? 'Tạo sản phẩm TKB Current Account (TKCA)' : 
-                         item.id === 'casa-part-2' ? 'Tạo hồ sơ CIF Minh Quang Tran (TKB-CIF-TDU-001)' :
+                         item.id === 'casa-part-2' ? 'Tạo hồ sơ CIF Minh Quang Tran & Lan Ngoc Pham' :
                          'Cấp tài khoản CASA 000000001 (12.000.000 VND)'}
                       </div>
                     </div>
@@ -2224,10 +2231,10 @@ export default function EduGuideDrawer({
                 Phân Hệ 02: Account / CASA
               </span>
               <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
-                {currentModule.title}
+                Tạo Hồ Sơ Khách Hàng Cá Nhân CIF (Minh Quang Tran & Lan Ngoc Pham)
               </h3>
               <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                {currentModule.objective}
+                Khởi tạo thông tin định danh khách hàng cá nhân (CIF) tại Phòng giao dịch Thủ Đức cho 2 khách hàng: Minh Quang Tran (TKB-CIF-TDU-001) và Lan Ngoc Pham (TKB-CIF-TDU-002), chuyển sang trạng thái Active và tự động liên kết tài khoản tiền gửi thanh toán CASA (TKB Current Account).
               </p>
             </div>
 
@@ -2239,35 +2246,54 @@ export default function EduGuideDrawer({
                   <span>Truy cập Tạo Khách Hàng (Create Client)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Đường dẫn: Menu trên <strong>Clients &gt; Create Client</strong>.
+                  Đường dẫn: Menu trên <strong>Clients &gt; Create Client</strong> (hoặc bấm nút + Create Client tại trang danh sách).
                 </p>
               </div>
 
-              {/* Bước 2: Thông tin định danh */}
+              {/* Bước 2: Khách hàng 1 */}
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                  <span>Nhập thông tin hồ sơ CIF mẫu</span>
+                  <span>Tạo CIF 1: Minh Quang Tran</span>
                 </div>
                 <div className="pl-6 space-y-1.5 text-xs text-gray-600">
                   <div><strong>Office:</strong> <code>Thu Duc Transaction Office</code></div>
                   <div><strong>Staff:</strong> <code>Dang, Quan</code></div>
                   <div><strong>Legal Form:</strong> <code>Person</code></div>
-                  <div><strong>First Name:</strong> <code>Minh</code>, <strong>Last Name:</strong> <code>Tran</code></div>
+                  <div><strong>Họ và tên:</strong> <code>Minh Quang Tran</code></div>
                   <div><strong>External ID:</strong> <code>TKB-CIF-TDU-001</code></div>
-                  <div><strong>Mobile Number:</strong> <code>955738216</code>, <strong>Email:</strong> <code>quang2004@gmail.com</code></div>
-                  <div><strong>Activation Date:</strong> <code>13 October 2026</code></div>
+                  <div><strong>Ngày sinh:</strong> <code>4/6/2000</code> (06 April 2000)</div>
+                  <div><strong>Điện thoại & Email:</strong> <code>0955738216</code> | <code>quang2004@gmail.com</code></div>
+                  <div><strong>Tài khoản CASA:</strong> <code>TKB Current Account</code> (Mã cấp: 000000001)</div>
                 </div>
               </div>
 
-              {/* Bước 3 */}
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+              {/* Bước 3: Khách hàng 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                  <span>Lưu hồ sơ & Kích hoạt CIF</span>
+                  <span>Tạo CIF 2: Lan Ngoc Pham</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Office:</strong> <code>Thu Duc Transaction Office</code></div>
+                  <div><strong>Staff:</strong> <code>Unassigned</code> (để trống)</div>
+                  <div><strong>Legal Form:</strong> <code>Person</code></div>
+                  <div><strong>Họ và tên:</strong> <code>Lan Ngoc Pham</code></div>
+                  <div><strong>External ID:</strong> <code>TKB-CIF-TDU-002</code></div>
+                  <div><strong>Ngày sinh:</strong> <code>8/5/2004</code> (05 August 2004)</div>
+                  <div><strong>Điện thoại & Email:</strong> <code>094462817</code> | <code>ngoclan0805@gmail.com</code></div>
+                  <div><strong>Tài khoản CASA:</strong> <code>TKB Current Account</code> (Mã cấp: 000000002)</div>
+                </div>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Lưu hồ sơ & Kiểm tra kích hoạt</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Nhấn <strong>Submit</strong> để lưu hồ sơ. Khách hàng sẽ được cấp mã định danh <code>000000011</code> và chuyển sang trạng thái <strong>Active</strong>.
+                  Rà soát thông tin tại Tab PREVIEW và nhấn <strong>Submit</strong>. Sau khi tạo thành công cả 2 khách hàng, hệ thống ghi nhận hoàn thành 100% bài thực hành CIF.
                 </p>
               </div>
             </div>

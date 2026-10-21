@@ -214,9 +214,8 @@ export default function CreateClientView({
     gender: 'Female'
   });
 
-  // Quick autofill with the user's sample data from Image 2 & Image 3 (Minh Quang Tran)
+  // Quick autofill with sample data for Client 1: Minh Quang Tran (TKB-CIF-TDU-001)
   const handleQuickAutofillSample = () => {
-    // Find Thu Duc Transaction Office (id 26) or fallback office
     const tdOffice = offices.find(o => o.name && o.name.toLowerCase().includes('thu duc')) || offices.find(o => String(o.id) === '26') || offices[0];
     const quanStaff = users.find(u => (u.firstname && u.firstname.toLowerCase().includes('quan')) || (u.lastname && u.lastname.toLowerCase().includes('dang'))) || users[0];
 
@@ -233,6 +232,34 @@ export default function CreateClientView({
       isStaff: false,
       mobileNo: '0955738216',
       emailAddress: 'quang2004@gmail.com',
+      clientType: '',
+      clientClassification: '',
+      submittedOn: '10/13/2026',
+      active: true,
+      activationDate: '10/13/2026',
+      openSavingsAccount: true,
+      savingsProduct: 'TKB Current Account'
+    });
+    setOfficeTouched(true);
+  };
+
+  // Quick autofill with sample data for Client 2: Lan Ngoc Pham (TKB-CIF-TDU-002) matching Image 1
+  const handleQuickAutofillLanNgocPham = () => {
+    const tdOffice = offices.find(o => o.name && o.name.toLowerCase().includes('thu duc')) || offices.find(o => String(o.id) === '26') || offices[0];
+
+    setFormData({
+      officeId: tdOffice ? String(tdOffice.id) : '26',
+      legalForm: 'Person',
+      externalId: 'TKB-CIF-TDU-002',
+      firstname: 'Lan',
+      middlename: 'Ngoc',
+      lastname: 'Pham',
+      dateOfBirth: '8/5/2004',
+      gender: '',
+      staffId: '', // Unassigned in screenshot
+      isStaff: false,
+      mobileNo: '094462817',
+      emailAddress: 'ngoclan0805@gmail.com',
       clientType: '',
       clientClassification: '',
       submittedOn: '10/13/2026',
@@ -272,24 +299,31 @@ export default function CreateClientView({
     const staff = users.find(u => String(u.id) === String(formData.staffId));
     const fullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim();
 
+    const isClient2 = formData.externalId === 'TKB-CIF-TDU-002' || 
+                      (formData.firstname && formData.firstname.toLowerCase().includes('lan')) ||
+                      (fullName.toLowerCase().includes('lan ngoc pham'));
+    const isClient1 = formData.externalId === 'TKB-CIF-TDU-001' || 
+                      (formData.firstname && formData.firstname.toLowerCase().includes('minh')) ||
+                      (fullName.toLowerCase().includes('minh quang tran'));
+
     const newClient = {
-      id: '11',
-      accountNo: '000000011',
-      externalId: formData.externalId || 'TKB-CIF-TDU-001',
-      displayName: fullName || 'Minh Quang Tran',
-      firstname: formData.firstname || 'Minh',
-      middlename: formData.middlename || 'Quang',
-      lastname: formData.lastname || 'Tran',
+      id: isClient2 ? '12' : isClient1 ? '11' : String(Date.now()),
+      accountNo: isClient2 ? '000000012' : isClient1 ? '000000011' : String(Date.now()).slice(-9),
+      externalId: formData.externalId || (isClient2 ? 'TKB-CIF-TDU-002' : 'TKB-CIF-TDU-001'),
+      displayName: fullName || (isClient2 ? 'Lan Ngoc Pham' : 'Minh Quang Tran'),
+      firstname: formData.firstname || (isClient2 ? 'Lan' : 'Minh'),
+      middlename: formData.middlename || (isClient2 ? 'Ngoc' : 'Quang'),
+      lastname: formData.lastname || (isClient2 ? 'Pham' : 'Tran'),
       officeId: formData.officeId || '26',
       officeName: office ? office.name : 'Thu Duc Transaction Office',
-      staffId: formData.staffId || '13',
-      staffName: staff ? `${staff.lastname}, ${staff.firstname}` : 'Dang, Quan',
+      staffId: formData.staffId || '',
+      staffName: staff ? `${staff.lastname}, ${staff.firstname}` : (formData.staffId ? 'Dang, Quan' : 'Unassigned'),
       legalForm: formData.legalForm || 'Person',
-      dateOfBirth: formData.dateOfBirth || '4/6/2000',
+      dateOfBirth: formData.dateOfBirth || (isClient2 ? '8/5/2004' : '4/6/2000'),
       gender: formData.gender || '',
       isStaff: formData.isStaff || false,
-      mobileNo: formData.mobileNo || '0955738216',
-      email: formData.emailAddress || 'quang2004@gmail.com',
+      mobileNo: formData.mobileNo || (isClient2 ? '094462817' : '0955738216'),
+      email: formData.emailAddress || (isClient2 ? 'ngoclan0805@gmail.com' : 'quang2004@gmail.com'),
       clientType: formData.clientType || '',
       clientClassification: formData.clientClassification || '',
       status: formData.active ? 'Active' : 'Pending',
@@ -307,8 +341,20 @@ export default function CreateClientView({
 
   // Guided practice event listeners
   useEffect(() => {
-    const handleAutofillEvent = () => {
+    const handleAutofillMinhEvent = () => {
       handleQuickAutofillSample();
+    };
+
+    const handleAutofillLanEvent = () => {
+      handleQuickAutofillLanNgocPham();
+    };
+
+    const handleAutofillGeneralEvent = () => {
+      if (formData.externalId === 'TKB-CIF-TDU-002' || (formData.firstname && formData.firstname.toLowerCase().includes('lan'))) {
+        handleQuickAutofillLanNgocPham();
+      } else {
+        handleQuickAutofillSample();
+      }
     };
 
     const handleNextStepEvent = () => {
@@ -326,12 +372,16 @@ export default function CreateClientView({
       handleSubmitFinal();
     };
 
-    window.addEventListener('practice-autofill-cif-general', handleAutofillEvent);
+    window.addEventListener('practice-autofill-cif-general', handleAutofillGeneralEvent);
+    window.addEventListener('practice-autofill-cif-minh', handleAutofillMinhEvent);
+    window.addEventListener('practice-autofill-cif-lan', handleAutofillLanEvent);
     window.addEventListener('practice-next-cif-step', handleNextStepEvent);
     window.addEventListener('practice-submit-cif', handleSubmitEvent);
 
     return () => {
-      window.removeEventListener('practice-autofill-cif-general', handleAutofillEvent);
+      window.removeEventListener('practice-autofill-cif-general', handleAutofillGeneralEvent);
+      window.removeEventListener('practice-autofill-cif-minh', handleAutofillMinhEvent);
+      window.removeEventListener('practice-autofill-cif-lan', handleAutofillLanEvent);
       window.removeEventListener('practice-next-cif-step', handleNextStepEvent);
       window.removeEventListener('practice-submit-cif', handleSubmitEvent);
     };
@@ -362,10 +412,12 @@ export default function CreateClientView({
   const selectedStaff = users.find(u => String(u.id) === String(formData.staffId));
   const previewStaffName = selectedStaff
     ? `${selectedStaff.lastname}, ${selectedStaff.firstname}`
-    : 'Dang, Quan';
+    : (formData.staffId ? 'Dang, Quan' : 'Unassigned');
 
   // Resolve client full name for preview
-  const previewFullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim() || 'Minh Quang Tran';
+  const isPreviewLan = formData.externalId === 'TKB-CIF-TDU-002' || (formData.firstname && formData.firstname.toLowerCase().includes('lan'));
+  const previewFullName = `${formData.firstname} ${formData.middlename ? formData.middlename + ' ' : ''}${formData.lastname}`.trim() || 
+    (isPreviewLan ? 'Lan Ngoc Pham' : 'Minh Quang Tran');
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6 select-none font-sans text-gray-800">
@@ -396,15 +448,25 @@ export default function CreateClientView({
           </div>
         </div>
 
-        {/* Quick autofill sample helper */}
-        <button
-          type="button"
-          onClick={handleQuickAutofillSample}
-          className="text-xs text-[#1072ba] hover:bg-sky-50 px-2.5 py-1 rounded border border-sky-200 font-medium transition-colors cursor-pointer"
-          title="Điền nhanh dữ liệu mẫu theo screenshot: Minh Quang Tran - Thu Duc Transaction Office"
-        >
-          Điền nhanh mẫu (Minh Quang Tran)
-        </button>
+        {/* Quick autofill sample helpers */}
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={handleQuickAutofillSample}
+            className="text-xs text-[#1072ba] hover:bg-sky-50 px-2.5 py-1 rounded border border-sky-200 font-medium transition-colors cursor-pointer"
+            title="Điền nhanh dữ liệu mẫu CIF 1: Minh Quang Tran (TKB-CIF-TDU-001)"
+          >
+            Điền mẫu 1 (Minh Quang Tran)
+          </button>
+          <button
+            type="button"
+            onClick={handleQuickAutofillLanNgocPham}
+            className="text-xs text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded border border-emerald-300 font-medium transition-colors cursor-pointer"
+            title="Điền nhanh dữ liệu mẫu CIF 2: Lan Ngoc Pham (TKB-CIF-TDU-002)"
+          >
+            Điền mẫu 2 (Lan Ngoc Pham)
+          </button>
+        </div>
       </div>
 
       {/* 2. Main White Card */}
@@ -975,30 +1037,30 @@ export default function CreateClientView({
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{previewStaffName}</span>
               </div>
 
-              {/* Row 5: Date of Birth (Formatted e.g. "06 April 2000") */}
+              {/* Row 5: Date of Birth (Formatted e.g. "06 April 2000" or "05 August 2004") */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Date of Birth</span>
                 <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">
-                  {formatDisplayDate(formData.dateOfBirth, '06 April 2000')}
+                  {formatDisplayDate(formData.dateOfBirth, isPreviewLan ? '05 August 2004' : '06 April 2000')}
                 </span>
               </div>
 
               {/* Row 6: External Id */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">External Id</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.externalId || 'TKB-CIF-TDU-001'}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.externalId || (isPreviewLan ? 'TKB-CIF-TDU-002' : 'TKB-CIF-TDU-001')}</span>
               </div>
 
               {/* Row 7: Mobile No */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Mobile No</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.mobileNo || '0955738216'}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.mobileNo || (isPreviewLan ? '094462817' : '0955738216')}</span>
               </div>
 
               {/* Row 8: Email Address */}
               <div className="grid grid-cols-12 py-0.5">
                 <span className="col-span-4 md:col-span-3 text-gray-700">Email Address</span>
-                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.emailAddress || 'quang2004@gmail.com'}</span>
+                <span className="col-span-8 md:col-span-9 font-normal text-[#212529]">{formData.emailAddress || (isPreviewLan ? 'ngoclan0805@gmail.com' : 'quang2004@gmail.com')}</span>
               </div>
 
               {/* Row 9: Savings Product matching Image 3 */}
