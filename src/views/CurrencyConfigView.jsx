@@ -384,7 +384,7 @@ export default function CurrencyConfigView({
                   Currency <span className="text-amber-500">*</span>
                 </label>
 
-                {/* Input with Clear ✕ icon */}
+                {/* Input with Clear X icon */}
                 <div className="relative flex items-center border border-gray-300 rounded-[2px] bg-white px-2 py-1.5 focus-within:border-[#1072ba]">
                   <input
                     id="tour-input-currency"

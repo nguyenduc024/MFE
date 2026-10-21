@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Check, Calendar, Trash2, Plus, ChevronDown } from 'lucide-react';
+import { Pencil, Check, Calendar, Trash2, Plus, ChevronDown, X, Info } from 'lucide-react';
 
 /**
  * Reusable Floating Label Input Component (Material underline style matching screenshot)
@@ -11,11 +11,12 @@ function FloatingInput({
   type = 'text',
   required = false,
   disabled = false,
+  placeholder = '',
   className = ''
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value !== undefined && value !== null && String(value).trim().length > 0;
-  const isFloated = isFocused || hasValue;
+  const isFloated = isFocused || hasValue || Boolean(placeholder);
 
   return (
     <div className={`relative pt-3.5 pb-1 border-b transition-colors ${
@@ -34,11 +35,12 @@ function FloatingInput({
         type={type}
         required={required}
         disabled={disabled}
+        placeholder={isFloated && placeholder ? placeholder : ''}
         value={value ?? ''}
         onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full bg-transparent text-xs text-gray-800 outline-none pr-4 pt-0.5"
+        className="w-full bg-transparent text-xs text-gray-800 outline-none pr-4 pt-0.5 disabled:text-gray-400"
       />
     </div>
   );
@@ -81,7 +83,7 @@ function FloatingSelect({
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 cursor-pointer appearance-none"
+          className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 cursor-pointer appearance-none disabled:text-gray-400 disabled:cursor-not-allowed"
         >
           {children}
         </select>
@@ -91,13 +93,52 @@ function FloatingSelect({
   );
 }
 
+const DEFAULT_SLABS = [
+  {
+    periodType: 'Months',
+    periodFrom: '1',
+    periodTo: '3',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '3.5',
+    description: 'FD 3M - 3.5% p.a.'
+  },
+  {
+    periodType: 'Months',
+    periodFrom: '4',
+    periodTo: '6',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '4.5',
+    description: 'FD 6M - 4.5% p.a.'
+  },
+  {
+    periodType: 'Months',
+    periodFrom: '7',
+    periodTo: '9',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '5.0',
+    description: 'FD 9M - 5.0% p.a.'
+  },
+  {
+    periodType: 'Months',
+    periodFrom: '10',
+    periodTo: '12',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '5.5',
+    description: 'FD 12M - 5.5% p.a.'
+  }
+];
+
 export default function CreateFixedDepositProductView({
   onNavigateHome,
   onNavigateProducts,
   onNavigateFixedDepositProducts,
   onSaveProduct
 }) {
-  const [currentStep, setCurrentStep] = useState(1); // 1 to 7
+  const [currentStep, setCurrentStep] = useState(1); // 1 to 8
 
   const steps = [
     { id: 1, label: 'DETAILS' },
@@ -106,7 +147,8 @@ export default function CreateFixedDepositProductView({
     { id: 4, label: 'SETTINGS' },
     { id: 5, label: 'INTEREST RATE CHART' },
     { id: 6, label: 'CHARGES' },
-    { id: 7, label: 'ACCOUNTING' }
+    { id: 7, label: 'ACCOUNTING' },
+    { id: 8, label: 'PREVIEW' }
   ];
 
   // Form State
@@ -144,13 +186,39 @@ export default function CreateFixedDepositProductView({
     penalInterestPeriod: '',
     isWithholdTaxApplicable: false,
 
-    // Step 5: INTEREST RATE CHART (Image 5)
+    // Step 5: INTEREST RATE CHART (Image 5 & Image 1, 2)
     hasChart: true,
     chartName: '',
     chartFromDate: '',
     chartEndDate: '',
     chartDescription: '',
-    isPrimaryGroupingByAmount: false
+    isPrimaryGroupingByAmount: false,
+    slabs: [],
+
+    // Step 6: CHARGES (Image 3)
+    chargeId: '',
+
+    // Step 7: ACCOUNTING (Image 4)
+    accountingRule: 'Cash', // None | Cash | PeriodicAccrual
+    savingReferenceAccountId: '110201', // (110201) Settlement Bank Account
+    savingControlAccountId: '210103', // (210103) Fixed Deposits
+    transfersInSuspenseAccountId: '220201', // (220201) Clearing Payable
+    interestOnSavingsAccountId: '510102', // (510102) Fixed Deposit Interest Expense
+    incomeFromFeeAccountId: '420102', // (420102) Savings Service Fee Income
+    incomeFromPenaltyAccountId: '420107', // (420107) Fixed Deposit Penalty Income
+    advancedAccountingRules: false
+  });
+
+  // Modal State for Add Slab
+  const [showSlabModal, setShowSlabModal] = useState(false);
+  const [slabForm, setSlabForm] = useState({
+    periodType: 'Months',
+    periodFrom: '',
+    periodTo: '',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '',
+    description: ''
   });
 
   // Practice event listeners
@@ -212,12 +280,90 @@ export default function CreateFixedDepositProductView({
         chartFromDate: '9/1/2026',
         chartEndDate: '',
         chartDescription: 'Annual interest rate schedule for TKB Fixed Deposit with 3, 6, 9 and 12-month terms.',
-        isPrimaryGroupingByAmount: false
+        isPrimaryGroupingByAmount: false,
+        slabs: [...DEFAULT_SLABS]
       }));
     };
 
+    const handleAutofillAccounting = () => {
+      setFormData(prev => ({
+        ...prev,
+        accountingRule: 'Cash',
+        savingReferenceAccountId: '110201',
+        savingControlAccountId: '210103',
+        transfersInSuspenseAccountId: '220201',
+        interestOnSavingsAccountId: '510102',
+        incomeFromFeeAccountId: '420102',
+        incomeFromPenaltyAccountId: '420107',
+        advancedAccountingRules: false
+      }));
+    };
+
+    const handleAutofillAll = () => {
+      setFormData({
+        name: 'TKB Fixed Deposit',
+        shortName: 'TKFD',
+        description: 'A VND fixed term deposit product offered by Takashimaya Bank, supporting 3, 6, and 12-month deposit terms with tiered annual interest rates. Designed for secure savings interest revenue, with maturity-based withdrawal.',
+        currency: 'Vietnamese Dong',
+        decimalPlaces: '0',
+        currencyMultiplesOf: '1',
+        minDepositAmount: '1000000',
+        defaultDepositAmount: '10000000',
+        maxDepositAmount: '1000000000',
+        interestCompoundingPeriod: 'Monthly',
+        interestPostingPeriod: 'Monthly',
+        interestCalculationUsing: 'Daily Balance',
+        daysInYear: '365 Days',
+        lockinPeriodFrequency: '',
+        lockinPeriodType: '',
+        minDepositTermFrequency: '3',
+        minDepositTermType: 'Months',
+        inMultiplesOfFrequency: '3',
+        inMultiplesOfType: 'Months',
+        maxDepositTermFrequency: '12',
+        maxDepositTermType: 'Months',
+        applyPenalInterest: false,
+        penalInterest: '',
+        penalInterestPeriod: '',
+        isWithholdTaxApplicable: false,
+        hasChart: true,
+        chartName: 'TKB FD VND Interest Rates 2026',
+        chartFromDate: '9/1/2026',
+        chartEndDate: '',
+        chartDescription: 'Annual interest rate schedule for TKB Fixed Deposit with 3, 6, 9 and 12-month terms.',
+        isPrimaryGroupingByAmount: false,
+        slabs: [...DEFAULT_SLABS],
+        chargeId: '',
+        accountingRule: 'Cash',
+        savingReferenceAccountId: '110201',
+        savingControlAccountId: '210103',
+        transfersInSuspenseAccountId: '220201',
+        interestOnSavingsAccountId: '510102',
+        incomeFromFeeAccountId: '420102',
+        incomeFromPenaltyAccountId: '420107',
+        advancedAccountingRules: false
+      });
+      setCurrentStep(8);
+    };
+
     const handleNextStep = () => {
-      setCurrentStep(prev => Math.min(prev + 1, 7));
+      setCurrentStep(prev => Math.min(prev + 1, 8));
+    };
+
+    const handleSubmitProduct = () => {
+      if (onSaveProduct) {
+        onSaveProduct({
+          id: String(Date.now()),
+          name: formData.name || 'TKB Fixed Deposit',
+          shortName: formData.shortName || 'TKFD',
+          description: formData.description,
+          currency: formData.currency,
+          status: 'Active',
+          slabs: formData.slabs.length > 0 ? formData.slabs : DEFAULT_SLABS,
+          accountingRule: formData.accountingRule
+        });
+      }
+      if (onNavigateFixedDepositProducts) onNavigateFixedDepositProducts();
     };
 
     window.addEventListener('practice-autofill-fd-details', handleAutofillDetails);
@@ -225,7 +371,10 @@ export default function CreateFixedDepositProductView({
     window.addEventListener('practice-autofill-fd-terms', handleAutofillTerms);
     window.addEventListener('practice-autofill-fd-settings', handleAutofillSettings);
     window.addEventListener('practice-autofill-fd-chart', handleAutofillChart);
+    window.addEventListener('practice-autofill-fd-accounting', handleAutofillAccounting);
+    window.addEventListener('practice-autofill-fd-all', handleAutofillAll);
     window.addEventListener('practice-next-fd-step', handleNextStep);
+    window.addEventListener('practice-submit-fd', handleSubmitProduct);
 
     return () => {
       window.removeEventListener('practice-autofill-fd-details', handleAutofillDetails);
@@ -233,17 +382,46 @@ export default function CreateFixedDepositProductView({
       window.removeEventListener('practice-autofill-fd-terms', handleAutofillTerms);
       window.removeEventListener('practice-autofill-fd-settings', handleAutofillSettings);
       window.removeEventListener('practice-autofill-fd-chart', handleAutofillChart);
+      window.removeEventListener('practice-autofill-fd-accounting', handleAutofillAccounting);
+      window.removeEventListener('practice-autofill-fd-all', handleAutofillAll);
       window.removeEventListener('practice-next-fd-step', handleNextStep);
+      window.removeEventListener('practice-submit-fd', handleSubmitProduct);
     };
-  }, []);
+  }, [formData, onSaveProduct, onNavigateFixedDepositProducts]);
 
   const handleNext = (e) => {
     if (e) e.preventDefault();
-    setCurrentStep(prev => Math.min(prev + 1, 7));
+    setCurrentStep(prev => Math.min(prev + 1, 8));
   };
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleAddSlabSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!slabForm.periodFrom || !slabForm.interest || !slabForm.description) return;
+    setFormData(prev => ({
+      ...prev,
+      slabs: [...prev.slabs, { ...slabForm }]
+    }));
+    setSlabForm({
+      periodType: 'Months',
+      periodFrom: '',
+      periodTo: '',
+      amountRangeFrom: '',
+      amountRangeTo: '',
+      interest: '',
+      description: ''
+    });
+    setShowSlabModal(false);
+  };
+
+  const handleRemoveSlab = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      slabs: prev.slabs.filter((_, idx) => idx !== index)
+    }));
   };
 
   return (
@@ -284,9 +462,9 @@ export default function CreateFixedDepositProductView({
       {/* 2. Main White Card */}
       <div className="bg-white rounded-[2px] shadow-[0_1px_4px_rgba(0,0,0,0.08)] border border-gray-100 p-8 space-y-8">
         
-        {/* Stepper Header matching Image 1, 2, 3, 4, 5 */}
-        <div id="tour-fd-stepper" className="relative flex items-center justify-between px-4 pt-1 pb-4">
-          <div className="absolute left-8 right-8 top-4.5 h-[1px] bg-gray-300 -z-0" />
+        {/* Stepper Header matching Images (8 steps) */}
+        <div id="tour-fd-stepper" className="relative flex items-center justify-between px-2 pt-1 pb-4">
+          <div className="absolute left-6 right-6 top-4.5 h-[1px] bg-gray-300 -z-0" />
 
           {steps.map((st) => {
             const isActive = currentStep === st.id;
@@ -301,7 +479,7 @@ export default function CreateFixedDepositProductView({
                   }
                 }}
                 className={`flex flex-col items-center z-10 cursor-pointer ${
-                  isActive ? 'px-2 py-1 -my-1 rounded-[2px]' : ''
+                  isActive ? 'px-1 py-1 -my-1 rounded-[2px]' : ''
                 }`}
               >
                 {/* Circle Icon */}
@@ -320,7 +498,7 @@ export default function CreateFixedDepositProductView({
                 )}
 
                 {/* Step Label */}
-                <span className={`text-[10px] font-semibold tracking-wider mt-1.5 uppercase ${
+                <span className={`text-[9.5px] font-semibold tracking-wider mt-1.5 uppercase text-center ${
                   isActive ? 'text-gray-900 font-bold' : 'text-gray-500'
                 }`}>
                   {st.label}
@@ -714,7 +892,7 @@ export default function CreateFixedDepositProductView({
           </form>
         )}
 
-        {/* Tab 5: INTEREST RATE CHART matching Image 5 */}
+        {/* Tab 5: INTEREST RATE CHART matching Image 5, Image 1 & 2 */}
         {currentStep === 5 && (
           <form 
             id="tour-fd-chart-form"
@@ -802,19 +980,326 @@ export default function CreateFixedDepositProductView({
                   </div>
                 </div>
 
-                {/* Add Slab section matching Image 5 */}
-                <div className="pt-3 border-t border-gray-100 flex flex-col items-center justify-center space-y-2 py-3">
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer flex items-center space-x-1.5 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Slab</span>
-                  </button>
+                {/* Slabs Section matching Image 2 */}
+                {formData.slabs && formData.slabs.length > 0 ? (
+                  <div className="pt-4 border-t border-gray-100 space-y-4">
+                    <div className="overflow-x-auto border border-gray-200 rounded-[2px]">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-600 font-semibold">
+                          <tr>
+                            <th className="py-2.5 px-3">Period</th>
+                            <th className="py-2.5 px-3">Amount Range</th>
+                            <th className="py-2.5 px-3">Interest</th>
+                            <th className="py-2.5 px-3">Description</th>
+                            <th className="py-2.5 px-3 text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {formData.slabs.map((slab, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                              <td className="py-2.5 px-3 text-gray-800 font-medium">
+                                {slab.periodFrom} - {slab.periodTo} {slab.periodType}
+                              </td>
+                              <td className="py-2.5 px-3 text-gray-600 font-mono">
+                                {slab.amountRangeFrom && slab.amountRangeTo 
+                                  ? `${slab.amountRangeFrom} - ${slab.amountRangeTo}` 
+                                  : '-'}
+                              </td>
+                              <td className="py-2.5 px-3 text-gray-900 font-semibold font-mono">
+                                {slab.interest}%
+                              </td>
+                              <td className="py-2.5 px-3 text-gray-700">
+                                {slab.description}
+                              </td>
+                              <td className="py-2.5 px-3 text-center">
+                                <div className="flex items-center justify-center space-x-2">
+                                  <button
+                                    type="button"
+                                    className="text-[#1072ba] hover:underline text-[11px] font-medium flex items-center space-x-1 cursor-pointer"
+                                  >
+                                    <Info className="w-3 h-3" />
+                                    <span>View Incentives</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSlab(idx)}
+                                    className="text-gray-400 hover:text-red-500 p-1 cursor-pointer transition-colors"
+                                    title="Delete slab"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-                  <div className="text-xs text-gray-600 font-medium">
-                    It is required to add at least one Slab
+                    {/* Button to add more slabs */}
+                    <div className="flex justify-start">
+                      <button
+                        type="button"
+                        id="tour-fd-add-slab-btn"
+                        onClick={() => setShowSlabModal(true)}
+                        className="px-3.5 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer flex items-center space-x-1 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Slab</span>
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  /* Empty state matching Image 5 before slabs added */
+                  <div className="pt-3 border-t border-gray-100 flex flex-col items-center justify-center space-y-2 py-4">
+                    <button
+                      type="button"
+                      id="tour-fd-add-slab-btn"
+                      onClick={() => setShowSlabModal(true)}
+                      className="px-4 py-2 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer flex items-center space-x-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Slab</span>
+                    </button>
+
+                    <div className="text-xs text-gray-600 font-medium">
+                      It is required to add at least one Slab
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* Bottom Actions */}
+            <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="px-5 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-[3px] cursor-pointer select-none transition-colors"
+              >
+                &larr; Previous
+              </button>
+              <button
+                type="submit"
+                id="tour-fd-next-btn"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Tab 6: CHARGES matching Image 3 */}
+        {currentStep === 6 && (
+          <form 
+            id="tour-fd-charges-form"
+            onSubmit={handleNext}
+            className="space-y-6 pt-2"
+          >
+            <div className="flex items-center space-x-4 max-w-lg">
+              <div className="flex-1">
+                <FloatingSelect
+                  label="Charge"
+                  value={formData.chargeId}
+                  onChange={(e) => setFormData({ ...formData, chargeId: e.target.value })}
+                >
+                  <option value="">Select Charge</option>
+                  <option value="1">Fixed Deposit Account Opening Fee</option>
+                  <option value="2">Early Withdrawal Penalty Fee</option>
+                </FloatingSelect>
+              </div>
+
+              <div className="pt-3">
+                <button
+                  type="button"
+                  disabled={!formData.chargeId}
+                  className="px-4 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium rounded-[2px] shadow-xs disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center space-x-1 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="py-8 text-center text-xs text-gray-400 bg-gray-50 border border-dashed border-gray-200 rounded-[2px]">
+              No charges configured for this fixed deposit product. (Tab charge không bắt buộc vì không có phí).
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="px-5 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-[3px] cursor-pointer select-none transition-colors"
+              >
+                &larr; Previous
+              </button>
+              <button
+                type="submit"
+                id="tour-fd-next-btn"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Tab 7: ACCOUNTING matching Image 4 */}
+        {currentStep === 7 && (
+          <form 
+            id="tour-fd-accounting-form"
+            onSubmit={handleNext}
+            className="space-y-6 pt-2"
+          >
+            {/* Accounting Rule Radio Buttons */}
+            <div className="flex items-center space-x-6 text-xs text-gray-800">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="None"
+                  checked={formData.accountingRule === 'None'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#1072ba]"
+                />
+                <span>None</span>
+              </label>
+
+              <label className="flex items-center space-x-2 cursor-pointer font-medium text-gray-900">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="Cash"
+                  checked={formData.accountingRule === 'Cash'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#1072ba]"
+                />
+                <span>Cash</span>
+              </label>
+
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="PeriodicAccrual"
+                  checked={formData.accountingRule === 'PeriodicAccrual'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#1072ba]"
+                />
+                <span>Accrual (periodic)</span>
+              </label>
+            </div>
+
+            {formData.accountingRule === 'Cash' && (
+              <div className="space-y-6 pt-2">
+                
+                {/* Assets Section */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Assets
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Saving reference *"
+                      required
+                      value={formData.savingReferenceAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingReferenceAccountId: e.target.value })}
+                    >
+                      <option value="110201">(110201) Settlement Bank Account</option>
+                      <option value="110101">(110101) Vault Cash</option>
+                      <option value="110102">(110102) Petty Cash</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Liabilities Section */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Liabilities
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Saving control *"
+                      required
+                      value={formData.savingControlAccountId}
+                      onChange={(e) => setFormData({ ...formData, savingControlAccountId: e.target.value })}
+                    >
+                      <option value="210103">(210103) Fixed Deposits</option>
+                      <option value="210102">(210102) Current Account Deposits</option>
+                    </FloatingSelect>
+
+                    <FloatingSelect
+                      label="Savings transfers in suspense *"
+                      required
+                      value={formData.transfersInSuspenseAccountId}
+                      onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
+                    >
+                      <option value="220201">(220201) Clearing Payable</option>
+                      <option value="220101">(220101) Inter-branch Clearing</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Expenses Section */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Expenses
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Interest on savings *"
+                      required
+                      value={formData.interestOnSavingsAccountId}
+                      onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
+                    >
+                      <option value="510102">(510102) Fixed Deposit Interest Expense</option>
+                      <option value="510101">(510101) Current Account Interest Expense</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Income Section */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Income
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <FloatingSelect
+                      label="Income from fees *"
+                      required
+                      value={formData.incomeFromFeeAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
+                    >
+                      <option value="420102">(420102) Savings Service Fee Income</option>
+                      <option value="420101">(420101) Account Maintenance Fee Income</option>
+                    </FloatingSelect>
+
+                    <FloatingSelect
+                      label="Income from penalties *"
+                      required
+                      value={formData.incomeFromPenaltyAccountId}
+                      onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
+                    >
+                      <option value="420107">(420107) Fixed Deposit Penalty Income</option>
+                      <option value="420104">(420104) Late Payment Penalty Fee Income</option>
+                    </FloatingSelect>
+                  </div>
+                </div>
+
+                {/* Advanced Accounting Rules */}
+                <div className="pt-2">
+                  <label className="flex items-center space-x-2 text-xs text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.advancedAccountingRules}
+                      onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
+                      className="rounded-[2px] border-gray-300 text-[#1072ba]"
+                    />
+                    <span>Advanced Accounting Rules</span>
+                  </label>
                 </div>
 
               </div>
@@ -840,33 +1325,206 @@ export default function CreateFixedDepositProductView({
           </form>
         )}
 
-        {/* Tab 6: CHARGES (placeholder ready for next steps) */}
-        {currentStep === 6 && (
-          <div className="space-y-6 pt-2 text-center text-xs text-gray-500 py-10">
-            <p>Charges tab will be configured in subsequent steps.</p>
-            <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={handlePrevious}
-                className="px-5 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-[3px] cursor-pointer select-none transition-colors"
-              >
-                &larr; Previous
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-6 py-2 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
-              >
-                Next &rarr;
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Tab 8: PREVIEW matching Image 5 */}
+        {currentStep === 8 && (
+          <div id="tour-fd-preview-card" className="space-y-6 pt-1">
+            <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2">
+              {formData.name || 'TKB Fixed Deposit'}
+            </h2>
 
-        {/* Tab 7: ACCOUNTING (placeholder ready for next steps) */}
-        {currentStep === 7 && (
-          <div className="space-y-6 pt-2 text-center text-xs text-gray-500 py-10">
-            <p>Accounting tab will be configured in subsequent steps.</p>
+            {/* Details Card */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-2">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Short Name: </span>
+                  <span className="text-gray-900 font-semibold">{formData.shortName || 'TKFD'}</span>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="text-gray-500">Description: </span>
+                  <span className="text-gray-800">{formData.description}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Currency Card */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-2">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Currency
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Currency: </span>
+                  <span className="text-gray-900 font-medium">{formData.currency}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Decimal Places: </span>
+                  <span className="text-gray-900 font-medium">{formData.decimalPlaces}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Currency in multiples of: </span>
+                  <span className="text-gray-900 font-medium">{formData.currencyMultiplesOf}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Terms Card */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-2">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Terms
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Deposit Amount: </span>
+                  <span className="text-gray-900 font-medium">
+                    {formData.defaultDepositAmount || '10000000'} (Min: {formData.minDepositAmount || '1000000'}, Max: {formData.maxDepositAmount || '1000000000'})
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Interest Compounding Period: </span>
+                  <span className="text-gray-900 font-medium">{formData.interestCompoundingPeriod}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Interest Posting Period: </span>
+                  <span className="text-gray-900 font-medium">{formData.interestPostingPeriod}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Interest Calculated using: </span>
+                  <span className="text-gray-900 font-medium">{formData.interestCalculationUsing}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Days in Year: </span>
+                  <span className="text-gray-900 font-medium">{formData.daysInYear}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Settings Card */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-2">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Settings
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Minimum Deposit Term: </span>
+                  <span className="text-gray-900 font-medium">{formData.minDepositTermFrequency} {formData.minDepositTermType}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">And thereafter in Multiples of: </span>
+                  <span className="text-gray-900 font-medium">{formData.inMultiplesOfFrequency || '3'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Maximum Deposit Term: </span>
+                  <span className="text-gray-900 font-medium">{formData.maxDepositTermFrequency} {formData.maxDepositTermType}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Apply Penal Interest: </span>
+                  <span className="text-gray-900 font-medium">{formData.applyPenalInterest ? 'Yes' : 'No'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Withhold Tax: </span>
+                  <span className="text-gray-900 font-medium">{formData.isWithholdTaxApplicable ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Interest Rate Charts Card matching Image 5 */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-3">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Interest Rate Charts
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Name: </span>
+                  <span className="text-gray-900 font-medium">{formData.chartName || 'TKB FD VND Interest Rates 2026'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">From Date: </span>
+                  <span className="text-gray-900 font-medium">01 September 2026</span>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="text-gray-500">Description: </span>
+                  <span className="text-gray-800">{formData.chartDescription}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Primary Grouping by Amount: </span>
+                  <span className="text-gray-900 font-medium">{formData.isPrimaryGroupingByAmount ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+
+              {/* Slabs Table in Preview */}
+              <div className="overflow-x-auto border border-gray-200 rounded-[2px] mt-2">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-600 font-semibold">
+                    <tr>
+                      <th className="py-2 px-3">Period</th>
+                      <th className="py-2 px-3">Amount Range</th>
+                      <th className="py-2 px-3">Interest</th>
+                      <th className="py-2 px-3">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {(formData.slabs.length > 0 ? formData.slabs : DEFAULT_SLABS).map((s, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="py-2 px-3 text-gray-900 font-medium">
+                          {s.periodFrom} - {s.periodTo} {s.periodType}
+                        </td>
+                        <td className="py-2 px-3 text-gray-500 font-mono">
+                          {s.amountRangeFrom && s.amountRangeTo ? `${s.amountRangeFrom} - ${s.amountRangeTo}` : '-'}
+                        </td>
+                        <td className="py-2 px-3 text-gray-900 font-semibold font-mono">
+                          {s.interest}
+                        </td>
+                        <td className="py-2 px-3 text-gray-700">
+                          {s.description}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Accounting Card matching Image 5 */}
+            <div className="bg-white border border-gray-200 rounded-[2px] p-4 space-y-2">
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide border-b border-gray-100 pb-1.5">
+                Accounting
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-500">Type: </span>
+                  <span className="text-gray-900 font-bold">{formData.accountingRule}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Saving reference: </span>
+                  <span className="text-gray-900 font-medium">(110201) Settlement Bank Account</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Saving control: </span>
+                  <span className="text-gray-900 font-medium">(210103) Fixed Deposits</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Savings transfers in suspense: </span>
+                  <span className="text-gray-900 font-medium">(220201) Clearing Payable</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Interest on savings: </span>
+                  <span className="text-gray-900 font-medium">(510102) Fixed Deposit Interest Expense</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Income from fees: </span>
+                  <span className="text-gray-900 font-medium">(420102) Savings Service Fee Income</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Income from penalties: </span>
+                  <span className="text-gray-900 font-medium">(420107) Fixed Deposit Penalty Income</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions */}
             <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
               <button
                 type="button"
@@ -877,6 +1535,7 @@ export default function CreateFixedDepositProductView({
               </button>
               <button
                 type="button"
+                id="tour-fd-submit-btn"
                 onClick={() => {
                   if (onSaveProduct) {
                     onSaveProduct({
@@ -885,12 +1544,14 @@ export default function CreateFixedDepositProductView({
                       shortName: formData.shortName || 'TKFD',
                       description: formData.description,
                       currency: formData.currency,
-                      status: 'Active'
+                      status: 'Active',
+                      slabs: formData.slabs.length > 0 ? formData.slabs : DEFAULT_SLABS,
+                      accountingRule: formData.accountingRule
                     });
                   }
                   if (onNavigateFixedDepositProducts) onNavigateFixedDepositProducts();
                 }}
-                className="px-6 py-2 text-xs font-semibold text-white bg-[#28a745] hover:bg-[#218838] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
+                className="px-7 py-2.5 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
               >
                 Submit
               </button>
@@ -899,6 +1560,113 @@ export default function CreateFixedDepositProductView({
         )}
 
       </div>
+
+      {/* Add Slab Modal matching Image 1 */}
+      {showSlabModal && (
+        <div 
+          id="tour-fd-slab-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-sm font-semibold text-gray-900">
+                Add Slab
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowSlabModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddSlabSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <FloatingSelect
+                  label="Period Type *"
+                  required
+                  value={slabForm.periodType}
+                  onChange={(e) => setSlabForm({ ...slabForm, periodType: e.target.value })}
+                >
+                  <option value="Days">Days</option>
+                  <option value="Weeks">Weeks</option>
+                  <option value="Months">Months</option>
+                  <option value="Years">Years</option>
+                </FloatingSelect>
+
+                <FloatingInput
+                  label="Period From *"
+                  required
+                  type="number"
+                  value={slabForm.periodFrom}
+                  onChange={(e) => setSlabForm({ ...slabForm, periodFrom: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <FloatingInput
+                  label="Period To"
+                  type="number"
+                  value={slabForm.periodTo}
+                  onChange={(e) => setSlabForm({ ...slabForm, periodTo: e.target.value })}
+                />
+
+                <FloatingInput
+                  label="Amount Range From"
+                  type="number"
+                  value={slabForm.amountRangeFrom}
+                  onChange={(e) => setSlabForm({ ...slabForm, amountRangeFrom: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <FloatingInput
+                  label="Amount Range To"
+                  type="number"
+                  value={slabForm.amountRangeTo}
+                  onChange={(e) => setSlabForm({ ...slabForm, amountRangeTo: e.target.value })}
+                />
+
+                <FloatingInput
+                  label="Interest *"
+                  required
+                  type="number"
+                  step="0.1"
+                  value={slabForm.interest}
+                  onChange={(e) => setSlabForm({ ...slabForm, interest: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <FloatingInput
+                  label="Description *"
+                  required
+                  value={slabForm.description}
+                  onChange={(e) => setSlabForm({ ...slabForm, description: e.target.value })}
+                />
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowSlabModal(false)}
+                  className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-[2px] cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

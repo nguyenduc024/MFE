@@ -175,7 +175,8 @@ export default function PracticeSpotlightTour({
           currency: false,
           terms: false,
           settings: false,
-          chart: false
+          chart: false,
+          accounting: false
         });
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
@@ -868,6 +869,8 @@ export default function PracticeSpotlightTour({
       stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
   } else if (module === 'saving-part-1') {
+    const hasTkfdCreated = fixedDepositProducts.some(p => p.shortName === 'TKFD' || p.name?.toLowerCase().includes('fixed deposit'));
+
     if (currentPath === 'admin-products') {
       currentStep = 1;
       targetSelector = '#tour-products-fixed-deposit';
@@ -875,17 +878,28 @@ export default function PracticeSpotlightTour({
       stepSubtitle = 'Mở danh mục quản lý sản phẩm tiền gửi tiết kiệm có kỳ hạn.';
       stepInstruction = 'Tại trang Products, nhấp vào mục "Fixed Deposit Products" để truy cập danh sách các sản phẩm tiền gửi có kỳ hạn của ngân hàng.';
     } else if (currentPath === 'admin-fixed-deposit-products') {
-      currentStep = 2;
-      targetSelector = '#tour-create-fd-product-btn';
-      stepTitle = 'Bước 2: Tạo sản phẩm Fixed Deposit mới';
-      stepSubtitle = 'Mở biểu mẫu khai báo sản phẩm tiền gửi có kỳ hạn mới.';
-      stepInstruction = 'Nhấp vào nút "+ Create Fixed Deposit Product" màu xanh ở góc trên bên phải để bắt đầu thiết lập sản phẩm TKB Fixed Deposit (TKFD).';
+      if (!hasTkfdCreated) {
+        currentStep = 2;
+        targetSelector = '#tour-create-fd-product-btn';
+        stepTitle = 'Bước 2: Tạo sản phẩm Fixed Deposit mới';
+        stepSubtitle = 'Mở biểu mẫu khai báo sản phẩm tiền gửi có kỳ hạn mới.';
+        stepInstruction = 'Nhấp vào nút "+ Create Fixed Deposit Product" màu xanh ở góc trên bên phải để bắt đầu thiết lập sản phẩm TKB Fixed Deposit (TKFD).';
+      } else {
+        currentStep = 11;
+        targetSelector = '#tour-fd-product-row-tkfd';
+        stepTitle = 'Hoàn tất: Sản phẩm TKB Fixed Deposit (TKFD) đã kích hoạt';
+        stepSubtitle = 'Sản phẩm Tiết kiệm có kỳ hạn đã được tạo và kích hoạt thành công trên Core Banking!';
+        stepInstruction = 'Sản phẩm TKB Fixed Deposit (TKFD) với biểu lãi suất 4 bậc (3.5% - 5.5% p.a.) và hạch toán Cash Based đã được hiển thị trên danh mục. Nhấn nút "Hoàn thành phần thực hành" bên dưới để hoàn tất.';
+      }
     } else if (currentPath === 'admin-create-fixed-deposit-product') {
       const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-details-form'));
       const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-currency-form'));
       const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-terms-form'));
       const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-settings-form'));
       const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-chart-form'));
+      const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-charges-form'));
+      const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-accounting-form'));
+      const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-preview-card'));
 
       if (hasDetails) {
         currentStep = 3;
@@ -939,14 +953,38 @@ export default function PracticeSpotlightTour({
         currentStep = 7;
         targetSelector = '#tour-fd-chart-form';
         if (!fdFilledSteps.chart) {
-          stepTitle = 'Bước 7: Khởi tạo tab INTEREST RATE CHART';
-          stepSubtitle = 'Thiết lập khung Biểu lãi suất có kỳ hạn cho năm 2026.';
-          stepInstruction = 'Khai báo thông tin Biểu lãi suất: Name (TKB FD VND Interest Rates 2026), From Date (9/1/2026), Description (Annual interest rate schedule for TKB Fixed Deposit with 3, 6, 9 and 12-month terms.). Bấm nút "Điền dữ liệu mẫu Chart" bên dưới để điền tự động.';
+          stepTitle = 'Bước 7: Khai báo tab INTEREST RATE CHART & 4 Bậc Slabs';
+          stepSubtitle = 'Thiết lập Biểu lãi suất và 4 bậc kỳ hạn 3M (3.5%), 6M (4.5%), 9M (5.0%), 12M (5.5%).';
+          stepInstruction = 'Khai báo thông tin Biểu lãi suất (TKB FD VND Interest Rates 2026, From Date: 9/1/2026) và 4 bậc lãi suất Slabs tương ứng. Bấm nút "Điền dữ liệu mẫu Chart & 4 Slabs" bên dưới để điền tự động.';
         } else {
-          stepTitle = 'Bước 7: Hoàn tất 5 bước khởi tạo ban đầu Fixed Deposit';
-          stepSubtitle = 'Đã hoàn thành xuất sắc 5 bước đầu theo đúng giao diện tài liệu.';
-          stepInstruction = 'Vùng sáng đang chiếu sáng toàn bộ biểu mẫu Interest Rate Chart đã điền với nút "+ Add Slab" sẵn sàng để thêm các bậc kỳ hạn lãi suất ở các bước tiếp theo!';
+          stepTitle = 'Bước 7: Rà soát Biểu lãi suất & 4 Bậc Slabs';
+          stepSubtitle = 'Biểu lãi suất và 4 bậc kỳ hạn đã được thiết lập đầy đủ trên bảng.';
+          stepInstruction = 'Rà soát 4 bậc lãi suất trên bảng: 1-3M (3.5%), 4-6M (4.5%), 7-9M (5.0%), 10-12M (5.5%). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
         }
+      } else if (hasCharges) {
+        currentStep = 8;
+        targetSelector = '#tour-fd-charges-form';
+        stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
+        stepSubtitle = 'Sản phẩm tiết kiệm có kỳ hạn này không áp dụng phí dịch vụ.';
+        stepInstruction = 'Theo thiết kế sản phẩm, tab Biểu phí không yêu cầu khai báo vì miễn phí hoàn toàn cho khách hàng. Nhấp vào nút "Next" trên form hoặc nút "Tiếp tục sang tab Accounting" bên dưới để sang bước tiếp theo.';
+      } else if (hasAccounting) {
+        currentStep = 9;
+        targetSelector = '#tour-fd-accounting-form';
+        if (!fdFilledSteps.accounting) {
+          stepTitle = 'Bước 9: Khai báo tab ACCOUNTING (Hạch toán kế toán Cash Based)';
+          stepSubtitle = 'Chọn phương pháp Cash và liên kết các tài khoản sổ cái GL tương ứng.';
+          stepInstruction = 'Chọn Cash và gán các tài khoản GL: Saving reference (110201 Settlement Bank Account), Saving control (210103 Fixed Deposits), Transfers in suspense (220201 Clearing Payable), Interest on savings (510102 Fixed Deposit Interest Expense), Income from fees (420102) & penalties (420107). Bấm nút "Điền dữ liệu mẫu Accounting (Cash Based)" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 9: Rà soát tab ACCOUNTING';
+          stepSubtitle = 'Đã liên kết đầy đủ các tài khoản sổ cái kế toán Cash Based.';
+          stepInstruction = 'Kiểm tra lại các tài khoản GL đã gán (TK 110201, TK 210103, TK 220201, TK 510102, TK 420102, TK 420107). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Preview" bên dưới.';
+        }
+      } else if (hasPreview) {
+        currentStep = 10;
+        targetSelector = '#tour-fd-preview-card';
+        stepTitle = 'Bước 10: Rà soát tổng thể & Bấm Submit tạo sản phẩm';
+        stepSubtitle = 'Kiểm tra toàn bộ các phần cấu hình sản phẩm trước khi chính thức kích hoạt.';
+        stepInstruction = 'Rà soát kỹ các thẻ: Details, Currency, Terms, Settings, Interest Rate Charts (4 Slabs) và Accounting. Sau đó bấm nút "Submit" màu xanh bên dưới để tạo sản phẩm TKB Fixed Deposit.';
       } else {
         currentStep = 3;
         targetSelector = '#tour-fd-stepper';
@@ -3276,7 +3314,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -4517,15 +4555,37 @@ export default function PracticeSpotlightTour({
 
             {/* Step 2: admin-fixed-deposit-products view */}
             {currentPath === 'admin-fixed-deposit-products' && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (navigate) navigate('admin-create-fixed-deposit-product');
-                }}
-                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-              >
-                Tạo sản phẩm Fixed Deposit
-              </button>
+              <>
+                {fixedDepositProducts.some(p => p.shortName === 'TKFD') ? (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Đã tạo thành công sản phẩm TKB Fixed Deposit (TKFD)!
+                      </div>
+                      <div>Sản phẩm Tiết kiệm có kỳ hạn đã được tạo và kích hoạt thành công trên hệ thống core banking với đầy đủ 4 bậc lãi suất (3.5% - 5.5% p.a.) và hạch toán kế toán Cash Based.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('admin-create-fixed-deposit-product');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Tạo sản phẩm Fixed Deposit
+                  </button>
+                )}
+              </>
             )}
 
             {/* Step 3+: inside admin-create-fixed-deposit-product */}
@@ -4535,6 +4595,9 @@ export default function PracticeSpotlightTour({
               const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-terms-form'));
               const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-settings-form'));
               const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-chart-form'));
+              const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-charges-form'));
+              const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-accounting-form'));
+              const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fd-preview-card'));
 
               if (hasDetails) {
                 return (
@@ -4684,24 +4747,21 @@ export default function PracticeSpotlightTour({
                         }}
                         className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                       >
-                        Điền dữ liệu mẫu Chart
+                        Điền dữ liệu mẫu Chart & 4 Slabs
                       </button>
                     ) : (
-                      <div className="space-y-2 pt-1 border-t border-gray-100">
-                        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans">
-                          <div className="font-bold text-emerald-900 mb-0.5">
-                            Hoàn tất 5 bước khởi tạo ban đầu!
-                          </div>
-                          <div>Đã thiết lập đầy đủ thông tin Biểu lãi suất có kỳ hạn 2026 với nút "+ Add Slab" sẵn sàng để thêm các bậc lãi suất.</div>
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Đã điền Biểu lãi suất và 4 bậc Slabs (1-3M: 3.5%, 4-6M: 4.5%, 7-9M: 5.0%, 10-12M: 5.5%). Hãy rà soát trên bảng trước khi chuyển sang tab tiếp theo.
                         </div>
                         <button
                           type="button"
                           onClick={() => {
-                            if (onClose) onClose();
+                            window.dispatchEvent(new CustomEvent('practice-next-fd-step'));
                           }}
-                          className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                         >
-                          Hoàn tất 5 bước đầu Fixed Deposit
+                          Tiếp tục sang tab Charges
                         </button>
                       </div>
                     )}
@@ -4709,8 +4769,106 @@ export default function PracticeSpotlightTour({
                 );
               }
 
+              if (hasCharges) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-tight">
+                      Tab Charges: Sản phẩm này không áp dụng phí dịch vụ. Hãy bấm Tiếp tục để chuyển sang tab Accounting.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-fd-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Accounting
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasAccounting) {
+                return (
+                  <div className="space-y-1.5">
+                    {!fdFilledSteps.accounting ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-fd-accounting'));
+                          setFdFilledSteps(prev => ({ ...prev, accounting: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền mẫu Accounting (Cash Based)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Đã liên kết các tài khoản kế toán Cash Based (TK 110201, 210103, 220201, 510102, 420102, 420107). Hãy rà soát lại thông tin trước khi chuyển sang tab Preview.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-fd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Preview
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasPreview) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight font-sans">
+                      <div className="font-bold text-emerald-900 mb-0.5">
+                        Rà soát toàn bộ cấu hình sản phẩm
+                      </div>
+                      <div>Mọi tham số đã hoàn thiện. Bấm nút Submit màu xanh để chính thức kích hoạt sản phẩm trên hệ thống!</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-fd'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bấm Submit tạo sản phẩm Fixed Deposit
+                    </button>
+                  </div>
+                );
+              }
+
               return null;
             })()}
+
+            {/* Quick autofill all */}
+            {currentPath === 'admin-create-fixed-deposit-product' && (
+              <div className="pt-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-fd-all'));
+                    setFdFilledSteps({
+                      details: true,
+                      currency: true,
+                      terms: true,
+                      settings: true,
+                      chart: true,
+                      accounting: true
+                    });
+                  }}
+                  className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
+                >
+                  Điền nhanh toàn bộ và đến Preview
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -5708,7 +5866,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'casa-part-5' && currentStep === 7)
+            {(module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'casa-part-5' && currentStep === 7)
               ? 'Nhấn nút "Hoàn tất bài thực hành Chuyển khoản nội bộ" phía trên để kết thúc'
               : (module === 'casa-part-4' && currentStep === 5)
               ? 'Nhấn nút "Hoàn tất bài thực hành Rút tiền CASA" phía trên để kết thúc'

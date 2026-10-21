@@ -36,7 +36,8 @@ export default function EduGuideDrawer({
   onResetClients,
   onResetSavingsAccounts,
   onResetSavingsForWithdraw,
-  onResetSavingsForTransfer
+  onResetSavingsForTransfer,
+  onResetFixedDepositProducts
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -2752,15 +2753,63 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">6</span>
-                  <span>Khởi Tạo Tab INTEREST RATE CHART (Biểu Lãi Suất)</span>
+                  <span>Khởi Tạo Tab INTEREST RATE CHART &amp; 4 Bậc Slabs</span>
                 </div>
                 <div className="pl-6 space-y-1.5 text-xs text-gray-600">
                   <div><strong>Name *:</strong> <code>TKB FD VND Interest Rates 2026</code></div>
                   <div><strong>From Date *:</strong> <code>9/1/2026</code></div>
                   <div><strong>Description *:</strong> <code>Annual interest rate schedule for TKB Fixed Deposit with 3, 6, 9 and 12-month terms.</code></div>
                   <div><strong>Is primary grouping by amount?:</strong> Không chọn</div>
-                  <div className="text-[11px] text-[#1072ba] font-medium pt-1">Nút <strong>+ Add Slab</strong> sẵn sàng để cấu hình bậc lãi suất ở các bước kế tiếp.</div>
+                  <div className="pt-1 font-medium text-gray-800">4 Bậc kỳ hạn lãi suất (Slabs):</div>
+                  <ul className="list-disc pl-4 space-y-1 font-mono text-[11px] text-gray-700">
+                    <li>Slab 1: 1 - 3 Months | Lãi suất: 3.5% p.a. | FD 3M - 3.5% p.a.</li>
+                    <li>Slab 2: 4 - 6 Months | Lãi suất: 4.5% p.a. | FD 6M - 4.5% p.a.</li>
+                    <li>Slab 3: 7 - 9 Months | Lãi suất: 5.0% p.a. | FD 9M - 5.0% p.a.</li>
+                    <li>Slab 4: 10 - 12 Months | Lãi suất: 5.5% p.a. | FD 12M - 5.5% p.a.</li>
+                  </ul>
+                  <div className="text-[11px] text-gray-500 pt-1">Nhấn <strong>Next</strong> để chuyển sang tab CHARGES.</div>
                 </div>
+              </div>
+
+              {/* Bước 7 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
+                  <span>Kiểm Tra Tab CHARGES (Biểu Phí)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Sản phẩm tiết kiệm có kỳ hạn TKB Fixed Deposit không áp dụng phí dịch vụ. Giữ nguyên danh sách trống và nhấn <strong>Next</strong> để chuyển sang tab ACCOUNTING.
+                </p>
+              </div>
+
+              {/* Bước 8 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">8</span>
+                  <span>Khai Báo Tab ACCOUNTING (Hạch Toán Kế Toán Cash Based)</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Phương pháp hạch toán:</strong> Chọn <code>Cash</code></div>
+                  <div><strong>Assets - Saving reference *:</strong> <code>(110201) Settlement Bank Account</code></div>
+                  <div><strong>Liabilities - Saving control *:</strong> <code>(210103) Fixed Deposits</code></div>
+                  <div><strong>Liabilities - Transfers in suspense *:</strong> <code>(220201) Clearing Payable</code></div>
+                  <div><strong>Expenses - Interest on savings *:</strong> <code>(510102) Fixed Deposit Interest Expense</code></div>
+                  <div><strong>Income - Income from fees *:</strong> <code>(420102) Savings Service Fee Income</code></div>
+                  <div><strong>Income - Income from penalties *:</strong> <code>(420107) Fixed Deposit Penalty Income</code></div>
+                  <div><strong>Advanced Accounting Rules:</strong> Không chọn</div>
+                  <div className="text-[11px] text-gray-500 pt-1">Nhấn <strong>Next</strong> để chuyển sang tab PREVIEW.</div>
+                </div>
+              </div>
+
+              {/* Bước 9 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">9</span>
+                  <span>Rà Soát Tab PREVIEW &amp; Bấm Submit Hoàn Tất</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Kiểm tra toàn bộ 7 thẻ cấu hình trên màn hình Preview: Details, Currency, Terms, Settings, Interest Rate Charts (4 Slabs), Accounting (Cash Based). Sau đó nhấn <strong>Submit</strong> để lưu sản phẩm vào hệ thống.
+                </p>
               </div>
             </div>
           </div>
@@ -3376,17 +3425,37 @@ export default function EduGuideDrawer({
               </button>
             )
           ) : activePartId === 'saving-part-1' ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (onStartPractice) {
-                  onStartPractice('saving-part-1');
-                }
-              }}
-              className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-            >
-              Bắt đầu Tạo Sản Phẩm TKB Fixed Deposit (TKFD)
-            </button>
+            isSavingPart1Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã tạo thành công Sản phẩm TKB Fixed Deposit (TKFD - 100%)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetFixedDepositProducts) onResetFixedDepositProducts();
+                    if (onStartPractice) {
+                      onStartPractice('saving-part-1');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Tạo Sản Phẩm Fixed Deposit
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('saving-part-1');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Tạo Sản Phẩm TKB Fixed Deposit (TKFD)
+              </button>
+            )
           ) : activePartId === 'casa-part-5' ? (
             isCasaPart5Complete ? (
               <div className="space-y-2">

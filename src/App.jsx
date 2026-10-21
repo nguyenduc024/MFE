@@ -1467,10 +1467,14 @@ export default function App() {
           setPracticeActive(true);
         }}
         savingsProducts={savingsProducts}
+        fixedDepositProducts={fixedDepositProducts}
         clients={clients}
         savingsAccounts={savingsAccounts}
         onResetSavingsProducts={() => {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
+        }}
+        onResetFixedDepositProducts={() => {
+          setFixedDepositProducts(prev => prev.filter(p => p.shortName !== 'TKFD'));
         }}
         onResetClients={() => {
           setClients(prev => prev.filter(c => c.id !== '11' && c.id !== '12' && c.externalId !== 'TKB-CIF-TDU-001' && c.externalId !== 'TKB-CIF-TDU-002' && !c.displayName?.toLowerCase().includes('minh quang tran') && !c.displayName?.toLowerCase().includes('lan ngoc pham')));
@@ -1551,6 +1555,7 @@ export default function App() {
         currencies={currencies}
         glAccounts={glAccounts}
         savingsProducts={savingsProducts}
+        fixedDepositProducts={fixedDepositProducts}
         clients={clients}
         savingsAccounts={savingsAccounts}
         onSelectClient={(client) => setSelectedClient(client)}

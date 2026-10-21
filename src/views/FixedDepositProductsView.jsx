@@ -106,7 +106,10 @@ export default function FixedDepositProductsView({
                 filteredProducts.map((p, idx) => (
                   <tr 
                     key={p.id || idx}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    id={p.shortName === 'TKFD' ? 'tour-fd-product-row-tkfd' : undefined}
+                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                      p.shortName === 'TKFD' ? 'bg-sky-50/40' : ''
+                    }`}
                   >
                     <td className="py-3 px-4 font-normal text-gray-900">
                       <span className="text-[#1072ba] hover:underline font-medium">
