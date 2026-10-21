@@ -25,6 +25,7 @@ export default function PracticeSpotlightTour({
   offices = [],
   currencies = [],
   glAccounts = [],
+  loanProducts = [],
   savingsProducts = [],
   fixedDepositProducts = [],
   recurringDepositProducts = [],
@@ -164,6 +165,18 @@ export default function PracticeSpotlightTour({
     settings: false
   });
 
+  // Phân hệ 04 - Phần 1 state (Loan Product Creation: TKB Personal Loan)
+  const [loanFilledSteps, setLoanFilledSteps] = useState({
+    details: false,
+    currency: false,
+    settingsPart1: false,
+    settingsPart2: false,
+    terms: false,
+    charges: true,
+    accounting: false
+  });
+  const [loanSettingsSubStep, setLoanSettingsSubStep] = useState('part1');
+
 
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
@@ -223,6 +236,17 @@ export default function PracticeSpotlightTour({
           details: false,
           settings: false
         });
+      } else if (module === 'loan-part-1') {
+        setLoanFilledSteps({
+          details: false,
+          currency: false,
+          settingsPart1: false,
+          settingsPart2: false,
+          terms: false,
+          charges: true,
+          accounting: false
+        });
+        setLoanSettingsSubStep('part1');
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -315,6 +339,25 @@ export default function PracticeSpotlightTour({
     }
   }, [savingsAccounts, isActive, module, currentPath, casaDepositPopup]);
 
+
+  // Listen for loan product form changes (Phân hệ 04 - Phần 1)
+  useEffect(() => {
+    const handleLoanFormChanged = (e) => {
+      const fd = e?.detail?.formData;
+      if (!fd) return;
+      setLoanFilledSteps({
+        details: Boolean(fd.name && fd.shortName),
+        currency: Boolean(fd.currency && fd.decimalPlaces !== ''),
+        settingsPart1: Boolean(fd.amortization && fd.interestMethod && fd.daysInYear),
+        settingsPart2: Boolean(fd.overdueDaysForNPA && fd.allowOverridingSelectTerms),
+        terms: Boolean(fd.defaultPrincipal && fd.defaultRepayments && fd.defaultInterestRate),
+        charges: true,
+        accounting: Boolean(fd.accountingRule)
+      });
+    };
+    window.addEventListener('loan-form-changed', handleLoanFormChanged);
+    return () => window.removeEventListener('loan-form-changed', handleLoanFormChanged);
+  }, []);
 
   // Auto-filter transfer journal entries when navigating to journal in casa-part-5
   useEffect(() => {
@@ -1532,6 +1575,137 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1 / 17: Mở danh sách khách hàng (Clients)';
       stepSubtitle = 'Truy cập danh mục quản lý khách hàng từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
+    }
+  } else if (module === 'loan-part-1') {
+    const hasLoanProductCreated = loanProducts.some(p => 
+      p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
+    );
+
+    if (currentPath === 'admin-products') {
+      currentStep = 3;
+      targetSelector = '#tour-loan-products-tile';
+      stepTitle = 'Bước 3 / 13: Chọn mục Loan Products';
+      stepSubtitle = 'Mở danh sách các sản phẩm tín dụng và gói vay.';
+      stepInstruction = 'Tại bảng Products, nhấp vào dòng "Loan Products" ở cột bên trái để chuyển tới danh sách sản phẩm gói vay.';
+    } else if (currentPath === 'admin-loan-products') {
+      if (hasLoanProductCreated) {
+        currentStep = 13;
+        targetSelector = '#tour-loan-product-row-loan';
+        stepTitle = 'Bước 13 / 13: Hoàn tất tạo gói vay TKB Personal Loan!';
+        stepSubtitle = 'Sản phẩm TKB Personal Loan (mã: Loan) đã được tạo và kích hoạt thành công trên Core Banking!';
+        stepInstruction = 'Sản phẩm cho vay cá nhân trả góp TKB Personal Loan đã xuất hiện trên danh mục sản phẩm tín dụng. Nhấn nút "Hoàn thành phần thực hành (Phân hệ 04 - Phần 1)" bên dưới để hoàn tất bài học.';
+      } else {
+        currentStep = 4;
+        targetSelector = '#tour-create-loan-product-btn';
+        stepTitle = 'Bước 4 / 13: Nhấp nút Create Loan Product';
+        stepSubtitle = 'Mở biểu mẫu khai báo gói vay tín dụng mới.';
+        stepInstruction = 'Nhấp vào nút "+ Create Loan Product" màu xanh ở góc trên bên phải để bắt đầu thiết lập sản phẩm TKB Personal Loan.';
+      }
+    } else if (currentPath === 'admin-create-loan-product') {
+      const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-details-form'));
+      const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-currency-form'));
+      const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-settings-form'));
+      const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-terms-form'));
+      const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-charges-form'));
+      const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-accounting-form'));
+      const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-preview-card'));
+
+      if (hasDetails) {
+        currentStep = 5;
+        targetSelector = '#tour-loan-details-form';
+        if (!loanFilledSteps.details) {
+          stepTitle = 'Bước 5 / 13: Khai báo tab DETAILS (Thông tin sản phẩm - Hình 1)';
+          stepSubtitle = 'Nhập tên gói vay, mã viết tắt, mã External ID, ngày bắt đầu và mô tả.';
+          stepInstruction = 'Khai báo các trường: Product Name (TKB Personal Loan), Short Name (Loan), External Id (TKB-PRD-PL-001), Start Date (10/13/2026), Description (Personal installment loan with monthly repayments and declining balance interest calculation.). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền nhanh.';
+        } else {
+          stepTitle = 'Bước 5 / 13: Rà soát dữ liệu tab DETAILS';
+          stepSubtitle = 'Thông tin chi tiết gói vay đã được điền đầy đủ.';
+          stepInstruction = 'Kiểm tra lại Product Name (TKB Personal Loan), Short Name (Loan) và Description. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Currency" bên dưới.';
+        }
+      } else if (hasCurrency) {
+        currentStep = 6;
+        targetSelector = '#tour-loan-currency-form';
+        if (!loanFilledSteps.currency) {
+          stepTitle = 'Bước 6 / 13: Thiết lập tab CURRENCY (Đơn vị tiền tệ - Hình 2)';
+          stepSubtitle = 'Cấu hình loại tiền tệ VND và quy cách làm tròn số thập phân.';
+          stepInstruction = 'Khai báo các trường: Currency (Vietnamese Dong), Decimal Places (0), Currency in multiples of (1), Installment in multiples of (1). Bấm nút "Điền dữ liệu mẫu Currency" bên dưới để điền nhanh.';
+        } else {
+          stepTitle = 'Bước 6 / 13: Rà soát dữ liệu tab CURRENCY';
+          stepSubtitle = 'Thông số đơn vị tiền tệ đã được điền đầy đủ.';
+          stepInstruction = 'Kiểm tra lại Currency (Vietnamese Dong), Decimal Places (0), Currency in multiples of (1). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Settings" bên dưới.';
+        }
+      } else if (hasSettings) {
+        if (loanSettingsSubStep === 'part1' && !loanFilledSteps.settingsPart1) {
+          currentStep = 7;
+          targetSelector = '#tour-loan-settings-part1';
+          stepTitle = 'Bước 7 / 13: Cấu hình tab SETTINGS (Phần 1: Tính lãi & Lịch trả nợ - Hình 3)';
+          stepSubtitle = 'Cấu hình Amortization, Declining Balance, và Repayment Strategy.';
+          stepInstruction = 'Khai báo: Amortization (Equal installments), Interest Method (Declining Balance), Interest calculation period (Daily), Loan Schedule Type (Cumulative), Repayment strategy (Interest, Principal, Penalties, Fees Order), Arrears tolerance (0), Days in year (365 Days), Days in month (Actual). Bấm nút "Điền dữ liệu mẫu Settings (Phần 1)" bên dưới.';
+        } else {
+          currentStep = 8;
+          targetSelector = '#tour-loan-settings-part2';
+          if (!loanFilledSteps.settingsPart2) {
+            stepTitle = 'Bước 8 / 13: Cấu hình tab SETTINGS (Phần 2: Nợ quá hạn NPA & Ghi đè - Hình 4)';
+            stepSubtitle = 'Thiết lập 90 ngày NPA và tích chọn 8 mục cho phép ghi đè.';
+            stepInstruction = 'Khai báo: Overdue days for NPA (90), Tích chọn "Account moves out of NPA only after all arrears have been cleared", Tích chọn "Allow overriding select terms and settings in loan accounts" và bật cả 8 mục con. Sau đó bấm Next để chuyển sang tab Terms.';
+          } else {
+            stepTitle = 'Bước 8 / 13: Rà soát tab SETTINGS';
+            stepSubtitle = 'Đã hoàn tất cấu hình toàn bộ cài đặt gói vay.';
+            stepInstruction = 'Rà soát lại phương thức Declining Balance, 90 ngày NPA và 8 mục cho phép ghi đè. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Terms" bên dưới.';
+          }
+        }
+      } else if (hasTerms) {
+        currentStep = 9;
+        targetSelector = '#tour-loan-terms-form';
+        if (!loanFilledSteps.terms) {
+          stepTitle = 'Bước 9 / 13: Thiết lập tab TERMS (Hạn mức, Kỳ hạn & Lãi suất - Hình 5)';
+          stepSubtitle = 'Cấu hình hạn mức 5M - 10M - 50M, 12 kỳ trả nợ, lãi suất danh nghĩa 12%/năm.';
+          stepInstruction = 'Khai báo: Principal (Min: 5000000, Default: 10000000, Max: 50000000), Installment day calculation from (Disbursement Date), Number of repayments (Min: 6, Default: 12, Max: 24), Nominal interest rate (Min: 10, Default: 12, Max: 16, Frequency: Per year), Repaid every (1 Months). Bấm nút "Điền dữ liệu mẫu Terms" bên dưới.';
+        } else {
+          stepTitle = 'Bước 9 / 13: Rà soát tab TERMS';
+          stepSubtitle = 'Thông số hạn mức và lãi suất vay đã được thiết lập.';
+          stepInstruction = 'Kiểm tra lại hạn mức 10.000.000 VND, 12 kỳ trả nợ và lãi suất 12.0%/năm. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
+        }
+      } else if (hasCharges) {
+        currentStep = 10;
+        targetSelector = '#tour-loan-charges-form';
+        stepTitle = 'Bước 10 / 13: Kiểm tra tab CHARGES (Biểu phí)';
+        stepSubtitle = 'Gói vay tiêu dùng tín chấp TKB Personal Loan không thu phí ban đầu.';
+        stepInstruction = 'Theo thiết kế, tab Biểu phí để trống. Nhấp vào nút "Next" trên form hoặc nút "Tiếp tục sang tab Accounting" bên dưới.';
+      } else if (hasAccounting) {
+        currentStep = 11;
+        targetSelector = '#tour-loan-accounting-form';
+        stepTitle = 'Bước 11 / 13: Thiết lập tab ACCOUNTING (Hạch toán kế toán)';
+        stepSubtitle = 'Cấu hình phương thức kế toán Cash/Accrual và liên kết các tài khoản sổ cái GL.';
+        stepInstruction = 'Chọn quy tắc kế toán Cash hoặc Accrual và liên kết các tài khoản sổ cái GL tương ứng: TK 110201, TK 120101, TK 410001, TK 420001, TK 520001. Sau đó nhấn Next để chuyển sang tab Preview.';
+      } else if (hasPreview) {
+        currentStep = 12;
+        targetSelector = '#tour-loan-preview-card';
+        stepTitle = 'Bước 12 / 13: Rà soát tổng thể & Bấm Submit tạo gói vay';
+        stepSubtitle = 'Kiểm tra toàn bộ các thông số trước khi chính thức tạo sản phẩm.';
+        stepInstruction = 'Rà soát kỹ các thông tin: Details, Currency, Settings, Terms, Charges, Accounting. Sau đó bấm nút "Submit (Tạo gói vay)" màu xanh bên dưới để tạo sản phẩm.';
+      } else {
+        currentStep = 5;
+        targetSelector = '#tour-loan-stepper';
+        stepTitle = 'Khai báo gói vay TKB Personal Loan';
+        stepSubtitle = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
+        stepInstruction = 'Thực hiện khai báo theo các tab từ Details đến Preview.';
+      }
+    } else {
+      const hasAdminDropdown = typeof document !== 'undefined' && Boolean(document.getElementById('tour-admin-products'));
+      if (hasAdminDropdown) {
+        currentStep = 2;
+        targetSelector = '#tour-admin-products';
+        stepTitle = 'Bước 2 / 13: Chọn mục Products trong menu Admin';
+        stepSubtitle = 'Mở danh mục quản lý sản phẩm.';
+        stepInstruction = 'Trong menu Admin xổ xuống, nhấp vào mục Products để chuyển tới danh mục sản phẩm của ngân hàng.';
+      } else {
+        currentStep = 1;
+        targetSelector = '#tour-nav-admin';
+        stepTitle = 'Bước 1 / 13: Mở menu Admin trên thanh điều hướng';
+        stepSubtitle = 'Nhấp menu Admin để mở danh mục chức năng quản trị hệ thống.';
+        stepInstruction = 'Tại thanh menu ngang trên cùng, nhấp vào menu Admin để mở danh mục các chức năng quản trị.';
+      }
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -3825,16 +3999,16 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3' || module === 'saving-part-4') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3' || module === 'saving-part-4' || module === 'loan-part-1') {
       const tooltipWidth = 340;
-      if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn' || targetSelector === '#tour-create-rd-product-btn' || targetSelector === '#tour-rd-add-slab-btn') {
+      if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn' || targetSelector === '#tour-create-rd-product-btn' || targetSelector === '#tour-create-loan-product-btn' || targetSelector === '#tour-rd-add-slab-btn') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(20, box.top + 36)}px`,
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-client-new-recurring-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate' || targetSelector === '#tour-rd-actions-menu-btn' || targetSelector === '#tour-rd-action-approve' || targetSelector === '#tour-rd-action-activate' || targetSelector === '#tour-rd-action-deposit' || targetSelector === '#tour-rd-account-overview-balance' || targetSelector === '#tour-search-journal-tile') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-client-new-recurring-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate' || targetSelector === '#tour-rd-actions-menu-btn' || targetSelector === '#tour-rd-action-approve' || targetSelector === '#tour-rd-action-activate' || targetSelector === '#tour-rd-action-deposit' || targetSelector === '#tour-rd-account-overview-balance' || targetSelector === '#tour-search-journal-tile' || targetSelector === '#tour-loan-products-tile' || targetSelector === '#tour-admin-products') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(60, box.top)}px`,
@@ -3848,7 +4022,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs' || targetSelector === '#tour-rda-details-form' || targetSelector === '#tour-rda-terms-form' || targetSelector === '#tour-rda-settings-form' || targetSelector === '#tour-rda-chart-form' || targetSelector === '#tour-rda-charges-form' || targetSelector === '#tour-rda-preview-card' || targetSelector === '#tour-rd-account-detail-card' || targetSelector === '#tour-client-recurring-deposits-section' || targetSelector === '#tour-rd-approve-form' || targetSelector === '#tour-rd-deposit-form' || targetSelector === '#tour-journal-entry-rd-deposit') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs' || targetSelector === '#tour-rda-details-form' || targetSelector === '#tour-rda-terms-form' || targetSelector === '#tour-rda-settings-form' || targetSelector === '#tour-rda-chart-form' || targetSelector === '#tour-rda-charges-form' || targetSelector === '#tour-rda-preview-card' || targetSelector === '#tour-rd-account-detail-card' || targetSelector === '#tour-client-recurring-deposits-section' || targetSelector === '#tour-rd-approve-form' || targetSelector === '#tour-rd-deposit-form' || targetSelector === '#tour-journal-entry-rd-deposit' || targetSelector === '#tour-loan-details-form' || targetSelector === '#tour-loan-currency-form' || targetSelector === '#tour-loan-settings-form' || targetSelector === '#tour-loan-settings-part1' || targetSelector === '#tour-loan-settings-part2' || targetSelector === '#tour-loan-terms-form' || targetSelector === '#tour-loan-charges-form' || targetSelector === '#tour-loan-accounting-form' || targetSelector === '#tour-loan-preview-card' || targetSelector === '#tour-loan-product-row-loan') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -6655,6 +6829,323 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Module 04: Loans - Part 1 (Tạo Sản Phẩm Cho Vay TKB Personal Loan) */}
+        {module === 'loan-part-1' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1 & 2: Navigation to Products */}
+            {currentPath !== 'admin-products' && currentPath !== 'admin-loan-products' && currentPath !== 'admin-create-loan-product' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-products');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Mở trang Products &rarr;
+              </button>
+            )}
+
+            {/* Step 3: In admin-products */}
+            {currentPath === 'admin-products' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-loan-products');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Mở danh mục Loan Products &rarr;
+              </button>
+            )}
+
+            {/* Step 4 & 13: In admin-loan-products */}
+            {currentPath === 'admin-loan-products' && (
+              <div>
+                {loanProducts.some(p => p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan') ? (
+                  <div className="space-y-2">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                      Gói vay tín dụng <strong>TKB Personal Loan (Loan)</strong> đã được khởi tạo và hiển thị thành công trên hệ thống Core Banking!
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành (Phân hệ 04 - Phần 1)
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('admin-create-loan-product');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  >
+                    Bắt đầu tạo gói vay &rarr;
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Step 5 to 12: In admin-create-loan-product */}
+            {currentPath === 'admin-create-loan-product' && (() => {
+              const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-details-form'));
+              const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-currency-form'));
+              const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-settings-form'));
+              const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-terms-form'));
+              const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-charges-form'));
+              const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-accounting-form'));
+              const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-preview-card'));
+
+              if (hasDetails) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {!loanFilledSteps.details ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-loan-details'));
+                          setLoanFilledSteps(prev => ({ ...prev, details: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Details
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu tab DETAILS đã được điền đầy đủ.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 2 } }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Currency &rarr;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasCurrency) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {!loanFilledSteps.currency ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-loan-currency'));
+                          setLoanFilledSteps(prev => ({ ...prev, currency: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Currency
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu tab CURRENCY đã được điền đầy đủ.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 3 } }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Settings &rarr;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasSettings) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {loanSettingsSubStep === 'part1' && !loanFilledSteps.settingsPart1 ? (
+                      <div className="space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-fill-loan-settings-part1'));
+                            setLoanFilledSteps(prev => ({ ...prev, settingsPart1: true }));
+                            setLoanSettingsSubStep('part2');
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Điền dữ liệu mẫu Settings (Phần 1: Tính lãi)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLoanSettingsSubStep('part2')}
+                          className="w-full py-1 px-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 text-[11px] rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          Chuyển xuống Phần 2 (NPA &amp; Cho phép ghi đè) &rarr;
+                        </button>
+                      </div>
+                    ) : !loanFilledSteps.settingsPart2 ? (
+                      <div className="space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-fill-loan-settings-part2'));
+                            setLoanFilledSteps(prev => ({ ...prev, settingsPart2: true }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Điền dữ liệu mẫu Settings (Phần 2: NPA &amp; Ghi đè)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLoanSettingsSubStep('part1')}
+                          className="w-full py-1 px-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 text-[11px] rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          &larr; Xem lại Phần 1 (Tính lãi)
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Đã cấu hình xong toàn bộ tab SETTINGS.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 4 } }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Terms &rarr;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasTerms) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {!loanFilledSteps.terms ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-fill-loan-terms'));
+                          setLoanFilledSteps(prev => ({ ...prev, terms: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Terms (Hạn mức &amp; Lãi suất)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu tab TERMS đã được điền đầy đủ.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 5 } }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-[#1072ba] border border-sky-200 text-xs font-semibold rounded-[2px] cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Charges &rarr;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasCharges) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 6 } }));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Accounting &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasAccounting) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-fill-loan-accounting'));
+                        window.dispatchEvent(new CustomEvent('practice-set-loan-step', { detail: { step: 7 } }));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền mẫu Accounting &amp; Sang Preview &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasPreview) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const submitBtn = document.getElementById('tour-loan-preview-submit-btn');
+                        if (submitBtn) submitBtn.click();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Submit tạo gói vay (TKB Personal Loan)
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+
+            {/* Quick Auto-fill All Tabs button for convenience */}
+            {currentPath === 'admin-create-loan-product' && (
+              <div className="pt-2 text-center border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-fill-loan-all'));
+                    setLoanFilledSteps({
+                      details: true,
+                      currency: true,
+                      settingsPart1: true,
+                      settingsPart2: true,
+                      terms: true,
+                      charges: true,
+                      accounting: true
+                    });
+                    setLoanSettingsSubStep('part2');
+                  }}
+                  className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
+                >
+                  Điền nhanh toàn bộ các tab biểu mẫu gói vay
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
           <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -7649,7 +8140,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'saving-part-4' && (hasCheckedRdJournal || currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && savingsAccounts.some(s => s.accountNo === '000000004' && (s.status === 'Active' || s.status === 'Activated') && (s.hasDeposited || Number(s.balance) >= 500000)))
+            {(module === 'loan-part-1' && loanProducts.some(p => p.shortName === 'Loan' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'))
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'saving-part-4' && (hasCheckedRdJournal || currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && savingsAccounts.some(s => s.accountNo === '000000004' && (s.status === 'Active' || s.status === 'Activated') && (s.hasDeposited || Number(s.balance) >= 500000)))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-3' && recurringDepositProducts.some(p => p.shortName === 'TKGS'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'

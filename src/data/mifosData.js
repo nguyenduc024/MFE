@@ -2414,5 +2414,17 @@ export const EDU_MODULES = [
     objective: "Thực hiện nghiệp vụ mở tài khoản tiền gửi tiết kiệm gửi góp TKB Goal Savings cho khách hàng Lan Ngoc Pham (Client ID: 000000012, CIF: TKB-CIF-TDU-002) với số tiền gửi định kỳ 500.000 VND/tháng, kỳ hạn 12 tháng, lãi suất 4.0%/năm, ngày nộp hồ sơ 13/10/2026. Thực hiện phê duyệt (Approve) và kích hoạt (Active) tài khoản trên hệ thống Core Banking Mifos X.",
     targetMenu: "clients",
     subPath: "create-recurring-deposit-account"
+  },
+  {
+    id: "loan-part-1",
+    moduleNumber: "04",
+    moduleTitle: "Phân hệ 04: Loans",
+    partNumber: "1",
+    name: "Phần 1: Tạo Sản Phẩm Cho Vay (TKB Personal Loan - Loan)",
+    shortLabel: "Phần 1: Tạo SP Personal Loan",
+    title: "Thiết Lập Sản Phẩm Tín Dụng Cho Vay Cá Nhân (TKB Personal Loan)",
+    objective: "Thiết lập sản phẩm tín dụng cho vay cá nhân trả góp TKB Personal Loan (mã viết tắt: Loan, External ID: TKB-PRD-PL-001) theo đúng quy trình Admin -> Products -> Loan Products -> Create Loan Product. Cấu hình chi tiết các tab: DETAILS, CURRENCY, SETTINGS, TERMS, CHARGES, ACCOUNTING trên hệ thống Core Banking Mifos X.",
+    targetMenu: "admin-products",
+    subPath: "loan-products"
   }
 ];

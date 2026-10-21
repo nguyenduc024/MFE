@@ -29,6 +29,7 @@ import FinancialActivityMappingsView from './views/FinancialActivityMappingsView
 import AccountingRulesView from './views/AccountingRulesView';
 import JournalEntriesView from './views/JournalEntriesView';
 import LoanProductsView from './views/LoanProductsView';
+import CreateLoanProductView from './views/CreateLoanProductView';
 import SavingsProductsView from './views/SavingsProductsView';
 import ProductsView from './views/ProductsView';
 import CreateSavingsProductView from './views/CreateSavingsProductView';
@@ -98,7 +99,7 @@ export default function App() {
   const [roles, setRoles] = useState(INITIAL_ROLES);
   const [users, setUsers] = useState(INITIAL_USERS);
   const [glAccounts, setGlAccounts] = useState(INITIAL_GL_ACCOUNTS);
-  const [loanProducts, setLoanProducts] = useState(INITIAL_LOAN_PRODUCTS);
+  const [loanProducts, setLoanProducts] = useState([]);
   const [savingsProducts, setSavingsProducts] = useState(INITIAL_SAVINGS_PRODUCTS);
   const [fixedDepositProducts, setFixedDepositProducts] = useState([]);
   const [recurringDepositProducts, setRecurringDepositProducts] = useState([]);
@@ -643,6 +644,8 @@ export default function App() {
         return [{ label: 'Admin', path: 'admin' }, { label: 'Products' }];
       case 'admin-loan-products':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Loan Products' }];
+      case 'admin-create-loan-product':
+        return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Loan Products', path: 'admin-loan-products' }, { label: 'Create' }];
       case 'admin-savings-products':
         return [{ label: 'Admin', path: 'admin' }, { label: 'Products', path: 'admin-products' }, { label: 'Saving Products' }];
       case 'admin-create-savings-product':
@@ -711,7 +714,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'admin-recurring-deposit-products' && currentPath !== 'admin-create-recurring-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && currentPath !== 'approve-fixed-deposit-account' && currentPath !== 'create-recurring-deposit-account' && currentPath !== 'recurring-deposit-detail' && currentPath !== 'approve-recurring-deposit-account' && currentPath !== 'deposit-recurring-deposit-account' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'admin-recurring-deposit-products' && currentPath !== 'admin-create-recurring-deposit-product' && currentPath !== 'admin-loan-products' && currentPath !== 'admin-create-loan-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && currentPath !== 'approve-fixed-deposit-account' && currentPath !== 'create-recurring-deposit-account' && currentPath !== 'recurring-deposit-detail' && currentPath !== 'approve-recurring-deposit-account' && currentPath !== 'deposit-recurring-deposit-account' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -881,7 +884,25 @@ export default function App() {
         {currentPath === 'admin-loan-products' && (
           <LoanProductsView
             loanProducts={loanProducts}
-            onAddLoanProduct={handleAddLoanProduct}
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateCreateLoanProduct={() => navigate('admin-create-loan-product')}
+            onStartPractice={() => {
+              setPracticeModule('loan-part-1');
+              setPracticeActive(true);
+            }}
+            isPracticeActive={practiceActive}
+          />
+        )}
+
+        {currentPath === 'admin-create-loan-product' && (
+          <CreateLoanProductView
+            onNavigateHome={() => navigate('home')}
+            onNavigateProducts={() => navigate('admin-products')}
+            onNavigateLoanProducts={() => navigate('admin-loan-products')}
+            onSaveProduct={(newProd) => {
+              setLoanProducts(prev => [newProd, ...prev.filter(p => p.shortName !== newProd.shortName && p.id !== newProd.id)]);
+            }}
           />
         )}
 
@@ -1822,14 +1843,21 @@ export default function App() {
             setSelectedSavings(seededSavings);
             setCurrentPath('clients');
           }
+          if (moduleId === 'loan-part-1') {
+            setCurrentPath('home');
+          }
           setPracticeActive(true);
         }}
+        loanProducts={loanProducts}
         savingsProducts={savingsProducts}
         fixedDepositProducts={fixedDepositProducts}
         recurringDepositProducts={recurringDepositProducts}
         clients={clients}
         savingsAccounts={savingsAccounts}
         hasCheckedRdJournal={hasCheckedRdJournal}
+        onResetLoanProducts={() => {
+          setLoanProducts(prev => prev.filter(p => p.shortName !== 'Loan' && p.externalId !== 'TKB-PRD-PL-001' && p.name !== 'TKB Personal Loan'));
+        }}
         onResetSavingsProducts={() => {
           setSavingsProducts(prev => prev.filter(p => p.shortName !== 'TKCA'));
         }}
@@ -1926,6 +1954,7 @@ export default function App() {
         offices={offices}
         currencies={currencies}
         glAccounts={glAccounts}
+        loanProducts={loanProducts}
         savingsProducts={savingsProducts}
         fixedDepositProducts={fixedDepositProducts}
         recurringDepositProducts={recurringDepositProducts}
