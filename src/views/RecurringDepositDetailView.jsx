@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, ArrowLeft, CheckCircle2, ChevronRight, Calculator, Calendar, DollarSign, Check, Edit3, Play, Undo2 } from 'lucide-react';
+import { Menu, ArrowLeft, ArrowUp, ArrowDown, CheckCircle2, ChevronRight, Calculator, Calendar, DollarSign, Check, Edit3, Play, Undo2 } from 'lucide-react';
 
 /**
  * Format currency with '₫' symbol prefix matching Image 1, 3: "₫500,000.00", "₫6,000,000.00"
@@ -19,9 +19,10 @@ export default function RecurringDepositDetailView({
   onNavigateClients,
   onNavigateClientDetail,
   onNavigateApprove,
-  onActivateRecurringDeposit
+  onActivateRecurringDeposit,
+  onNavigateDeposit
 }) {
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'chart' | 'charges' | 'standing'
+  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'chart' | 'transactions' | 'charges' | 'standing'
   const [menuOpen, setMenuOpen] = useState(false);
 
   const rd = recurringDeposit || {
@@ -44,7 +45,8 @@ export default function RecurringDepositDetailView({
     postingPeriod: 'Monthly',
     interestCalculatedUsing: 'Daily Balance',
     daysInYear: '365 Days',
-    balance: 0
+    balance: 0,
+    hasDeposited: false
   };
 
   const isApproved = rd.status === 'Approved';
@@ -66,17 +68,23 @@ export default function RecurringDepositDetailView({
       setMenuOpen(false);
       if (onActivateRecurringDeposit) onActivateRecurringDeposit(rd);
     };
+    const handleDepositEvent = () => {
+      setMenuOpen(false);
+      if (onNavigateDeposit) onNavigateDeposit();
+    };
 
     window.addEventListener('practice-open-rd-menu', handleOpenMenu);
     window.addEventListener('practice-click-rd-approve', handleApproveEvent);
     window.addEventListener('practice-click-rd-activate', handleActivateEvent);
+    window.addEventListener('practice-click-rd-deposit', handleDepositEvent);
 
     return () => {
       window.removeEventListener('practice-open-rd-menu', handleOpenMenu);
       window.removeEventListener('practice-click-rd-approve', handleApproveEvent);
       window.removeEventListener('practice-click-rd-activate', handleActivateEvent);
+      window.removeEventListener('practice-click-rd-deposit', handleDepositEvent);
     };
-  }, [rd, onNavigateApprove, onActivateRecurringDeposit]);
+  }, [rd, onNavigateApprove, onActivateRecurringDeposit, onNavigateDeposit]);
 
   const handleActivate = () => {
     setMenuOpen(false);
@@ -176,17 +184,24 @@ export default function RecurringDepositDetailView({
 
           {/* Right Header Area: Account Overview & Hamburger Menu */}
           <div className="flex items-center space-x-6">
-            {/* Account Overview (Shown in Approved & Active states matching Image 3) */}
+            {/* Account Overview (Shown in Approved & Active states matching Image 1 & 3) */}
             {(isApproved || isActive) && (
               <div className="text-right text-xs">
                 <span className="text-[11px] text-white/80 block font-normal mb-1">
                   Account Overview
                 </span>
                 <div className="flex items-center space-x-6 text-xs">
-                  <div>
+                  <div 
+                    id="tour-rd-account-overview-balance"
+                    className={`inline-flex items-center ${
+                      (rd.hasDeposited || Number(rd.balance) > 0)
+                        ? 'border-2 border-red-500 px-1.5 py-0.5 rounded-[1px] bg-red-500/10'
+                        : ''
+                    }`}
+                  >
                     <span className="text-white/70 mr-2">Current Balance</span>
                     <span className="font-semibold text-white">
-                      ₫0.00
+                      {formatVndCurrency(rd.balance || 0)}
                     </span>
                   </div>
                   <div>
@@ -269,41 +284,50 @@ export default function RecurringDepositDetailView({
                     </>
                   )}
 
-                  {/* Active Menu Items */}
+                  {/* Active Menu Items matching Image 1 */}
                   {isActive && (
                     <>
                       <div 
-                        onClick={() => setMenuOpen(false)}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-gray-700"
+                        id="tour-rd-action-deposit"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          if (onNavigateDeposit) onNavigateDeposit();
+                        }}
+                        className="px-3.5 py-2 hover:bg-sky-50 hover:text-[#1072ba] cursor-pointer flex items-center space-x-2.5 text-gray-800 font-medium border-2 border-red-500 m-1 rounded-[1px]"
                       >
-                        Deposit
+                        <ArrowUp className="w-3.5 h-3.5 text-gray-700" />
+                        <span>Deposit</span>
                       </div>
                       <div 
                         onClick={() => setMenuOpen(false)}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-gray-700"
+                        className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-2.5 text-gray-700"
                       >
-                        Withdrawal
+                        <ArrowDown className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Withdrawal</span>
                       </div>
                       <div 
                         onClick={() => setMenuOpen(false)}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-gray-700"
+                        className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-2.5 text-gray-700"
                       >
-                        Calculate Interest
+                        <ArrowLeft className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Premature Close</span>
                       </div>
                       <div 
                         onClick={() => setMenuOpen(false)}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-gray-700"
+                        className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-2.5 text-gray-700"
                       >
-                        Post Interest
+                        <Calculator className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Calculate Interest</span>
                       </div>
                       <div 
                         onClick={() => setMenuOpen(false)}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-gray-700"
+                        className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex items-center space-x-2.5 text-gray-700"
                       >
-                        Premature Close
+                        <Undo2 className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Undo Activation</span>
                       </div>
                       <div className="border-t border-gray-100 my-1" />
-                      <div className="px-4 py-1.5 text-gray-500 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
+                      <div className="px-3.5 py-1.5 text-gray-500 hover:bg-gray-50 cursor-pointer flex items-center justify-between">
                         <span>More</span>
                         <span>&rsaquo;</span>
                       </div>
@@ -340,6 +364,21 @@ export default function RecurringDepositDetailView({
           >
             Interest Rate Chart
           </button>
+
+          {(isApproved || isActive) && (
+            <button
+              type="button"
+              id="tour-rd-tab-transactions"
+              onClick={() => setActiveTab('transactions')}
+              className={`py-3 transition-colors cursor-pointer ${
+                activeTab === 'transactions'
+                  ? 'border-b-2 border-[#1072ba] text-[#1072ba] font-medium'
+                  : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
+              }`}
+            >
+              Transactions
+            </button>
+          )}
 
           <button
             type="button"
@@ -467,7 +506,7 @@ export default function RecurringDepositDetailView({
                   </div>
                 </div>
 
-                {/* Column 2: Performance History */}
+                {/* Column 2: Performance History matching Image 3 */}
                 <div>
                   <h3 className="text-xs font-bold text-gray-800 mb-2">
                     Performance History
@@ -487,9 +526,17 @@ export default function RecurringDepositDetailView({
                     </div>
                     <div className="flex justify-between py-2 px-3">
                       <span className="text-gray-500">Deposits till Date</span>
-                      <span className="text-gray-900 font-medium">₫0.00</span>
+                      <span className="text-gray-900 font-semibold">
+                        {formatVndCurrency(rd.depositsTillDate ?? (rd.hasDeposited || Number(rd.balance) > 0 ? 500000 : 0))}
+                      </span>
                     </div>
                     <div className="flex justify-between py-2 px-3 bg-gray-50/50">
+                      <span className="text-gray-500">Interest Earned</span>
+                      <span className="text-gray-900 font-semibold">
+                        {formatVndCurrency(rd.interestEarned ?? (rd.hasDeposited || Number(rd.balance) > 0 ? 55 : 0))}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 px-3">
                       <span className="text-gray-500">Withdrawals till Date</span>
                       <span className="text-gray-900 font-medium">₫0.00</span>
                     </div>
@@ -555,6 +602,49 @@ export default function RecurringDepositDetailView({
                     <td className="py-2 px-4 text-center text-[#1072ba] font-bold">4.00%</td>
                     <td className="py-2 px-4 text-gray-700">Goal Savings 12M - 4.0% p.a.</td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content: TRANSACTIONS matching Image 1 & 3 */}
+        {activeTab === 'transactions' && (
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-gray-800">
+                Transactions
+              </h3>
+            </div>
+            <div className="border border-gray-200 rounded-[2px] overflow-hidden">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-600">
+                  <tr>
+                    <th className="py-2.5 px-4 font-semibold">ID</th>
+                    <th className="py-2.5 px-4 font-semibold">Transaction Date</th>
+                    <th className="py-2.5 px-4 font-semibold">Transaction Type</th>
+                    <th className="py-2.5 px-4 font-semibold text-right">Debit</th>
+                    <th className="py-2.5 px-4 font-semibold text-right">Credit</th>
+                    <th className="py-2.5 px-4 font-semibold text-right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {(rd.hasDeposited || Number(rd.balance) > 0) ? (
+                    <tr className="hover:bg-gray-50">
+                      <td className="py-2 px-4 text-gray-700">1</td>
+                      <td className="py-2 px-4 text-gray-700">13 October 2026</td>
+                      <td className="py-2 px-4 font-medium text-gray-900">Deposit</td>
+                      <td className="py-2 px-4 text-right text-gray-500">-</td>
+                      <td className="py-2 px-4 text-right font-medium text-emerald-700">₫500,000.00</td>
+                      <td className="py-2 px-4 text-right font-semibold text-gray-900">₫500,000.00</td>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-6 text-center text-gray-400">
+                        No transactions found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

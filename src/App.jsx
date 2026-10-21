@@ -53,6 +53,7 @@ import ApproveFixedDepositAccountView from './views/ApproveFixedDepositAccountVi
 import CreateRecurringDepositAccountView from './views/CreateRecurringDepositAccountView';
 import RecurringDepositDetailView from './views/RecurringDepositDetailView';
 import ApproveRecurringDepositAccountView from './views/ApproveRecurringDepositAccountView';
+import DepositRecurringDepositAccountView from './views/DepositRecurringDepositAccountView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
 import CreateJournalEntryView from './views/CreateJournalEntryView';
@@ -703,7 +704,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'admin-recurring-deposit-products' && currentPath !== 'admin-create-recurring-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && currentPath !== 'approve-fixed-deposit-account' && currentPath !== 'create-recurring-deposit-account' && currentPath !== 'recurring-deposit-detail' && currentPath !== 'approve-recurring-deposit-account' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'admin-recurring-deposit-products' && currentPath !== 'admin-create-recurring-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && currentPath !== 'approve-fixed-deposit-account' && currentPath !== 'create-recurring-deposit-account' && currentPath !== 'recurring-deposit-detail' && currentPath !== 'approve-recurring-deposit-account' && currentPath !== 'deposit-recurring-deposit-account' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -1249,19 +1250,58 @@ export default function App() {
             onNavigateClients={() => navigate('clients')}
             onNavigateClientDetail={() => navigate('client-detail')}
             onNavigateApprove={() => navigate('approve-recurring-deposit-account')}
+            onNavigateDeposit={() => navigate('deposit-recurring-deposit-account')}
             onActivateRecurringDeposit={(rdAcc) => {
               const target = rdAcc || selectedRecurringDeposit || {};
               const updated = {
                 ...target,
                 status: 'Active',
                 activatedOn: '13 October 2026',
-                balance: target.depositAmount || 500000,
-                totalDeposits: target.depositAmount || 500000,
-                totalInterestEarned: 0
+                balance: 0,
+                hasDeposited: false,
+                depositsTillDate: 0,
+                interestEarned: 0,
+                totalDeposits: 0
               };
               setSelectedRecurringDeposit(updated);
               setSavingsAccounts(prev => [updated, ...prev.filter(s => s.accountNo !== updated.accountNo)]);
             }}
+          />
+        )}
+
+        {currentPath === 'deposit-recurring-deposit-account' && (
+          <DepositRecurringDepositAccountView
+            recurringDeposit={selectedRecurringDeposit}
+            client={selectedClient}
+            onSubmitDeposit={({ transactionDate, transactionAmount, paymentType, note }) => {
+              const numAmount = typeof transactionAmount === 'string'
+                ? parseFloat(transactionAmount.replace(/,/g, ''))
+                : (Number(transactionAmount) || 500000);
+              const updated = {
+                ...(selectedRecurringDeposit || {}),
+                balance: numAmount,
+                totalDeposits: numAmount,
+                depositsTillDate: numAmount,
+                interestEarned: 55,
+                hasDeposited: true,
+                transactions: [
+                  {
+                    id: 1,
+                    date: transactionDate || '13 October 2026',
+                    transactionType: 'Deposit',
+                    amount: numAmount,
+                    balance: numAmount
+                  }
+                ]
+              };
+              setSelectedRecurringDeposit(updated);
+              setSavingsAccounts(prev => [updated, ...prev.filter(s => s.accountNo !== updated.accountNo)]);
+              navigate('recurring-deposit-detail');
+            }}
+            onCancel={() => navigate('recurring-deposit-detail')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateClientDetail={() => navigate('client-detail')}
           />
         )}
 
