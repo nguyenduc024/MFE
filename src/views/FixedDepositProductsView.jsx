@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 
 export default function FixedDepositProductsView({
   fixedDepositProducts = [],
@@ -25,11 +25,11 @@ export default function FixedDepositProductsView({
   const isFloated = isFilterFocused || filterText.length > 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-6 select-none font-sans text-gray-800">
+    <div className="max-w-6xl mx-auto px-6 py-6 select-none font-sans text-gray-800">
       
       {/* 1. Header & Breadcrumbs & Action Button */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center space-x-2.5">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-3">
           <h1 className="text-xl font-normal text-[#212529]">
             Fixed Deposit Products
           </h1>
@@ -44,36 +44,34 @@ export default function FixedDepositProductsView({
             <span className="text-gray-400">/</span>
             <span 
               onClick={onNavigateProducts} 
-              className="text-[#1072ba] hover:underline cursor-pointer"
+              className="text-[#1072ba] hover:underline cursor-pointer font-normal"
             >
               Products
             </span>
             <span className="text-gray-400">/</span>
-            <span className="text-gray-500">Fixed Deposit Products</span>
+            <span className="text-gray-600">Fixed Deposit Products</span>
           </div>
         </div>
 
-        {/* Top Right: Actions */}
-        <div className="flex items-center space-x-2.5">
+        {/* Top Right: Create Button */}
+        <div>
           <button
             type="button"
             id="tour-create-fd-product-btn"
             onClick={onNavigateCreateFixedDepositProduct}
-            className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer select-none"
+            className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold px-4 py-2 rounded-[3px] flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer select-none"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Create Fixed Deposit Product</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Main White Card */}
-      <div className="bg-white rounded-[2px] shadow-[0_1px_4px_rgba(0,0,0,0.08)] border border-gray-100 p-6 space-y-6">
-        
-        {/* Floating Underline Filter Input */}
-        <div className="relative pt-3.5 pb-1 border-b transition-colors border-gray-300 max-w-full">
+      {/* 2. Floating Underline Filter Input (Outside the table card matching screenshot) */}
+      <div className="mb-4">
+        <div className="relative pt-3.5 pb-1 border-b border-gray-300 max-w-full">
           <label
-            className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
+            className={`absolute left-0 pointer-events-none origin-[0] select-none transition-all duration-200 ease-out z-10 ${
               isFloated
                 ? '-top-1 text-[11px] ' + (isFilterFocused ? 'text-[#1072ba] font-medium' : 'text-gray-500')
                 : 'top-3.5 text-xs text-gray-500'
@@ -90,51 +88,76 @@ export default function FixedDepositProductsView({
             className="w-full bg-transparent text-xs text-gray-800 outline-none pr-4 pt-0.5"
           />
         </div>
+      </div>
 
-        {/* Products Table */}
-        <div className="overflow-x-auto border border-gray-200 rounded-[2px]">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
+      {/* 3. Products Table Card matching screenshot */}
+      <div className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.18)] overflow-hidden">
+        <table className="w-full text-left text-xs">
+          <thead className="border-b border-gray-200 text-gray-600 font-medium bg-white">
+            <tr>
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-1/2">
+                Name
+              </th>
+              <th className="py-4 px-6 font-medium text-gray-600 text-[12px] w-1/2">
+                Short Name
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {filteredProducts.length === 0 ? (
               <tr>
-                <th className="py-2.5 px-4 font-normal w-2/5">Product Name</th>
-                <th className="py-2.5 px-4 font-normal w-1/5">Short Name</th>
-                <th className="py-2.5 px-4 font-normal w-2/5">Description</th>
+                <td colSpan={2} className="py-12 text-center text-xs text-gray-400">
+                  No Fixed Deposit products found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((p, idx) => (
-                  <tr 
-                    key={p.id || idx}
-                    id={p.shortName === 'TKFD' ? 'tour-fd-product-row-tkfd' : undefined}
-                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
-                      p.shortName === 'TKFD' ? 'bg-sky-50/40' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-4 font-normal text-gray-900">
-                      <span className="text-[#1072ba] hover:underline font-medium">
-                        {p.name}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-gray-800">
-                      {p.shortName}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 line-clamp-1">
-                      {p.description}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} className="py-12 text-center text-xs text-gray-400">
-                    No Fixed Deposit products found
+            ) : (
+              filteredProducts.map((p, idx) => (
+                <tr 
+                  key={p.id || idx} 
+                  id={p.shortName === 'TKFD' ? 'tour-fd-product-row-tkfd' : undefined}
+                  className="hover:bg-gray-50/70 transition-colors"
+                >
+                  <td className="py-4 px-6 text-gray-800 text-[13px] font-normal">
+                    {p.name}
+                  </td>
+                  <td className="py-4 px-6 text-gray-800 text-[13px] font-normal">
+                    {p.shortName}
                   </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
 
+        {/* Material Table Pagination Footer matching screenshot */}
+        <div className="flex items-center justify-end px-6 py-3.5 border-t border-gray-100 text-xs text-gray-500 space-x-6 select-none bg-white">
+          <div className="flex items-center space-x-1.5">
+            <span>Items per page:</span>
+            <span className="text-gray-700 font-normal inline-flex items-center border-b border-gray-600 pb-0.5 cursor-pointer">
+              <span>10</span>
+              <span className="text-[9px] ml-1 text-gray-600">▼</span>
+            </span>
+          </div>
+
+          <div className="text-gray-600 text-[11px]">
+            {filteredProducts.length > 0 ? `1 - ${filteredProducts.length} of ${filteredProducts.length}` : '0 - 0 of 0'}
+          </div>
+
+          <div className="flex items-center space-x-4 text-gray-300">
+            <button type="button" disabled className="disabled:cursor-not-allowed">
+              <ChevronsLeft className="w-4 h-4 text-gray-300" />
+            </button>
+            <button type="button" disabled className="disabled:cursor-not-allowed">
+              <ChevronLeft className="w-4 h-4 text-gray-300" />
+            </button>
+            <button type="button" disabled className="disabled:cursor-not-allowed">
+              <ChevronRight className="w-4 h-4 text-gray-300" />
+            </button>
+            <button type="button" disabled className="disabled:cursor-not-allowed">
+              <ChevronsRight className="w-4 h-4 text-gray-300" />
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
