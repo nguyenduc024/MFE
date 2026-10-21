@@ -2402,5 +2402,17 @@ export const EDU_MODULES = [
     objective: "Thiết lập sản phẩm tiền gửi tiết kiệm gửi góp TKB Goal Savings (TKGS) theo chuẩn Core Banking Mifos X. Cấu hình các thông tin cơ bản: Tên sản phẩm TKB Goal Savings, mã viết tắt TKGS, đồng tiền VND, hạn mức gửi từ 100.000 đến 10.000.000 VND, mặc định 500.000 VND, chu kỳ tính lãi hàng tháng, chế độ gửi bắt buộc (Mandatory Deposit) kỳ hạn 12 tháng, và khởi tạo Biểu lãi suất tiết kiệm gửi góp (Interest Rate Chart) 2026.",
     targetMenu: "admin-products",
     subPath: "recurring-deposit-products"
+  },
+  {
+    id: "saving-part-4",
+    moduleNumber: "03",
+    moduleTitle: "Phân hệ 03: Saving",
+    partNumber: "4",
+    name: "Phần 4: Mở Tài Khoản Tiết Kiệm Gửi Góp (New Recurring Deposit Account)",
+    shortLabel: "Phần 4: Mở TK Goal Savings",
+    title: "Mở Tài Khoản Tiền Gửi Tiết Kiệm Gửi Góp (Lan Ngoc Pham - TKB Goal Savings)",
+    objective: "Thực hiện nghiệp vụ mở tài khoản tiền gửi tiết kiệm gửi góp TKB Goal Savings cho khách hàng Lan Ngoc Pham (Client ID: 000000012, CIF: TKB-CIF-TDU-002) với số tiền gửi định kỳ 500.000 VND/tháng, kỳ hạn 12 tháng, lãi suất 4.0%/năm, ngày nộp hồ sơ 13/10/2026. Thực hiện phê duyệt (Approve) và kích hoạt (Active) tài khoản trên hệ thống Core Banking Mifos X.",
+    targetMenu: "clients",
+    subPath: "create-recurring-deposit-account"
   }
 ];

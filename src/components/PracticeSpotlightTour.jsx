@@ -157,6 +157,11 @@ export default function PracticeSpotlightTour({
     charges: false,
     accounting: false
   });
+  // Phân hệ 03 - Phần 4 state (Recurring Deposit Account Creation: Lan Ngoc Pham)
+  const [rdaFilledSteps, setRdaFilledSteps] = useState({
+    details: false,
+    settings: false
+  });
 
 
   const startRoleCountRef = useRef(roles.length);
@@ -211,6 +216,11 @@ export default function PracticeSpotlightTour({
           chart: false,
           charges: false,
           accounting: false
+        });
+      } else if (module === 'saving-part-4') {
+        setRdaFilledSteps({
+          details: false,
+          settings: false
         });
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
@@ -1317,6 +1327,130 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1: Truy cập Admin -> Products';
       stepSubtitle = 'Mở danh mục quản trị sản phẩm từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Admin > Products trên thanh điều hướng để mở danh sách sản phẩm.';
+    }
+  } else if (module === 'saving-part-4') {
+    const rd = savingsAccounts.find(s => 
+      s.accountNo === '000000004' || 
+      (s.externalId === 'TKB-RD-TDU-002' && (s.depositType === 'Recurring Deposit' || s.accountType === 'Recurring Deposit' || s.productName?.toLowerCase().includes('goal')))
+    );
+    const isApproved = rd?.status === 'Approved';
+    const isActive = rd?.status === 'Active' || rd?.status === 'Activated';
+
+    if (currentPath === 'clients') {
+      currentStep = 2;
+      targetSelector = '#tour-client-row-lan';
+      stepTitle = 'Bước 2: Chọn khách hàng Lan Ngoc Pham';
+      stepSubtitle = 'Mở hồ sơ khách hàng Lan Ngoc Pham (Client ID: 000000012, CIF: TKB-CIF-TDU-002).';
+      stepInstruction = 'Nhấp vào dòng thông tin khách hàng Lan Ngoc Pham trong danh sách hoặc nút biểu tượng ở cột bên phải để mở chi tiết hồ sơ khách hàng.';
+    } else if (currentPath === 'client-detail') {
+      if (isActive) {
+        currentStep = 13;
+        targetSelector = '#tour-client-recurring-deposits-section';
+        stepTitle = 'Hoàn tất: Tài khoản Recurring Deposit đã hiển thị trên hồ sơ khách hàng!';
+        stepSubtitle = 'Mục Recurring Deposit Accounts hiển thị tài khoản 000000004 ở trạng thái Active!';
+        stepInstruction = 'Tại hồ sơ khách hàng Lan Ngoc Pham, mục Recurring Deposit Accounts đã ghi nhận tài khoản 000000004 (TKB Goal Savings) ở trạng thái Active (ô vuông xanh lá) với số dư ban đầu ₫500,000.00. Bấm "Hoàn thành phần thực hành" bên dưới để kết thúc bài học.';
+      } else {
+        currentStep = 3;
+        targetSelector = '#tour-client-new-recurring-deposit-btn';
+        stepTitle = 'Bước 3: Mở đơn đăng ký New Recurring Deposit Account';
+        stepSubtitle = 'Nhấp menu 3 gạch (≡) > Applications > New Recurring Deposit Account.';
+        stepInstruction = 'Tại banner hồ sơ khách hàng Lan Ngoc Pham, nhấp vào menu Actions (≡), di chuột đến "Applications" và bấm chọn "New Recurring Deposit Account" (có viền đỏ nổi bật theo tài liệu) để mở màn hình tạo tài khoản.';
+      }
+    } else if (currentPath === 'create-recurring-deposit-account') {
+      const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-details-form'));
+      const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-terms-form'));
+      const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-settings-form'));
+      const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-chart-form'));
+      const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-charges-form'));
+      const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-preview-card'));
+
+      if (hasDetails) {
+        currentStep = 4;
+        targetSelector = '#tour-rda-details-form';
+        if (!rdaFilledSteps.details) {
+          stepTitle = 'Bước 4: Khai báo tab DETAILS (Thông tin tài khoản)';
+          stepSubtitle = 'Chọn sản phẩm TKB Goal Savings, ngày nộp hồ sơ 10/13/2026 và External ID.';
+          stepInstruction = 'Khai báo các trường: Product Name (TKB Goal Savings), Submitted On (10/13/2026), Field Officer (Unassigned), External id (TKB-RD-TDU-002). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 4: Rà soát dữ liệu tab DETAILS';
+          stepSubtitle = 'Dữ liệu đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại Product Name (TKB Goal Savings) và External id (TKB-RD-TDU-002). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Terms" bên dưới.';
+        }
+      } else if (hasTerms) {
+        currentStep = 5;
+        targetSelector = '#tour-rda-terms-form';
+        stepTitle = 'Bước 5: Kiểm tra tab TERMS (Điều khoản tiền gửi)';
+        stepSubtitle = 'Hệ thống tự động đồng bộ kỳ hạn và phương thức tính lãi từ sản phẩm.';
+        stepInstruction = 'Rà soát các thông số: Interest Compounding Period (Monthly), Interest Posting Period (Monthly), Interest Calculated Using (Daily Balance), Days in Year (365 Days). Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Settings" bên dưới.';
+      } else if (hasSettings) {
+        currentStep = 6;
+        targetSelector = '#tour-rda-settings-form';
+        if (!rdaFilledSteps.settings) {
+          stepTitle = 'Bước 6: Khai báo tab SETTINGS (Số tiền & Tần suất gửi góp)';
+          stepSubtitle = 'Thiết lập số tiền gửi định kỳ 500.000 VND và kỳ hạn 12 tháng theo Hình 3.';
+          stepInstruction = 'Tích chọn "Is Mandatory Deposit?", nhập Recurring Deposit Amount (500,000), Deposit Period (12 Months), Deposit Start Date (10/13/2026), Deposit Frequency (1 Months), Min/Max Term (12 Months). Bấm nút "Điền dữ liệu mẫu Settings" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 6: Rà soát dữ liệu tab SETTINGS';
+          stepSubtitle = 'Dữ liệu thiết lập gửi góp đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Rà soát lại số tiền gửi góp 500.000 VND/tháng và kỳ hạn 12 tháng. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Interest Rate Chart" bên dưới.';
+        }
+      } else if (hasChart) {
+        currentStep = 7;
+        targetSelector = '#tour-rda-chart-form';
+        stepTitle = 'Bước 7: Kiểm tra INTEREST RATE CHART (Lãi suất tiền gửi góp)';
+        stepSubtitle = 'Biểu lãi suất tự động áp dụng 4.00% / năm cho kỳ hạn 12 tháng.';
+        stepInstruction = 'Đối chiếu biểu lãi suất TKB Goal Savings: Bậc 1 - 12 Months được áp dụng tỷ lệ 4.00% p.a. Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
+      } else if (hasCharges) {
+        currentStep = 8;
+        targetSelector = '#tour-rda-charges-form';
+        stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
+        stepSubtitle = 'Sản phẩm tiết kiệm gửi góp không thu phí đăng ký ban đầu.';
+        stepInstruction = 'Tab Charges không có khoản phí bắt buộc. Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Preview" bên dưới.';
+      } else if (hasPreview) {
+        currentStep = 9;
+        targetSelector = '#tour-rda-preview-card';
+        stepTitle = 'Bước 9: Rà soát và Gửi duyệt hồ sơ (Submit)';
+        stepSubtitle = 'Kiểm tra lại toàn bộ thông tin đăng ký tài khoản tiết kiệm gửi góp.';
+        stepInstruction = 'Rà soát: Khách hàng Lan Ngoc Pham, Sản phẩm TKB Goal Savings, Tiền gửi định kỳ ₫500,000.00/tháng, Kỳ hạn 12 Tháng, Lãi suất 4.00%, Tiền đáo hạn dự kiến ₫6,131,646.00. Bấm nút "Submit" màu xanh để gửi duyệt!';
+      } else {
+        currentStep = 4;
+        targetSelector = '#tour-rda-stepper';
+        stepTitle = 'Tạo tài khoản Recurring Deposit';
+        stepSubtitle = 'Khai báo các thông tin mở sổ tiết kiệm gửi góp.';
+        stepInstruction = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
+      }
+    } else if (currentPath === 'approve-recurring-deposit-account') {
+      currentStep = 11;
+      targetSelector = '#tour-rd-approve-form';
+      stepTitle = 'Bước 11: Phê duyệt hồ sơ tài khoản (Approved On Date)';
+      stepSubtitle = 'Nhập ngày phê duyệt 10/13/2026 và nhấn Submit.';
+      stepInstruction = 'Nhập ngày phê duyệt Approved On Date là 10/13/2026. Bấm nút "Điền dữ liệu mẫu (10/13/2026)" bên dưới để điền nhanh, sau đó nhấn "Submit" để phê duyệt hồ sơ.';
+    } else if (currentPath === 'recurring-deposit-detail') {
+      if (isActive) {
+        currentStep = 13;
+        targetSelector = '#tour-rd-account-detail-card';
+        stepTitle = 'Hoàn tất: Kích hoạt thành công tài khoản TKB Goal Savings (000000004)!';
+        stepSubtitle = 'Tài khoản đã Active, ghi nhận số dư ban đầu ₫500,000.00 và tab Transactions!';
+        stepInstruction = 'Tài khoản Recurring Deposit: TKB Goal Savings 000000004 của khách hàng Lan Ngoc Pham đã chuyển sang trạng thái Active (ô vuông xanh lá) với số dư Current Balance ₫500,000.00, Principal ₫6,000,000.00, Lãi suất 4.00% và tiền đáo hạn ₫6,131,646.00. Bấm nút "Xem hồ sơ khách hàng" hoặc "Hoàn thành phần thực hành" bên dưới.';
+      } else if (isApproved) {
+        currentStep = 12;
+        targetSelector = '#tour-rd-actions-menu-btn';
+        stepTitle = 'Bước 12: Mở menu thao tác để Kích hoạt (Activate)';
+        stepSubtitle = 'Hồ sơ đã được Approve. Tiếp tục kích hoạt tài khoản để nạp kỳ gửi đầu tiên.';
+        stepInstruction = 'Hồ sơ đã chuyển sang trạng thái "Approved" (badge Approved xanh ngọc). Nhấp vào menu 3 dấu gạch ngang (≡) và chọn mục "Activate" để kích hoạt tài khoản chính thức.';
+      } else {
+        currentStep = 10;
+        targetSelector = '#tour-rd-actions-menu-btn';
+        stepTitle = 'Bước 10: Mở menu thao tác để Phê duyệt (Approve)';
+        stepSubtitle = 'Hồ sơ đang ở trạng thái Pending Approval (ô vuông màu cam). Tiến hành phê duyệt.';
+        stepInstruction = 'Nhấp vào nút menu 3 dấu gạch ngang (≡) ở góc trên bên phải khung banner tài khoản, sau đó chọn mục "Approve" (có dấu tích) theo Hình 4 để mở biểu mẫu phê duyệt.';
+      }
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1: Mở danh sách khách hàng (Clients)';
+      stepSubtitle = 'Truy cập danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -3610,7 +3744,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3' || module === 'saving-part-4') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn' || targetSelector === '#tour-create-rd-product-btn' || targetSelector === '#tour-rd-add-slab-btn') {
         tooltipStyle = {
@@ -3619,7 +3753,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-client-new-recurring-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate' || targetSelector === '#tour-rd-actions-menu-btn' || targetSelector === '#tour-rd-action-approve' || targetSelector === '#tour-rd-action-activate') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(60, box.top)}px`,
@@ -3633,7 +3767,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs' || targetSelector === '#tour-rda-details-form' || targetSelector === '#tour-rda-terms-form' || targetSelector === '#tour-rda-settings-form' || targetSelector === '#tour-rda-chart-form' || targetSelector === '#tour-rda-charges-form' || targetSelector === '#tour-rda-preview-card' || targetSelector === '#tour-rd-account-detail-card' || targetSelector === '#tour-client-recurring-deposits-section' || targetSelector === '#tour-rd-approve-form') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -5922,6 +6056,363 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Module 03 - Part 4 Tour Actions: Recurring Deposit Account (Lan Ngoc Pham) */}
+        {module === 'saving-part-4' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1: Navigating to Clients */}
+            {currentPath !== 'clients' && currentPath !== 'client-detail' && currentPath !== 'create-recurring-deposit-account' && currentPath !== 'approve-recurring-deposit-account' && currentPath !== 'recurring-deposit-detail' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('clients');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở danh sách khách hàng (Clients)
+              </button>
+            )}
+
+            {/* Step 2: Clients list -> select Lan Ngoc Pham */}
+            {currentPath === 'clients' && (
+              <button
+                type="button"
+                onClick={() => {
+                  let target = clients.find(c => c.id === '12' || c.accountNo === '000000012' || c.displayName?.includes('Lan Ngoc Pham'));
+                  if (!target) {
+                    target = {
+                      id: '12',
+                      accountNo: '000000012',
+                      displayName: 'Lan Ngoc Pham',
+                      officeName: 'Thu Duc Transaction Office',
+                      staffName: 'Dang, Quan',
+                      status: 'Active',
+                      activationDate: '2026-10-13',
+                      externalId: 'TKB-CIF-TDU-002',
+                      mobileNo: '0912345678',
+                      emailAddress: 'lan.pham@gmail.com',
+                      dateOfBirth: '1998-08-15'
+                    };
+                  }
+                  if (onSelectClient) onSelectClient(target);
+                  if (navigate) navigate('client-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Chọn hồ sơ Lan Ngoc Pham
+              </button>
+            )}
+
+            {/* Step 3: client-detail view */}
+            {currentPath === 'client-detail' && (() => {
+              const rd = savingsAccounts.find(s => 
+                s.accountNo === '000000004' || 
+                (s.externalId === 'TKB-RD-TDU-002' && (s.depositType === 'Recurring Deposit' || s.accountType === 'Recurring Deposit' || s.productName?.toLowerCase().includes('goal')))
+              );
+              const isActive = rd?.status === 'Active' || rd?.status === 'Activated';
+
+              if (isActive) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Tài khoản Recurring Deposit 000000004 đã Active!
+                      </div>
+                      <div>Tài khoản tiết kiệm gửi góp TKB Goal Savings đang hiển thị trong mục Recurring Deposit Accounts với số dư ₫500,000.00.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-relaxed font-sans space-y-1">
+                    <div className="font-bold text-sky-950 text-xs">
+                      Mở tài khoản Recurring Deposit cho Lan Ngoc Pham
+                    </div>
+                    <div>Nhấp vào menu Actions (≡), di chuột qua Applications và chọn mục New Recurring Deposit Account (có viền đỏ nổi bật theo tài liệu).</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('create-recurring-deposit-account');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Mở form New Recurring Deposit Account
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Steps 4-9: create-recurring-deposit-account view */}
+            {currentPath === 'create-recurring-deposit-account' && (() => {
+              const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-details-form'));
+              const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-terms-form'));
+              const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-settings-form'));
+              const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-chart-form'));
+              const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-charges-form'));
+              const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-preview-card'));
+
+              if (hasDetails) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdaFilledSteps.details ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rda-details'));
+                          setRdaFilledSteps(prev => ({ ...prev, details: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Details
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-next-rda-step'));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Tiếp tục sang tab Terms &rarr;
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasTerms) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-rda-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Settings &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasSettings) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdaFilledSteps.settings ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rda-settings'));
+                          setRdaFilledSteps(prev => ({ ...prev, settings: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Settings (500k VND - 12 Tháng)
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-next-rda-step'));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Tiếp tục sang tab Interest Rate Chart &rarr;
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasChart) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-rda-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Charges &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasCharges) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-rda-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Preview &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasPreview) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Rà soát hồ sơ mở tài khoản Recurring Deposit
+                      </div>
+                      <div>Khách hàng: Lan Ngoc Pham &bull; Gửi góp: 500.000 VND/tháng &bull; Kỳ hạn: 12 Tháng &bull; Lãi suất: 4.00% &bull; Tiền đáo hạn: 6.131.646 VND.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-rda'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Submit - Mở tài khoản Recurring Deposit
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+
+            {/* Step 11: Approve Recurring Deposit Account View */}
+            {currentPath === 'approve-recurring-deposit-account' && (
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-relaxed font-sans space-y-1">
+                  <div className="font-bold text-sky-950 text-xs">
+                    Phê duyệt hồ sơ Recurring Deposit
+                  </div>
+                  <div>Nhập ngày phê duyệt Approved On Date là 10/13/2026. Nhấn nút "Submit" bên dưới để hoàn tất phê duyệt hồ sơ.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-rda-approve'));
+                  }}
+                  className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Điền dữ liệu mẫu (10/13/2026)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-confirm-rda-approve'));
+                  }}
+                  className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Xác nhận Phê duyệt (Submit)
+                </button>
+              </div>
+            )}
+
+            {/* Steps 10, 12, 13: Recurring Deposit Detail View */}
+            {currentPath === 'recurring-deposit-detail' && (() => {
+              const rd = savingsAccounts.find(s => 
+                s.accountNo === '000000004' || 
+                (s.externalId === 'TKB-RD-TDU-002' && (s.depositType === 'Recurring Deposit' || s.accountType === 'Recurring Deposit' || s.productName?.toLowerCase().includes('goal')))
+              );
+              const isApproved = rd?.status === 'Approved';
+              const isActive = rd?.status === 'Active' || rd?.status === 'Activated';
+              const isPending = !isApproved && !isActive;
+
+              if (isPending) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-[2px] text-[11px] text-amber-900 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-amber-950 text-xs">
+                        Hồ sơ đang ở trạng thái Pending Approval (ô vuông cam)
+                      </div>
+                      <div>Hồ sơ tiền gửi gửi góp 000000004 đã được tạo. Hãy nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh và chọn <strong>Approve</strong> (có dấu tích) theo Hình 4.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('approve-recurring-deposit-account');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Mở biểu mẫu Approve hồ sơ
+                    </button>
+                  </div>
+                );
+              }
+
+              if (isApproved) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-[2px] text-[11px] text-indigo-900 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-indigo-950 text-xs">
+                        Hồ sơ đã được Approve (badge Approved xanh ngọc)
+                      </div>
+                      <div>Tài khoản đã sẵn sàng kích hoạt với kỳ gửi đầu tiên là 500.000 VND. Nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong> để kích hoạt.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-click-rd-activate'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Kích hoạt tài khoản (Activate)
+                    </button>
+                  </div>
+                );
+              }
+
+              if (isActive) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Hoàn tất: Tài khoản TKB Goal Savings (000000004) đã kích hoạt thành công!
+                      </div>
+                      <div>Tài khoản đã chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) với số dư ban đầu <strong>₫500,000.00</strong>, ngày kích hoạt <strong>13 October 2026</strong> và tab <strong>Transactions</strong>.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('client-detail');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Xem tài khoản trên hồ sơ khách hàng
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+          </div>
+        )}
+
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
           <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -6916,7 +7407,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'saving-part-3' && recurringDepositProducts.some(p => p.shortName === 'TKGS'))
+            {(module === 'saving-part-4' && savingsAccounts.some(s => s.accountNo === '000000004' && (s.status === 'Active' || s.status === 'Activated')))
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'saving-part-3' && recurringDepositProducts.some(p => p.shortName === 'TKGS'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-2' && savingsAccounts.some(s => s.accountNo === '000000003' && (s.status === 'Active' || s.status === 'Activated')))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'

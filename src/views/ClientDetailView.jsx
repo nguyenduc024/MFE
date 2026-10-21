@@ -67,7 +67,9 @@ export default function ClientDetailView({
   onSelectSavings,
   onOpenNewLoanModal,
   onOpenNewSavingsModal,
-  onOpenNewFixedDeposit
+  onOpenNewFixedDeposit,
+  onOpenNewRecurringDeposit,
+  onSelectRecurringDeposit
 }) {
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'address', 'family', 'identities', 'documents', 'notes'
   const [menuOpen, setMenuOpen] = useState(false);
@@ -81,16 +83,20 @@ export default function ClientDetailView({
     );
   }
 
-  // Filter accounts belonging to this client
-  const clientLoans = loans.filter(l => String(l.clientId) === String(client.id));
-  const clientSavings = savingsAccounts.filter(s => String(s.clientId) === String(client.id));
+  // Filter accounts belonging to this client (by id or accountNo)
+  const clientLoans = loans.filter(l => String(l.clientId) === String(client.id) || String(l.clientId) === String(client.accountNo));
+  const clientSavings = savingsAccounts.filter(s => String(s.clientId) === String(client.id) || String(s.clientId) === String(client.accountNo));
 
-  // Split savings into Regular Savings/CASA and Fixed Deposit
-  const currentAccounts = clientSavings.filter(s => 
-    !s.productName || s.productName.toLowerCase().includes('current') || s.productName.toLowerCase().includes('saving') || s.productName.toLowerCase().includes('thanh toán')
+  // Split savings into Regular Savings/CASA, Fixed Deposit, and Recurring Deposit
+  const recurringDepositAccounts = clientSavings.filter(s => 
+    s.accountType === 'Recurring Deposit' || 
+    (s.productName && (s.productName.toLowerCase().includes('recurring') || s.productName.toLowerCase().includes('goal savings') || s.productName.toLowerCase().includes('gửi góp')))
   );
   const fixedDepositAccounts = clientSavings.filter(s => 
-    s.productName && (s.productName.toLowerCase().includes('fixed') || s.productName.toLowerCase().includes('kỳ hạn'))
+    !recurringDepositAccounts.includes(s) && (s.accountType === 'Fixed Deposit' || (s.productName && (s.productName.toLowerCase().includes('fixed') || s.productName.toLowerCase().includes('kỳ hạn'))))
+  );
+  const currentAccounts = clientSavings.filter(s => 
+    !recurringDepositAccounts.includes(s) && !fixedDepositAccounts.includes(s)
   );
 
   // Performance calculations
@@ -326,7 +332,12 @@ export default function ClientDetailView({
                       New Share Account
                     </div>
                     <div 
-                      className="px-4 py-2 text-gray-400 cursor-not-allowed"
+                      id="tour-client-new-recurring-deposit-btn"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (onOpenNewRecurringDeposit) onOpenNewRecurringDeposit();
+                      }}
+                      className="px-4 py-2 bg-red-50/60 border border-red-500 text-red-700 font-semibold cursor-pointer hover:bg-red-100/60 transition-colors"
                     >
                       New Recurring Deposit Account
                     </div>
@@ -336,7 +347,7 @@ export default function ClientDetailView({
                         setMenuOpen(false);
                         if (onOpenNewFixedDeposit) onOpenNewFixedDeposit();
                       }}
-                      className="px-4 py-2 bg-red-50/60 border border-red-500 text-red-700 font-semibold cursor-pointer hover:bg-red-100/60 transition-colors"
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
                     >
                       New Fixed Deposits Account
                     </div>
@@ -704,7 +715,7 @@ export default function ClientDetailView({
           </div>
 
           {/* Section: Recurring Deposit Accounts matching Image */}
-          <div className="space-y-2">
+          <div id="tour-client-recurring-deposits-section" className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-gray-800">
                 Recurring Deposit Accounts
@@ -728,8 +739,36 @@ export default function ClientDetailView({
                     <th className="py-2.5 px-3 font-normal text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {/* Empty state matching Image */}
+                <tbody className="divide-y divide-gray-100">
+                  {recurringDepositAccounts.length > 0 ? (
+                    recurringDepositAccounts.map((rd) => (
+                      <tr 
+                        key={rd.id || rd.accountNo} 
+                        id={`tour-client-rd-row-${rd.accountNo}`}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => onSelectRecurringDeposit && onSelectRecurringDeposit(rd)}
+                      >
+                        <td className="py-3 px-3 font-normal text-gray-900 flex items-center space-x-1.5">
+                          <span className={`w-2 h-2 inline-block rounded-[1px] ${
+                            rd.status === 'Active' || rd.status === 'Activated'
+                              ? 'bg-[#28a745]'
+                              : rd.status === 'Approved'
+                              ? 'bg-[#06b6d4]'
+                              : 'bg-[#f59e0b]'
+                          }`} />
+                          <span className="text-gray-900 hover:text-[#1072ba] cursor-pointer">
+                            {rd.accountNo}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-normal text-gray-800">{rd.productName}</td>
+                        <td className="py-3 px-3 font-normal text-gray-800">
+                          {formatDisplayDate(rd.lastActive || rd.openedDate || rd.activatedOn, '13 October 2026')}
+                        </td>
+                        <td className="py-3 px-3 font-normal text-gray-800">{formatCurrency(rd.balance ?? 0)}</td>
+                        <td className="py-3 px-3 text-right"></td>
+                      </tr>
+                    ))
+                  ) : null}
                 </tbody>
               </table>
             </div>
