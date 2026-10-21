@@ -28,6 +28,8 @@ export default function PracticeSpotlightTour({
   savingsProducts = [],
   clients = [],
   savingsAccounts = [],
+  onSelectClient,
+  onSelectSavings,
   onAddSavingsProduct,
   financialActivities = [],
   accountingRules = [],
@@ -127,6 +129,8 @@ export default function PracticeSpotlightTour({
   // Phân hệ 02 - Phần 4 state (CASA Withdrawal: Minh Quang Tran)
   const [casaWithdrawPopup, setCasaWithdrawPopup] = useState(false);
   const [withdrawFilled, setWithdrawFilled] = useState(false);
+  // CASA Part 5 state (Account Transfer: Minh Quang Tran -> Lan Ngoc Pham)
+  const [transferFilled, setTransferFilled] = useState(false);
 
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
@@ -153,6 +157,8 @@ export default function PracticeSpotlightTour({
       } else if (module === 'casa-part-4') {
         setCasaWithdrawPopup(false);
         setWithdrawFilled(false);
+      } else if (module === 'casa-part-5') {
+        setTransferFilled(false);
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -244,6 +250,17 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [savingsAccounts, isActive, module, currentPath, casaDepositPopup]);
+
+
+  // Auto-filter transfer journal entries when navigating to journal in casa-part-5
+  useEffect(() => {
+    if (isActive && module === 'casa-part-5' && (currentPath === 'accounting-journal-entries' || currentPath === 'accounting-journal')) {
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('practice-filter-transfer-journal'));
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive, module, currentPath]);
 
   // Track if CASA Withdrawal was completed (Phân hệ 02 - Phần 4)
   useEffect(() => {
@@ -756,6 +773,79 @@ export default function PracticeSpotlightTour({
       currentStep = 1;
       targetSelector = '#tour-nav-institution';
       stepTitle = 'Bước 1 / 5: Truy cập danh sách khách hàng (Clients)';
+      stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
+    }
+  } else if (module === 'casa-part-5') {
+    const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+    const account002 = savingsAccounts.find(s => s.accountNo === '000000002');
+    const isTransferred = (
+      (account001 && (
+        account001.transactions?.some(t => t.type === 'TRANSFER_FROM' || t.transactionType?.toLowerCase().includes('transfer from')) ||
+        (account001.balance !== null && Number(account001.balance) <= 2000000 && Number(account001.balance) > 0)
+      )) ||
+      (account002 && (
+        account002.transactions?.some(t => t.type === 'TRANSFER_TO' || t.transactionType?.toLowerCase().includes('transfer to')) ||
+        (account002.balance !== null && Number(account002.balance) >= 1000000)
+      ))
+    );
+
+    if (currentPath === 'clients') {
+      currentStep = 1;
+      targetSelector = '#tour-client-row-minh';
+      stepTitle = 'Bước 1 / 7: Chọn khách hàng nguồn Minh Quang Tran';
+      stepSubtitle = 'Mở hồ sơ khách hàng để truy cập tài khoản tiền gửi CASA gửi tiền.';
+      stepInstruction = 'Tìm khách hàng Minh Quang Tran (Mã định danh 000000011 / TKB-CIF-TDU-001) trong danh sách và nhấp vào dòng của khách hàng để mở trang chi tiết.';
+    } else if (currentPath === 'client-detail') {
+      if (!isTransferred) {
+        currentStep = 2;
+        targetSelector = '#tour-saving-row-000000001';
+        stepTitle = 'Bước 2 / 7: Chọn tài khoản CASA nguồn (000000001)';
+        stepSubtitle = 'Truy cập thông tin chi tiết tài khoản TKB Current Account của người chuyển.';
+        stepInstruction = 'Tại bảng Saving Accounts, nhấp vào liên kết tài khoản 000000001 (TKB Current Account - số dư 3.000.000 VND) để mở màn hình quản lý tài khoản.';
+      } else {
+        currentStep = 6;
+        targetSelector = '#tour-saving-row-000000002';
+        stepTitle = 'Bước 6 / 7: Đối soát tài khoản người nhận Lan Ngoc Pham';
+        stepSubtitle = 'Tài khoản 000000002 của Lan Ngoc Pham đã nhận đủ 1,000,000.00 VND.';
+        stepInstruction = 'Kiểm tra tài khoản 000000002 (TKB Current Account) tại bảng Saving Accounts: Current Balance đạt đ1,000,000.00. Sau khi đối soát xong, bấm nút "Kiểm tra Sổ Nhật ký chung" bên dưới để kiểm tra 4 bút toán tự động.';
+      }
+    } else if (currentPath === 'savings-detail') {
+      if (!isTransferred) {
+        currentStep = 3;
+        targetSelector = '#tour-savings-action-menu';
+        stepTitle = 'Bước 3 / 7: Mở menu tác vụ & chọn Transfer Funds';
+        stepSubtitle = 'Thực hiện nghiệp vụ chuyển khoản nội bộ giữa hai khách hàng.';
+        stepInstruction = 'Nhấp vào nút menu tác vụ (biểu tượng 3 dấu gạch ngang) ở góc trên bên phải khung màu xanh, di chuột vào mục "More" và chọn "Transfer Funds" để mở biểu mẫu chuyển khoản.';
+      } else {
+        currentStep = 5;
+        targetSelector = '#tour-savings-account-overview';
+        stepTitle = 'Bước 5 / 7: Đối soát tài khoản người chuyển Minh Quang Tran';
+        stepSubtitle = 'Số dư khả dụng của tài khoản 000000001 đã giảm còn 2,000,000.00 VND sau khi chuyển khoản.';
+        stepInstruction = 'Kiểm tra số dư tại Account Overview: Current Balance đ2,000,000.00 và Available Balance đ2,000,000.00. Tab Transactions cũng đã ghi nhận giao dịch chuyển tiền (Debit: 1,000,000.00 VND). Bấm nút "Kiểm tra tài khoản Lan Ngoc Pham" bên dưới để tiếp tục đối soát.';
+      }
+    } else if (currentPath === 'account-transfer') {
+      currentStep = 4;
+      targetSelector = '#tour-account-transfer-form';
+      if (!transferFilled) {
+        stepTitle = 'Bước 4 / 7: Khai báo lệnh chuyển khoản nội bộ';
+        stepSubtitle = 'Nhập thông tin chuyển 1,000,000 VND sang tài khoản 000000002 (Lan Ngoc Pham).';
+        stepInstruction = 'Khai báo các thông tin: Office (Thu Duc Transaction Office), Client (Lan Ngoc Pham), Account Type (Savings Account), Account (TKB Current Account - 000000002), Transaction Date (10/13/2026), Amount (1,000,000.00 VND), và Description (Internal CASA transfer to Lan Pham. TKB-TRF-001.). Bấm nút "Điền dữ liệu mẫu Chuyển khoản" bên dưới để điền tự động.';
+      } else {
+        stepTitle = 'Bước 4 / 7: Rà soát dữ liệu chuyển khoản trước khi gửi';
+        stepSubtitle = 'Dữ liệu chuyển khoản đã được điền. Vui lòng kiểm tra lại trước khi bấm Submit.';
+        stepInstruction = 'Kiểm tra kỹ các trường: Recipient (Lan Ngoc Pham), Account (000000002), Transaction Date (10/13/2026), Amount (1,000,000.00 VND), và Description. Sau khi xem lại xong, bấm nút "Submit" màu xanh trên form hoặc bấm nút "Bấm Submit chuyển khoản" bên dưới.';
+      }
+    } else if (currentPath === 'accounting-journal-entries' || currentPath === 'accounting-journal') {
+      currentStep = 7;
+      targetSelector = '#tour-journal-transfer-entries';
+      stepTitle = 'Bước 7 / 7: Hoàn tất thực hành - Đối soát 4 bút toán Sổ Nhật ký chung';
+      stepSubtitle = 'Hệ thống Core Banking đã tự động hạch toán 4 bút toán chuyển khoản nội bộ (Tx S3 & S4).';
+      stepInstruction = 'Bốn bút toán định khoản kế toán tự động (mã dòng 65, 66, 67, 68) đang được chiếu sáng nổi bật bên cạnh: Nợ TK 210102 (Current Account Deposits: 1,000,000.00 VND), Có TK 220201 (Clearing Payable: 1,000,000.00 VND), Nợ TK 220201 (Clearing Payable: 1,000,000.00 VND), và Có TK 210102 (Current Account Deposits: 1,000,000.00 VND). Toàn bộ luồng chuyển tiền nội bộ đã hoàn thành trọn vẹn và cân đối!';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1 / 7: Truy cập danh sách khách hàng (Clients)';
       stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
@@ -3051,7 +3141,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn') {
         tooltipStyle = {
@@ -3067,14 +3157,14 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 24)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-client-row-minh' || targetSelector === '#tour-saving-row-000000001' || targetSelector === '#tour-saving-link-000000001') {
+      } else if (targetSelector === '#tour-client-row-minh' || targetSelector === '#tour-saving-row-000000001' || targetSelector === '#tour-saving-link-000000001' || targetSelector === '#tour-saving-row-000000002' || targetSelector === '#tour-saving-link-000000002' || targetSelector === '#tour-client-row-lan') {
         tooltipStyle = {
           position: 'fixed',
           top: `${box.bottom + 16}px`,
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -3097,7 +3187,7 @@ export default function PracticeSpotlightTour({
             width: `${tooltipWidth}px`
           };
         }
-      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn' || targetSelector === '#tour-withdraw-submit-btn') {
+      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn' || targetSelector === '#tour-withdraw-submit-btn' || targetSelector === '#tour-account-transfer-submit') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -4111,6 +4201,191 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+
+        {/* Quick autofill & interactive actions for CASA Part 5 (Account Transfer) */}
+        {module === 'casa-part-5' && (() => {
+          const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+          const account002 = savingsAccounts.find(s => s.accountNo === '000000002');
+          const isTransferred = (
+            (account001 && (
+              account001.transactions?.some(t => t.type === 'TRANSFER_FROM' || t.transactionType?.toLowerCase().includes('transfer from')) ||
+              (account001.balance !== null && Number(account001.balance) <= 2000000 && Number(account001.balance) > 0)
+            )) ||
+            (account002 && (
+              account002.transactions?.some(t => t.type === 'TRANSFER_TO' || t.transactionType?.toLowerCase().includes('transfer to')) ||
+              (account002.balance !== null && Number(account002.balance) >= 1000000)
+            ))
+          );
+
+          return (
+            <div className="space-y-2 mt-2">
+              {/* Step 1: clients view */}
+              {currentPath === 'clients' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetClient = clients.find(c => 
+                      c.accountNo === '000000011' || 
+                      c.externalId === 'TKB-CIF-TDU-001' || 
+                      c.displayName?.toLowerCase().includes('minh quang tran')
+                    ) || clients[0];
+                    if (onSelectClient) onSelectClient(targetClient);
+                    if (navigate) navigate('client-detail');
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Mở hồ sơ Minh Quang Tran
+                </button>
+              )}
+
+              {/* Step 2: client-detail view before transfer */}
+              {currentPath === 'client-detail' && !isTransferred && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetSavings = savingsAccounts.find(s => s.accountNo === '000000001');
+                    if (targetSavings && onSelectSavings) onSelectSavings(targetSavings);
+                    if (navigate) navigate('savings-detail');
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Mở chi tiết tài khoản CASA (000000001)
+                </button>
+              )}
+
+              {/* Step 3: savings-detail view before transfer */}
+              {currentPath === 'savings-detail' && !isTransferred && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('account-transfer');
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Mở biểu mẫu Transfer Funds (Chuyển khoản)
+                </button>
+              )}
+
+              {/* Step 4: account-transfer view */}
+              {currentPath === 'account-transfer' && (
+                <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                  <div className="text-[11px] font-bold text-[#1072ba]">
+                    Thông tin chuyển khoản mẫu:
+                  </div>
+                  <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                    <div>Office: <strong>Thu Duc Transaction Office</strong></div>
+                    <div>Client: <strong>Lan Ngoc Pham</strong></div>
+                    <div>Account Type: <strong>Savings Account</strong></div>
+                    <div>Account: <strong>TKB Current Account - 000000002</strong></div>
+                    <div>Date: <strong>10/13/2026</strong></div>
+                    <div>Amount: <strong>1,000,000 VND</strong></div>
+                    <div>Desc: <strong>Internal CASA transfer to Lan Pham. TKB-TRF-001.</strong></div>
+                  </div>
+
+                  {!transferFilled ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-autofill-transfer'));
+                        setTransferFilled(true);
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền dữ liệu mẫu Chuyển khoản
+                    </button>
+                  ) : (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                        Dữ liệu chuyển khoản đã được điền vào biểu mẫu. Hãy rà soát lại thông tin trước khi gửi.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-submit-transfer'));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Bấm Submit chuyển khoản
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 5: savings-detail view after transfer */}
+              {currentPath === 'savings-detail' && isTransferred && (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                    <div className="font-bold text-emerald-900 mb-0.5">
+                      Lệnh chuyển khoản thành công!
+                    </div>
+                    <div>Tài khoản 000000001 đã giảm còn số dư khả dụng đ2,000,000.00. Tab Transactions đã ghi nhận giao dịch trích nợ 1.000.000 VND.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const clientLan = clients.find(c => c.displayName?.includes('Lan Ngoc') || c.accountNo === '000000012') || clients[1] || clients[0];
+                      if (onSelectClient) onSelectClient(clientLan);
+                      if (navigate) navigate('client-detail');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Kiểm tra tài khoản Lan Ngoc Pham
+                  </button>
+                </div>
+              )}
+
+              {/* Step 6: client-detail view of Lan Ngoc Pham after transfer */}
+              {currentPath === 'client-detail' && isTransferred && (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                    <div className="font-bold text-emerald-900 mb-0.5">
+                      Tài khoản người nhận đã nhận đủ tiền!
+                    </div>
+                    <div>Tài khoản CASA 000000002 của Lan Ngoc Pham đã được ghi có 1.000.000 VND, nâng số dư lên đ1,000,000.00.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('accounting-journal');
+                      window.dispatchEvent(new CustomEvent('practice-filter-transfer-journal'));
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Kiểm tra Sổ Nhật ký chung (Journal Entries)
+                  </button>
+                </div>
+              )}
+
+              {/* Step 7: journal-entries view (FINAL STEP WITH PERSISTENT SPOTLIGHT) */}
+              {(currentPath === 'accounting-journal-entries' || currentPath === 'accounting-journal') && (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans">
+                    <div className="font-bold text-emerald-900 mb-1">
+                      Hoàn tất đối soát 4 bút toán tự động (Tx S3 &amp; S4):
+                    </div>
+                    <div className="space-y-0.5 text-[10px] font-mono text-emerald-950 bg-white p-2 rounded border border-emerald-200">
+                      <div>Dòng 65 (S3): Nợ 210102 - 1,000,000.00 VND</div>
+                      <div>Dòng 66 (S3): Có 220201 - 1,000,000.00 VND</div>
+                      <div>Dòng 67 (S4): Nợ 220201 - 1,000,000.00 VND</div>
+                      <div>Dòng 68 (S4): Có 210102 - 1,000,000.00 VND</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onClose) onClose();
+                    }}
+                    className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  >
+                    Hoàn tất bài thực hành Chuyển khoản nội bộ
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
           <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -5105,7 +5380,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'casa-part-4' && currentStep === 5)
+            {(module === 'casa-part-5' && currentStep === 7)
+              ? 'Nhấn nút "Hoàn tất bài thực hành Chuyển khoản nội bộ" phía trên để kết thúc'
+              : (module === 'casa-part-4' && currentStep === 5)
               ? 'Nhấn nút "Hoàn tất bài thực hành Rút tiền CASA" phía trên để kết thúc'
               : (module === 'casa-part-3' && currentStep === 5)
               ? 'Nhấn nút "Hoàn tất bài thực hành CASA" phía trên để kết thúc'

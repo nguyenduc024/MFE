@@ -186,7 +186,13 @@ export default function ClientsView({
                   return (
                     <tr 
                       key={client.id}
-                      id={client.accountNo === '000000011' || client.externalId === 'TKB-CIF-TDU-001' || client.displayName?.toLowerCase().includes('minh quang tran') ? 'tour-client-row-minh' : undefined}
+                      id={
+                        client.accountNo === '000000011' || client.externalId === 'TKB-CIF-TDU-001' || client.displayName?.toLowerCase().includes('minh quang tran') 
+                          ? 'tour-client-row-minh' 
+                          : client.accountNo === '000000012' || client.externalId === 'TKB-CIF-TDU-002' || client.displayName?.toLowerCase().includes('lan ngoc pham')
+                          ? 'tour-client-row-lan'
+                          : undefined
+                      }
                       onClick={() => onSelectClient && onSelectClient(client)}
                       className={`cursor-pointer transition-colors ${
                         isEven ? 'bg-[#f5f6f8]' : 'bg-white'

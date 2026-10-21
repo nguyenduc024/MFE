@@ -34,7 +34,8 @@ export default function EduGuideDrawer({
   onResetSavingsProducts,
   onResetClients,
   onResetSavingsAccounts,
-  onResetSavingsForWithdraw
+  onResetSavingsForWithdraw,
+  onResetSavingsForTransfer
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -216,6 +217,22 @@ export default function EduGuideDrawer({
     return hasWithdrawn ? 100 : 0;
   };
 
+  const calculateCasaPart5Progress = () => {
+    const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+    const account002 = savingsAccounts.find(s => s.accountNo === '000000002');
+    const hasTransferred = (
+      (account001 && (
+        account001.transactions?.some(t => t.type === 'TRANSFER_FROM' || t.transactionType?.toLowerCase().includes('transfer from')) ||
+        (account001.balance !== null && Number(account001.balance) <= 2000000 && Number(account001.balance) > 0)
+      )) ||
+      (account002 && (
+        account002.transactions?.some(t => t.type === 'TRANSFER_TO' || t.transactionType?.toLowerCase().includes('transfer to')) ||
+        (account002.balance !== null && Number(account002.balance) >= 1000000)
+      ))
+    );
+    return hasTransferred ? 100 : 0;
+  };
+
   const currentModule = EDU_MODULES.find(m => m.id === activePartId) || EDU_MODULES[0];
   const glPart1Progress = calculateGlPart1Progress();
   const glPart2Progress = calculateGlPart2Progress();
@@ -234,6 +251,7 @@ export default function EduGuideDrawer({
   const casaPart2Progress = calculateCasaPart2Progress();
   const casaPart3Progress = calculateCasaPart3Progress();
   const casaPart4Progress = calculateCasaPart4Progress();
+  const casaPart5Progress = calculateCasaPart5Progress();
 
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
@@ -249,6 +267,7 @@ export default function EduGuideDrawer({
     activePartId === 'casa-part-2' ? casaPart2Progress :
     activePartId === 'casa-part-3' ? casaPart3Progress :
     activePartId === 'casa-part-4' ? casaPart4Progress :
+    activePartId === 'casa-part-5' ? casaPart5Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -264,6 +283,7 @@ export default function EduGuideDrawer({
   const isCasaPart2Complete = casaPart2Progress === 100;
   const isCasaPart3Complete = casaPart3Progress === 100;
   const isCasaPart4Complete = casaPart4Progress === 100;
+  const isCasaPart5Complete = casaPart5Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -369,7 +389,8 @@ export default function EduGuideDrawer({
                 const itemProgress = 
                   item.id === 'casa-part-1' ? casaPart1Progress : 
                   item.id === 'casa-part-2' ? casaPart2Progress : 
-                  item.id === 'casa-part-3' ? casaPart3Progress : casaPart4Progress;
+                  item.id === 'casa-part-3' ? casaPart3Progress : 
+                  item.id === 'casa-part-4' ? casaPart4Progress : casaPart5Progress;
 
                 return (
                   <div
@@ -387,7 +408,9 @@ export default function EduGuideDrawer({
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
                         {item.id === 'casa-part-1' ? 'Tạo sản phẩm TKB Current Account (TKCA)' : 
                          item.id === 'casa-part-2' ? 'Tạo hồ sơ CIF Minh Quang Tran & Lan Ngoc Pham' :
-                         'Nạp 5.000.000 VND vào tài khoản CASA 000000001'}
+                         item.id === 'casa-part-3' ? 'Nạp 5.000.000 VND vào tài khoản CASA 000000001' :
+                         item.id === 'casa-part-4' ? 'Rút 2.000.000 VND từ tài khoản CASA 000000001' :
+                         'Chuyển khoản 1.000.000 VND từ Minh Quang Tran sang Lan Ngoc Pham'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -2473,6 +2496,117 @@ export default function EduGuideDrawer({
           </div>
         )}
 
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 02 - PHẦN 5: CHUYỂN KHOẢN NỘI BỘ (ACCOUNT TRANSFER)
+            ========================================================== */}
+        {activePartId === 'casa-part-5' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân Hệ 02: Account / CASA
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-1.5 leading-snug">
+                Chuyển Khoản Nội Bộ Giữa 2 Khách Hàng CASA (Minh Quang Tran -&gt; Lan Ngoc Pham)
+              </h3>
+              <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+                Thực hiện nghiệp vụ chuyển tiền giữa 2 tài khoản tiền gửi thanh toán (Account Transfer) trong cùng chi nhánh/hệ thống Core Banking Mifos từ tài khoản 000000001 (Minh Quang Tran) sang tài khoản 000000002 (Lan Ngoc Pham) với số tiền 1.000.000 VND. Kiểm tra biến động số dư của 2 tài khoản và đối soát 4 bút toán tự động hạch toán trong Sổ Nhật ký chung (Journal Entries).
+              </p>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-gray-700 leading-relaxed">
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Chọn Khách Hàng Nguồn (Minh Quang Tran)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Đường dẫn: <strong>Clients &gt; Chọn khách hàng Minh Quang Tran (000000011)</strong> từ danh sách khách hàng.
+                </p>
+              </div>
+
+              {/* Bước 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Nhấp Chọn Tài Khoản Nguồn CASA (000000001)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại bảng <strong>Saving Accounts</strong> của khách hàng Minh Quang Tran, nhấp vào mã tài khoản <code>000000001</code> (TKB Current Account - số dư ban đầu 3.000.000 VND).
+                </p>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Mở Menu Thao Tác & Chọn Transfer Funds</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Bấm vào nút <strong>Menu 3 dấu gạch</strong> ở góc phải banner xanh tài khoản, di chuột/chọn mục <strong>More</strong> và nhấp vào <strong>Transfer Funds</strong>.
+                </p>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Khai Báo Thông Tin Chuyển Khoản (Account Transfer)</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Office *:</strong> <code>Thu Duc Transaction Office</code></div>
+                  <div><strong>Client *:</strong> <code>Lan Ngoc Pham</code></div>
+                  <div><strong>Account Type *:</strong> <code>Savings Account</code></div>
+                  <div><strong>Account *:</strong> <code>TKB Current Account - 000000002</code></div>
+                  <div><strong>Transaction Date *:</strong> <code>10/13/2026</code></div>
+                  <div><strong>Amount *:</strong> <strong className="text-[#1072ba]">1000000 (1,000,000 VND)</strong></div>
+                  <div><strong>Description *:</strong> <code>Internal CASA transfer to Lan Pham. TKB-TRF-001.</code></div>
+                </div>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Đối Soát Biến Động Số Dư & Lịch Sử Giao Dịch Người Chuyển (000000001)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Sau khi Submit, số dư tài khoản người chuyển giảm còn <code>đ2,000,000.00</code>. Tab <strong>Transactions</strong> hiển thị giao dịch chuyển tiền (Debit: 1.000.000 VND).
+                </p>
+              </div>
+
+              {/* Bước 6 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">6</span>
+                  <span>Đối Soát Tài Khoản Người Nhận (Lan Ngoc Pham - 000000002)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Kiểm tra hồ sơ khách hàng Lan Ngoc Pham (000000012). Tài khoản CASA <code>000000002</code> được ghi có (Credit 1.000.000 VND) và số dư đạt <code>đ1,000,000.00</code>.
+                </p>
+              </div>
+
+              {/* Bước 7 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
+                  <span>Đối Soát 4 Bút Toán Trong Sổ Nhật Ký Chung (Journal Entries - Tx S3 &amp; S4)</span>
+                </div>
+                <div className="pl-6 space-y-1 text-xs text-gray-600">
+                  <p>Mở <strong>Accounting &gt; Journal Entries</strong> và lọc chi nhánh <code>Thu Duc Transaction Office</code>:</p>
+                  <ul className="list-disc pl-4 space-y-1 font-mono text-[11px] text-gray-700">
+                    <li>Dòng 65 (Tx S3): Nợ TK 210102 (Current Account Deposits): 1.000.000 VND</li>
+                    <li>Dòng 66 (Tx S3): Có TK 220201 (Clearing Payable): 1.000.000 VND</li>
+                    <li>Dòng 67 (Tx S4): Nợ TK 220201 (Clearing Payable): 1.000.000 VND</li>
+                    <li>Dòng 68 (Tx S4): Có TK 210102 (Current Account Deposits): 1.000.000 VND</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
         {/* Nút hành động ở chân bài học */}
         <div className="pt-2">
           {activePartId === 'gl-part-1' ? (
@@ -3049,13 +3183,10 @@ export default function EduGuideDrawer({
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (navigate) navigate('savings-detail');
-                    if (onClose) onClose();
-                  }}
-                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  onClick={() => setActivePartId('casa-part-5')}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Xem chi tiết tài khoản & giao dịch
+                  Đến phần kế tiếp: Chuyển Khoản Nội Bộ (Minh Quang Tran -&gt; Lan Ngoc Pham)
                 </button>
                 <button
                   type="button"
@@ -3081,6 +3212,49 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu Rút Tiền Tài Khoản CASA (2 triệu VND)
+              </button>
+            )
+          ) : activePartId === 'casa-part-5' ? (
+            isCasaPart5Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành xuất sắc nghiệp vụ chuyển khoản nội bộ và đối soát 4 bút toán tự động!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting-journal');
+                    window.dispatchEvent(new CustomEvent('practice-filter-transfer-journal'));
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Kiểm tra Sổ Nhật ký chung (Journal Entries)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetSavingsForTransfer) onResetSavingsForTransfer();
+                    if (onStartPractice) {
+                      onStartPractice('casa-part-5');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Luyện tập lại Chuyển Khoản Nội Bộ
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('casa-part-5');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Chuyển Khoản Nội Bộ (1 triệu VND)
               </button>
             )
           ) : activePartId === 'part-1' ? (

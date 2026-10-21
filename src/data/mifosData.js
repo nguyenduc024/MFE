@@ -2354,5 +2354,17 @@ export const EDU_MODULES = [
     objective: "Thực hiện nghiệp vụ rút tiền 2.000.000 VND từ tài khoản CASA 000000001 của khách hàng Minh Quang Tran qua hình thức Money Transfer, đối soát số dư còn lại 3.000.000 VND và kiểm tra đối chiếu lịch sử giao dịch tại tab Transactions.",
     targetMenu: "clients",
     subPath: "savings-withdraw"
+  },
+  {
+    id: "casa-part-5",
+    moduleNumber: "02",
+    moduleTitle: "Phân hệ 02: Account / CASA",
+    partNumber: "5",
+    name: "Phần 5: Chuyển Khoản Nội Bộ (Account Transfer: Minh Quang Tran -> Lan Ngoc Pham)",
+    shortLabel: "Phần 5: Chuyển khoản nội bộ",
+    title: "Chuyển Khoản Nội Bộ Giữa 2 Khách Hàng CASA (Minh Quang Tran -> Lan Ngoc Pham)",
+    objective: "Thực hiện nghiệp vụ chuyển khoản nội bộ (Account Transfer) số tiền 1.000.000 VND từ tài khoản CASA 000000001 (Minh Quang Tran) sang tài khoản CASA 000000002 (Lan Ngoc Pham). Kiểm tra biến động số dư của 2 tài khoản và đối soát 4 bút toán tự động hạch toán trong Sổ Nhật ký chung (Journal Entries).",
+    targetMenu: "clients",
+    subPath: "account-transfer"
   }
 ];

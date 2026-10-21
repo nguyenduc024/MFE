@@ -41,6 +41,7 @@ import LoanDetailView from './views/LoanDetailView';
 import SavingsDetailView from './views/SavingsDetailView';
 import DepositSavingsAccountView from './views/DepositSavingsAccountView';
 import WithdrawSavingsAccountView from './views/WithdrawSavingsAccountView';
+import AccountTransferView from './views/AccountTransferView';
 import CreateSavingsAccountView from './views/CreateSavingsAccountView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
@@ -376,6 +377,142 @@ export default function App() {
       setSelectedSavings(updatedTarget);
     }
     navigate('savings-detail');
+  };
+
+
+  const handleAccountTransfer = (transferData) => {
+    const amount = Number(transferData?.amount) || 1000000;
+    const txDate = transferData?.transactionDate || '2026-10-13';
+    const desc = transferData?.description || 'Internal CASA transfer to Lan Pham. TKB-TRF-001.';
+    let updatedSource = null;
+
+    setSavingsAccounts(prev => {
+      const updated = prev.map(s => {
+        if (s.accountNo === '000000001') {
+          const currentBal = Number(s.balance) || 3000000;
+          const newBalance = Math.max(0, currentBal - amount);
+          const newTx = {
+            id: String((s.transactions?.length || 0) + 1),
+            date: txDate,
+            transactionDate: txDate,
+            type: 'TRANSFER_FROM',
+            transactionType: 'Transfer Transfer From',
+            amount: amount,
+            debit: amount,
+            credit: null,
+            balanceAfter: newBalance,
+            paymentType: 'Money Transfer',
+            desc: desc
+          };
+          const existingTxs = s.transactions || [];
+          const sourceObj = {
+            ...s,
+            balance: newBalance,
+            lastActive: txDate,
+            transactions: [newTx, ...existingTxs]
+          };
+          updatedSource = sourceObj;
+          return sourceObj;
+        }
+
+        if (s.accountNo === '000000002') {
+          const currentBal = Number(s.balance) || 0;
+          const newBalance = currentBal + amount;
+          const newTx = {
+            id: String((s.transactions?.length || 0) + 1),
+            date: txDate,
+            transactionDate: txDate,
+            type: 'TRANSFER_TO',
+            transactionType: 'Transfer Transfer To',
+            amount: amount,
+            debit: null,
+            credit: amount,
+            balanceAfter: newBalance,
+            paymentType: 'Money Transfer',
+            desc: 'Internal CASA transfer from Minh Tran. TKB-TRF-001.'
+          };
+          const existingTxs = s.transactions || [];
+          return {
+            ...s,
+            balance: newBalance,
+            lastActive: txDate,
+            transactions: [newTx, ...existingTxs]
+          };
+        }
+
+        return s;
+      });
+
+      return updated;
+    });
+
+    if (updatedSource) {
+      setSelectedSavings(updatedSource);
+    }
+    navigate('savings-detail');
+  };
+
+  const handleResetSavingsForTransfer = () => {
+    const seededSavingsMinh = {
+      id: '1',
+      clientId: '11',
+      clientName: 'Minh Quang Tran',
+      accountNo: '000000001',
+      productName: 'TKB Current Account',
+      shortName: 'TKCA',
+      status: 'Active',
+      balance: 3000000,
+      lastActive: '2026-10-13',
+      openedDate: '2026-10-13',
+      transactions: [
+        {
+          id: '2',
+          date: '2026-10-13',
+          transactionDate: '2026-10-13',
+          type: 'WITHDRAWAL',
+          transactionType: 'Withdrawal',
+          amount: 2000000,
+          debit: 2000000,
+          credit: null,
+          balanceAfter: 3000000,
+          paymentType: 'Money Transfer',
+          desc: 'CASA withdrawal via bank transfer. TKB-CASA-WD-001.'
+        },
+        {
+          id: '1',
+          date: '2026-10-13',
+          transactionDate: '2026-10-13',
+          type: 'DEPOSIT',
+          transactionType: 'Deposit',
+          amount: 5000000,
+          credit: 5000000,
+          debit: null,
+          balanceAfter: 5000000,
+          paymentType: 'Money Transfer',
+          desc: 'Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.'
+        }
+      ]
+    };
+
+    const seededSavingsLan = {
+      id: '2',
+      clientId: '12',
+      clientName: 'Lan Ngoc Pham',
+      accountNo: '000000002',
+      productName: 'TKB Current Account',
+      shortName: 'TKCA',
+      status: 'Active',
+      balance: 0,
+      lastActive: '2026-10-13',
+      openedDate: '2026-10-13',
+      transactions: []
+    };
+
+    setSavingsAccounts(prev => {
+      const filtered = prev.filter(s => s.accountNo !== '000000001' && s.accountNo !== '000000002');
+      return [seededSavingsMinh, seededSavingsLan, ...filtered];
+    });
+    setSelectedSavings(seededSavingsMinh);
   };
 
   const handleWithdraw = (savingsIdOrData, amountParam) => {
@@ -935,12 +1072,13 @@ export default function App() {
         {currentPath === 'savings-detail' && (
           <SavingsDetailView
             savings={selectedSavings}
-            initialTab={selectedSavings?.transactions?.some(t => t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal') ? 'transactions' : 'general'}
+            initialTab={(selectedSavings?.transactions?.some(t => t.type === 'TRANSFER_FROM' || t.transactionType?.toLowerCase().includes('transfer from') || t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal')) ? 'transactions' : 'general'}
             onBack={() => navigate('client-detail')}
             onNavigateHome={() => navigate('home')}
             onNavigateClients={() => navigate('clients')}
             onNavigateDeposit={() => navigate('savings-deposit')}
             onNavigateWithdraw={() => navigate('savings-withdraw')}
+            onNavigateTransfer={() => navigate('account-transfer')}
           />
         )}
 
@@ -961,6 +1099,21 @@ export default function App() {
             client={selectedClient}
             onCancel={() => navigate('savings-detail')}
             onSubmitWithdraw={handleWithdraw}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateClientDetail={() => navigate('client-detail')}
+            onNavigateSavingsDetail={() => navigate('savings-detail')}
+          />
+        )}
+
+        {currentPath === 'account-transfer' && (
+          <AccountTransferView
+            fromSavings={selectedSavings}
+            fromClient={selectedClient}
+            toClient={clients.find(c => c.displayName?.includes('Lan Ngoc') || c.accountNo === '000000012')}
+            toSavings={savingsAccounts.find(s => s.accountNo === '000000002')}
+            onCancel={() => navigate('savings-detail')}
+            onSubmitTransfer={handleAccountTransfer}
             onNavigateHome={() => navigate('home')}
             onNavigateClients={() => navigate('clients')}
             onNavigateClientDetail={() => navigate('client-detail')}
@@ -1119,6 +1272,110 @@ export default function App() {
             if (targetSavings) setSelectedSavings(targetSavings);
             setCurrentPath('clients');
           }
+          if (targetModule === 'casa-part-5') {
+            let targetClientMinh = clients.find(c => c.id === '11' || c.accountNo === '000000011' || c.displayName?.includes('Minh Quang Tran'));
+            if (!targetClientMinh) {
+              targetClientMinh = {
+                id: '11',
+                accountNo: '000000011',
+                displayName: 'Minh Quang Tran',
+                officeName: 'Thu Duc Transaction Office',
+                staffName: 'Dang, Quan',
+                status: 'Active',
+                activationDate: '2026-10-13',
+                externalId: 'TKB-CIF-TDU-001',
+                mobileNo: '0955738216',
+                emailAddress: 'quang2004@gmail.com',
+                dateOfBirth: '2000-04-06'
+              };
+            }
+
+            let targetClientLan = clients.find(c => c.id === '12' || c.accountNo === '000000012' || c.displayName?.includes('Lan Ngoc Pham'));
+            if (!targetClientLan) {
+              targetClientLan = {
+                id: '12',
+                accountNo: '000000012',
+                displayName: 'Lan Ngoc Pham',
+                officeName: 'Thu Duc Transaction Office',
+                staffName: 'Dang, Quan',
+                status: 'Active',
+                activationDate: '2026-10-13',
+                externalId: 'TKB-CIF-TDU-002',
+                mobileNo: '0912345678',
+                emailAddress: 'lan.pham@gmail.com',
+                dateOfBirth: '1998-08-15'
+              };
+            }
+
+            setClients(prev => {
+              const withoutBoth = prev.filter(c => c.id !== '11' && c.id !== '12' && c.accountNo !== '000000011' && c.accountNo !== '000000012');
+              return [targetClientMinh, targetClientLan, ...withoutBoth];
+            });
+
+            const seededSavingsMinh = {
+              id: '1',
+              clientId: '11',
+              clientName: 'Minh Quang Tran',
+              accountNo: '000000001',
+              productName: 'TKB Current Account',
+              shortName: 'TKCA',
+              status: 'Active',
+              balance: 3000000,
+              lastActive: '2026-10-13',
+              openedDate: '2026-10-13',
+              transactions: [
+                {
+                  id: '2',
+                  date: '2026-10-13',
+                  transactionDate: '2026-10-13',
+                  type: 'WITHDRAWAL',
+                  transactionType: 'Withdrawal',
+                  amount: 2000000,
+                  debit: 2000000,
+                  credit: null,
+                  balanceAfter: 3000000,
+                  paymentType: 'Money Transfer',
+                  desc: 'CASA withdrawal via bank transfer. TKB-CASA-WD-001.'
+                },
+                {
+                  id: '1',
+                  date: '2026-10-13',
+                  transactionDate: '2026-10-13',
+                  type: 'DEPOSIT',
+                  transactionType: 'Deposit',
+                  amount: 5000000,
+                  credit: 5000000,
+                  debit: null,
+                  balanceAfter: 5000000,
+                  paymentType: 'Money Transfer',
+                  desc: 'Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.'
+                }
+              ]
+            };
+
+            const seededSavingsLan = {
+              id: '2',
+              clientId: '12',
+              clientName: 'Lan Ngoc Pham',
+              accountNo: '000000002',
+              productName: 'TKB Current Account',
+              shortName: 'TKCA',
+              status: 'Active',
+              balance: 0,
+              lastActive: '2026-10-13',
+              openedDate: '2026-10-13',
+              transactions: []
+            };
+
+            setSavingsAccounts(prev => {
+              const filtered = prev.filter(s => s.accountNo !== '000000001' && s.accountNo !== '000000002');
+              return [seededSavingsMinh, seededSavingsLan, ...filtered];
+            });
+
+            setSelectedClient(targetClientMinh);
+            setSelectedSavings(seededSavingsMinh);
+            setCurrentPath('clients');
+          }
           if (targetModule === 'casa-part-4') {
             let targetClient = clients.find(c => c.id === '11' || c.accountNo === '000000011' || c.displayName?.includes('Minh Quang Tran'));
             if (!targetClient) {
@@ -1199,6 +1456,7 @@ export default function App() {
             return s;
           }));
         }}
+        onResetSavingsForTransfer={handleResetSavingsForTransfer}
         onResetSavingsForWithdraw={() => {
           setSavingsAccounts(prev => prev.map(s => {
             if (s.accountNo === '000000001') {
@@ -1262,6 +1520,8 @@ export default function App() {
         savingsProducts={savingsProducts}
         clients={clients}
         savingsAccounts={savingsAccounts}
+        onSelectClient={(client) => setSelectedClient(client)}
+        onSelectSavings={(savings) => setSelectedSavings(savings)}
         onAddSavingsProduct={handleAddSavingsProduct}
         financialActivities={financialActivities}
         accountingRules={accountingRules}

@@ -266,11 +266,20 @@ export default function JournalEntriesView({
       setIsFiltered(true);
     };
 
+    const handleFilterTransfer = () => {
+      setSelectedOffice('Thu Duc Transaction Office');
+      setTxDateFrom('10/01/2026');
+      setTxDateTo('10/31/2026');
+      setIsFiltered(true);
+    };
+
     window.addEventListener('practice-filter-journal-dates', handleFilterDates);
     window.addEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
+    window.addEventListener('practice-filter-transfer-journal', handleFilterTransfer);
     return () => {
       window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
       window.removeEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
+      window.removeEventListener('practice-filter-transfer-journal', handleFilterTransfer);
     };
   }, []);
 
@@ -682,9 +691,38 @@ export default function JournalEntriesView({
                   </tbody>
                 )}
 
+                {/* CASA Transfer Target Entries (Phần 5: Account Transfer) */}
+                {displayedEntries.some(item => item.isTransferTarget || item.txId === 'S3' || item.txId === 'S4' || item.id === '65' || item.id === '66' || item.id === '67' || item.id === '68') && (
+                  <tbody id="tour-journal-transfer-entries" className="border-b-2 border-emerald-400">
+                    {displayedEntries.filter(item => item.isTransferTarget || item.txId === 'S3' || item.txId === 'S4' || item.id === '65' || item.id === '66' || item.id === '67' || item.id === '68').map((item, index) => (
+                      <tr
+                        key={`transfer-${item.id}-${item.glCode}-${index}`}
+                        className="border-b border-emerald-100 bg-emerald-50/60 hover:bg-emerald-50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px] font-semibold text-emerald-900">{item.txId}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glCode}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.glName}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-medium">
+                          {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-medium">
+                          {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
+
                 {/* Other standard screenshot journal entries */}
                 <tbody>
-                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001').map((item, index) => (
+                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68').map((item, index) => (
                     <tr
                       key={`${item.id}-${item.glCode}-${index}`}
                       className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"

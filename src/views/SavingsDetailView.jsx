@@ -57,10 +57,12 @@ export default function SavingsDetailView({
   onNavigateHome, 
   onNavigateClients, 
   onNavigateDeposit,
-  onNavigateWithdraw 
+  onNavigateWithdraw,
+  onNavigateTransfer
 }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'general', 'transactions', 'charges', 'documents', 'notes', 'standing'
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   useEffect(() => {
     if (initialTab) {
@@ -273,9 +275,41 @@ export default function SavingsDetailView({
                   </div>
 
                   {/* More */}
-                  <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center justify-between font-normal border-t border-gray-100">
+                  <div 
+                    id="tour-savings-menu-more"
+                    onMouseEnter={() => setMoreMenuOpen(true)}
+                    onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                    className="relative px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer flex items-center justify-between font-normal border-t border-gray-100"
+                  >
                     <span>More</span>
                     <ChevronRight className="w-3 h-3 text-gray-400" />
+
+                    {/* Submenu matching Image 1 */}
+                    {moreMenuOpen && (
+                      <div className="absolute right-full top-0 mr-1 w-48 bg-white text-gray-800 rounded-[2px] shadow-xl border border-gray-100 py-1 z-50 text-xs font-sans">
+                        <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer">
+                          Calculate Interest
+                        </div>
+                        <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer">
+                          Post Interest
+                        </div>
+                        <div className="px-4 py-1.5 hover:bg-gray-50 text-gray-700 cursor-pointer">
+                          Apply Annual Fees
+                        </div>
+                        <div 
+                          id="tour-savings-menu-transfer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuOpen(false);
+                            setMoreMenuOpen(false);
+                            if (onNavigateTransfer) onNavigateTransfer();
+                          }}
+                          className="px-4 py-1.5 hover:bg-sky-50 hover:text-[#1072ba] text-gray-700 font-medium cursor-pointer border-t border-gray-100 flex items-center justify-between"
+                        >
+                          <span>Transfer Funds</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -302,6 +336,7 @@ export default function SavingsDetailView({
 
         <button
           type="button"
+          id="tour-savings-tab-transactions"
           onClick={() => setActiveTab('transactions')}
           className={`py-3 transition-colors ${
             activeTab === 'transactions'
@@ -503,9 +538,9 @@ export default function SavingsDetailView({
               <tbody className="divide-y divide-gray-100">
                 {transactions.length > 0 ? (
                   transactions.map((t, idx) => {
-                    const isWithdrawal = t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal';
-                    const debitVal = isWithdrawal ? (t.debit || t.amount) : null;
-                    const creditVal = !isWithdrawal ? (t.credit || t.amount) : null;
+                    const isDebit = t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal' || t.type === 'TRANSFER_FROM' || (t.transactionType && t.transactionType.toLowerCase().includes('transfer from')) || (t.debit && !t.credit);
+                    const debitVal = isDebit ? (t.debit || t.amount) : null;
+                    const creditVal = !isDebit ? (t.credit || t.amount) : null;
                     const balanceVal = t.balanceAfter !== undefined ? t.balanceAfter : balance;
 
                     return (
