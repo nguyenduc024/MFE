@@ -169,11 +169,11 @@ export default function CreateRecurringDepositAccountView({
     depositStartDate: '',
     depositFrequency: '',
     depositFrequencyType: 'Months',
-    minDepositTermFrequency: '12',
+    minDepositTermFrequency: '',
     minDepositTermType: 'Months',
     inMultiplesOfFrequency: '',
     inMultiplesOfType: '',
-    maxDepositTermFrequency: '12',
+    maxDepositTermFrequency: '',
     maxDepositTermType: 'Months',
     applyPenalInterest: false,
     penalInterest: '',
@@ -198,19 +198,7 @@ export default function CreateRecurringDepositAccountView({
         productId: defaultProduct?.id || '1',
         submittedOn: '10/13/2026',
         fieldOfficer: 'Unassigned',
-        externalId: 'TKB-RD-TDU-002',
-        // Automatically preset product defaults
-        isMandatoryDeposit: true,
-        recurringDepositAmount: '500000',
-        depositPeriod: '12',
-        depositPeriodType: 'Months',
-        depositStartDate: '10/13/2026',
-        depositFrequency: '1',
-        depositFrequencyType: 'Months',
-        minDepositTermFrequency: '12',
-        minDepositTermType: 'Months',
-        maxDepositTermFrequency: '12',
-        maxDepositTermType: 'Months'
+        externalId: 'TKB-RD-TDU-002'
       }));
     };
 
@@ -223,7 +211,11 @@ export default function CreateRecurringDepositAccountView({
         depositPeriodType: 'Months',
         depositStartDate: '10/13/2026',
         depositFrequency: '1',
-        depositFrequencyType: 'Months'
+        depositFrequencyType: 'Months',
+        minDepositTermFrequency: '12',
+        minDepositTermType: 'Months',
+        maxDepositTermFrequency: '12',
+        maxDepositTermType: 'Months'
       }));
     };
 
@@ -254,14 +246,7 @@ export default function CreateRecurringDepositAccountView({
     setFormData(prev => ({
       ...prev,
       productName: prodName,
-      productId: '1',
-      isMandatoryDeposit: true,
-      recurringDepositAmount: '500000',
-      depositPeriod: '12',
-      depositPeriodType: 'Months',
-      depositStartDate: '10/13/2026',
-      depositFrequency: '1',
-      depositFrequencyType: 'Months'
+      productId: prodName ? (defaultProduct?.id || '1') : ''
     }));
   };
 
@@ -416,6 +401,9 @@ export default function CreateRecurringDepositAccountView({
               >
                 <option value=""></option>
                 <option value="TKB Goal Savings">TKB Goal Savings</option>
+                {recurringDepositProducts?.filter(p => p.name !== 'TKB Goal Savings').map(p => (
+                  <option key={p.id} value={p.name}>{p.name}</option>
+                ))}
               </FloatingSelect>
 
               <div className="relative">
@@ -436,6 +424,9 @@ export default function CreateRecurringDepositAccountView({
               >
                 <option value=""></option>
                 <option value="Unassigned">Unassigned</option>
+                {users?.filter(u => u.username !== 'Unassigned' && u.name !== 'Unassigned').map(u => (
+                  <option key={u.id} value={u.username || u.name}>{u.username || u.name}</option>
+                ))}
               </FloatingSelect>
 
               <FloatingInput
@@ -693,15 +684,16 @@ export default function CreateRecurringDepositAccountView({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 <FloatingInput
                   label="Frequency"
-                  disabled
                   value={formData.minDepositTermFrequency}
+                  onChange={(e) => setFormData({ ...formData, minDepositTermFrequency: e.target.value })}
                 />
                 <FloatingSelect
                   label="Frequency Type"
-                  disabled
                   value={formData.minDepositTermType}
+                  onChange={(e) => setFormData({ ...formData, minDepositTermType: e.target.value })}
                 >
                   <option value="Months">Months</option>
+                  <option value="Days">Days</option>
                 </FloatingSelect>
               </div>
             </div>
@@ -732,15 +724,16 @@ export default function CreateRecurringDepositAccountView({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 <FloatingInput
                   label="Frequency"
-                  disabled
                   value={formData.maxDepositTermFrequency}
+                  onChange={(e) => setFormData({ ...formData, maxDepositTermFrequency: e.target.value })}
                 />
                 <FloatingSelect
                   label="Type"
-                  disabled
                   value={formData.maxDepositTermType}
+                  onChange={(e) => setFormData({ ...formData, maxDepositTermType: e.target.value })}
                 >
                   <option value="Months">Months</option>
+                  <option value="Days">Days</option>
                 </FloatingSelect>
               </div>
             </div>

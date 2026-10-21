@@ -753,7 +753,7 @@ export default function ClientDetailView({
                             rd.status === 'Active' || rd.status === 'Activated'
                               ? 'bg-[#28a745]'
                               : rd.status === 'Approved'
-                              ? 'bg-[#06b6d4]'
+                              ? 'bg-[#6366f1]'
                               : 'bg-[#f59e0b]'
                           }`} />
                           <span className="text-gray-900 hover:text-[#1072ba] cursor-pointer">
@@ -764,7 +764,9 @@ export default function ClientDetailView({
                         <td className="py-3 px-3 font-normal text-gray-800">
                           {formatDisplayDate(rd.lastActive || rd.openedDate || rd.activatedOn, '13 October 2026')}
                         </td>
-                        <td className="py-3 px-3 font-normal text-gray-800">{formatCurrency(rd.balance ?? 0)}</td>
+                        <td className="py-3 px-3 font-normal text-gray-800">
+                          {rd.balance && Number(rd.balance) > 0 ? formatCurrency(rd.balance) : ''}
+                        </td>
                         <td className="py-3 px-3 text-right"></td>
                       </tr>
                     ))

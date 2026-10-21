@@ -1339,22 +1339,31 @@ export default function PracticeSpotlightTour({
     if (currentPath === 'clients') {
       currentStep = 2;
       targetSelector = '#tour-client-row-lan';
-      stepTitle = 'Bước 2: Chọn khách hàng Lan Ngoc Pham';
+      stepTitle = 'Bước 2 / 14: Chọn khách hàng Lan Ngoc Pham';
       stepSubtitle = 'Mở hồ sơ khách hàng Lan Ngoc Pham (Client ID: 000000012, CIF: TKB-CIF-TDU-002).';
       stepInstruction = 'Nhấp vào dòng thông tin khách hàng Lan Ngoc Pham trong danh sách hoặc nút biểu tượng ở cột bên phải để mở chi tiết hồ sơ khách hàng.';
     } else if (currentPath === 'client-detail') {
       if (isActive) {
-        currentStep = 13;
+        currentStep = 14;
         targetSelector = '#tour-client-recurring-deposits-section';
-        stepTitle = 'Hoàn tất: Tài khoản Recurring Deposit đã hiển thị trên hồ sơ khách hàng!';
+        stepTitle = 'Bước 14 / 14: Tài khoản Recurring Deposit đã Active trên hồ sơ khách hàng!';
         stepSubtitle = 'Mục Recurring Deposit Accounts hiển thị tài khoản 000000004 ở trạng thái Active!';
-        stepInstruction = 'Tại hồ sơ khách hàng Lan Ngoc Pham, mục Recurring Deposit Accounts đã ghi nhận tài khoản 000000004 (TKB Goal Savings) ở trạng thái Active (ô vuông xanh lá) với số dư ban đầu ₫500,000.00. Bấm "Hoàn thành phần thực hành" bên dưới để kết thúc bài học.';
+        stepInstruction = 'Tại hồ sơ khách hàng Lan Ngoc Pham, mục Recurring Deposit Accounts đã ghi nhận tài khoản 000000004 (TKB Goal Savings) ở trạng thái Active (ô vuông xanh lá) theo đúng Hình 4. Bấm "Hoàn thành phần thực hành" bên dưới để kết thúc bài học.';
       } else {
-        currentStep = 3;
-        targetSelector = '#tour-client-new-recurring-deposit-btn';
-        stepTitle = 'Bước 3: Mở đơn đăng ký New Recurring Deposit Account';
-        stepSubtitle = 'Nhấp menu 3 gạch (≡) > Applications > New Recurring Deposit Account.';
-        stepInstruction = 'Tại banner hồ sơ khách hàng Lan Ngoc Pham, nhấp vào menu Actions (≡), di chuột đến "Applications" và bấm chọn "New Recurring Deposit Account" (có viền đỏ nổi bật theo tài liệu) để mở màn hình tạo tài khoản.';
+        const hasSubmenu = typeof document !== 'undefined' && Boolean(document.getElementById('tour-client-new-recurring-deposit-btn'));
+        if (!hasSubmenu) {
+          currentStep = 3;
+          targetSelector = '#tour-client-actions-menu-btn';
+          stepTitle = 'Bước 3 / 14: Mở menu thao tác khách hàng';
+          stepSubtitle = 'Nhấp menu 3 gạch (≡) trên banner khách hàng Lan Ngoc Pham.';
+          stepInstruction = 'Tại banner hồ sơ khách hàng Lan Ngoc Pham, nhấp vào menu Actions (≡) ở góc trên bên phải để mở danh mục thao tác.';
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-client-new-recurring-deposit-btn';
+          stepTitle = 'Bước 3 / 14: Mở đơn đăng ký New Recurring Deposit Account';
+          stepSubtitle = 'Chọn Applications > New Recurring Deposit Account.';
+          stepInstruction = 'Di chuột đến mục "Applications" và bấm chọn "New Recurring Deposit Account" (có viền đỏ nổi bật theo tài liệu) để mở màn hình tạo tài khoản.';
+        }
       }
     } else if (currentPath === 'create-recurring-deposit-account') {
       const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rda-details-form'));
@@ -1368,87 +1377,105 @@ export default function PracticeSpotlightTour({
         currentStep = 4;
         targetSelector = '#tour-rda-details-form';
         if (!rdaFilledSteps.details) {
-          stepTitle = 'Bước 4: Khai báo tab DETAILS (Thông tin tài khoản)';
+          stepTitle = 'Bước 4 / 14: Khai báo tab DETAILS (Thông tin tài khoản)';
           stepSubtitle = 'Chọn sản phẩm TKB Goal Savings, ngày nộp hồ sơ 10/13/2026 và External ID.';
-          stepInstruction = 'Khai báo các trường: Product Name (TKB Goal Savings), Submitted On (10/13/2026), Field Officer (Unassigned), External id (TKB-RD-TDU-002). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền tự động.';
+          stepInstruction = 'Khai báo các trường: Product Name (TKB Goal Savings), Submitted On (10/13/2026), Field Officer (Unassigned), External id (TKB-RD-TDU-002). Bạn có thể tự chọn/nhập hoặc bấm nút "Điền dữ liệu mẫu Details" bên dưới.';
         } else {
-          stepTitle = 'Bước 4: Rà soát dữ liệu tab DETAILS';
+          stepTitle = 'Bước 4 / 14: Rà soát dữ liệu tab DETAILS';
           stepSubtitle = 'Dữ liệu đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
           stepInstruction = 'Kiểm tra lại Product Name (TKB Goal Savings) và External id (TKB-RD-TDU-002). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Terms" bên dưới.';
         }
       } else if (hasTerms) {
         currentStep = 5;
         targetSelector = '#tour-rda-terms-form';
-        stepTitle = 'Bước 5: Kiểm tra tab TERMS (Điều khoản tiền gửi)';
+        stepTitle = 'Bước 5 / 14: Kiểm tra tab TERMS (Điều khoản tiền gửi)';
         stepSubtitle = 'Hệ thống tự động đồng bộ kỳ hạn và phương thức tính lãi từ sản phẩm.';
         stepInstruction = 'Rà soát các thông số: Interest Compounding Period (Monthly), Interest Posting Period (Monthly), Interest Calculated Using (Daily Balance), Days in Year (365 Days). Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Settings" bên dưới.';
       } else if (hasSettings) {
         currentStep = 6;
         targetSelector = '#tour-rda-settings-form';
         if (!rdaFilledSteps.settings) {
-          stepTitle = 'Bước 6: Khai báo tab SETTINGS (Số tiền & Tần suất gửi góp)';
+          stepTitle = 'Bước 6 / 14: Khai báo tab SETTINGS (Số tiền & Tần suất gửi góp)';
           stepSubtitle = 'Thiết lập số tiền gửi định kỳ 500.000 VND và kỳ hạn 12 tháng theo Hình 3.';
-          stepInstruction = 'Tích chọn "Is Mandatory Deposit?", nhập Recurring Deposit Amount (500,000), Deposit Period (12 Months), Deposit Start Date (10/13/2026), Deposit Frequency (1 Months), Min/Max Term (12 Months). Bấm nút "Điền dữ liệu mẫu Settings" bên dưới để điền tự động.';
+          stepInstruction = 'Tích chọn "Is Mandatory Deposit?", nhập Recurring Deposit Amount (500,000), Deposit Period (12 Months), Deposit Start Date (10/13/2026), Deposit Frequency (1 Months), Min/Max Term (12 Months). Bạn có thể tự nhập hoặc bấm nút "Điền dữ liệu mẫu Settings" bên dưới.';
         } else {
-          stepTitle = 'Bước 6: Rà soát dữ liệu tab SETTINGS';
+          stepTitle = 'Bước 6 / 14: Rà soát dữ liệu tab SETTINGS';
           stepSubtitle = 'Dữ liệu thiết lập gửi góp đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
           stepInstruction = 'Rà soát lại số tiền gửi góp 500.000 VND/tháng và kỳ hạn 12 tháng. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Interest Rate Chart" bên dưới.';
         }
       } else if (hasChart) {
         currentStep = 7;
         targetSelector = '#tour-rda-chart-form';
-        stepTitle = 'Bước 7: Kiểm tra INTEREST RATE CHART (Lãi suất tiền gửi góp)';
+        stepTitle = 'Bước 7 / 14: Kiểm tra INTEREST RATE CHART (Lãi suất tiền gửi góp)';
         stepSubtitle = 'Biểu lãi suất tự động áp dụng 4.00% / năm cho kỳ hạn 12 tháng.';
         stepInstruction = 'Đối chiếu biểu lãi suất TKB Goal Savings: Bậc 1 - 12 Months được áp dụng tỷ lệ 4.00% p.a. Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
       } else if (hasCharges) {
         currentStep = 8;
         targetSelector = '#tour-rda-charges-form';
-        stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
+        stepTitle = 'Bước 8 / 14: Kiểm tra tab CHARGES (Biểu phí)';
         stepSubtitle = 'Sản phẩm tiết kiệm gửi góp không thu phí đăng ký ban đầu.';
         stepInstruction = 'Tab Charges không có khoản phí bắt buộc. Bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Preview" bên dưới.';
       } else if (hasPreview) {
         currentStep = 9;
         targetSelector = '#tour-rda-preview-card';
-        stepTitle = 'Bước 9: Rà soát và Gửi duyệt hồ sơ (Submit)';
+        stepTitle = 'Bước 9 / 14: Rà soát và Gửi duyệt hồ sơ (Submit)';
         stepSubtitle = 'Kiểm tra lại toàn bộ thông tin đăng ký tài khoản tiết kiệm gửi góp.';
         stepInstruction = 'Rà soát: Khách hàng Lan Ngoc Pham, Sản phẩm TKB Goal Savings, Tiền gửi định kỳ ₫500,000.00/tháng, Kỳ hạn 12 Tháng, Lãi suất 4.00%, Tiền đáo hạn dự kiến ₫6,131,646.00. Bấm nút "Submit" màu xanh để gửi duyệt!';
       } else {
         currentStep = 4;
         targetSelector = '#tour-rda-stepper';
-        stepTitle = 'Tạo tài khoản Recurring Deposit';
+        stepTitle = 'Bước 4 / 14: Tạo tài khoản Recurring Deposit';
         stepSubtitle = 'Khai báo các thông tin mở sổ tiết kiệm gửi góp.';
         stepInstruction = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
       }
     } else if (currentPath === 'approve-recurring-deposit-account') {
       currentStep = 11;
       targetSelector = '#tour-rd-approve-form';
-      stepTitle = 'Bước 11: Phê duyệt hồ sơ tài khoản (Approved On Date)';
-      stepSubtitle = 'Nhập ngày phê duyệt 10/13/2026 và nhấn Submit.';
-      stepInstruction = 'Nhập ngày phê duyệt Approved On Date là 10/13/2026. Bấm nút "Điền dữ liệu mẫu (10/13/2026)" bên dưới để điền nhanh, sau đó nhấn "Submit" để phê duyệt hồ sơ.';
+      stepTitle = 'Bước 11 / 14: Phê duyệt hồ sơ tài khoản (Approved On Date)';
+      stepSubtitle = 'Nhập ngày phê duyệt 10/13/2026 và nhấn Confirm.';
+      stepInstruction = 'Nhập ngày phê duyệt Approved On Date là 10/13/2026 theo Hình 2. Bạn có thể tự nhập hoặc bấm nút "Điền dữ liệu mẫu (10/13/2026)" bên dưới, sau đó bấm nút "Confirm" màu xanh để phê duyệt hồ sơ.';
     } else if (currentPath === 'recurring-deposit-detail') {
       if (isActive) {
         currentStep = 13;
-        targetSelector = '#tour-rd-account-detail-card';
-        stepTitle = 'Hoàn tất: Kích hoạt thành công tài khoản TKB Goal Savings (000000004)!';
-        stepSubtitle = 'Tài khoản đã Active, ghi nhận số dư ban đầu ₫500,000.00 và tab Transactions!';
-        stepInstruction = 'Tài khoản Recurring Deposit: TKB Goal Savings 000000004 của khách hàng Lan Ngoc Pham đã chuyển sang trạng thái Active (ô vuông xanh lá) với số dư Current Balance ₫500,000.00, Principal ₫6,000,000.00, Lãi suất 4.00% và tiền đáo hạn ₫6,131,646.00. Bấm nút "Xem hồ sơ khách hàng" hoặc "Hoàn thành phần thực hành" bên dưới.';
+        targetSelector = '#tour-rd-breadcrumb-client';
+        stepTitle = 'Bước 13 / 14: Kích hoạt thành công tài khoản TKB Goal Savings!';
+        stepSubtitle = 'Tài khoản đã chuyển sang trạng thái Active (ô vuông xanh lá).';
+        stepInstruction = 'Tài khoản Recurring Deposit 000000004 đã được kích hoạt thành công (ô vuông đổi sang màu xanh lá). Hãy nhấp vào breadcrumb Lan Ngoc Pham hoặc nút "Xem tài khoản trên hồ sơ khách hàng" để kiểm tra kết quả theo Hình 4.';
       } else if (isApproved) {
-        currentStep = 12;
-        targetSelector = '#tour-rd-actions-menu-btn';
-        stepTitle = 'Bước 12: Mở menu thao tác để Kích hoạt (Activate)';
-        stepSubtitle = 'Hồ sơ đã được Approve. Tiếp tục kích hoạt tài khoản để nạp kỳ gửi đầu tiên.';
-        stepInstruction = 'Hồ sơ đã chuyển sang trạng thái "Approved" (badge Approved xanh ngọc). Nhấp vào menu 3 dấu gạch ngang (≡) và chọn mục "Activate" để kích hoạt tài khoản chính thức.';
+        const hasActivateBtn = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-action-activate'));
+        if (hasActivateBtn) {
+          currentStep = 12;
+          targetSelector = '#tour-rd-action-activate';
+          stepTitle = 'Bước 12 / 14: Chọn Activate để kích hoạt tài khoản';
+          stepSubtitle = 'Chọn mục Activate (có viền đỏ) theo Hình 3.';
+          stepInstruction = 'Nhấp vào mục "Activate" (có viền đỏ nổi bật theo Hình 3) để kích hoạt tài khoản chính thức.';
+        } else {
+          currentStep = 12;
+          targetSelector = '#tour-rd-actions-menu-btn';
+          stepTitle = 'Bước 12 / 14: Mở menu thao tác để Kích hoạt (Activate)';
+          stepSubtitle = 'Hồ sơ đã được Approve (ô vuông màu tím). Tiếp tục kích hoạt tài khoản.';
+          stepInstruction = 'Hồ sơ đã chuyển sang trạng thái "Approved" (ô vuông màu tím theo Hình 3). Nhấp vào menu 3 dấu gạch ngang (≡) và chọn mục "Activate" (có viền đỏ) theo Hình 3 để kích hoạt tài khoản chính thức.';
+        }
       } else {
-        currentStep = 10;
-        targetSelector = '#tour-rd-actions-menu-btn';
-        stepTitle = 'Bước 10: Mở menu thao tác để Phê duyệt (Approve)';
-        stepSubtitle = 'Hồ sơ đang ở trạng thái Pending Approval (ô vuông màu cam). Tiến hành phê duyệt.';
-        stepInstruction = 'Nhấp vào nút menu 3 dấu gạch ngang (≡) ở góc trên bên phải khung banner tài khoản, sau đó chọn mục "Approve" (có dấu tích) theo Hình 4 để mở biểu mẫu phê duyệt.';
+        const hasApproveBtn = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-action-approve'));
+        if (hasApproveBtn) {
+          currentStep = 10;
+          targetSelector = '#tour-rd-action-approve';
+          stepTitle = 'Bước 10 / 14: Chọn Approve để phê duyệt hồ sơ';
+          stepSubtitle = 'Chọn mục Approve (có viền đỏ) theo Hình 1.';
+          stepInstruction = 'Nhấp vào mục "Approve" (có viền đỏ nổi bật theo Hình 1) để mở màn hình phê duyệt tài khoản.';
+        } else {
+          currentStep = 10;
+          targetSelector = '#tour-rd-actions-menu-btn';
+          stepTitle = 'Bước 10 / 14: Mở menu thao tác để Phê duyệt (Approve)';
+          stepSubtitle = 'Hồ sơ đang ở trạng thái Pending Approval (ô vuông màu cam). Tiến hành phê duyệt.';
+          stepInstruction = 'Nhấp vào nút menu 3 dấu gạch ngang (≡) ở góc trên bên phải khung banner tài khoản, sau đó chọn mục "Approve" (có dấu tích, viền đỏ) theo Hình 1 để mở biểu mẫu phê duyệt.';
+        }
       }
     } else {
       currentStep = 1;
       targetSelector = '#tour-nav-institution';
-      stepTitle = 'Bước 1: Mở danh sách khách hàng (Clients)';
+      stepTitle = 'Bước 1 / 14: Mở danh sách khách hàng (Clients)';
       stepSubtitle = 'Truy cập danh mục quản lý khách hàng từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
@@ -2247,7 +2274,7 @@ export default function PracticeSpotlightTour({
         }
 
         // Auto-scroll target into view if outside visible viewport
-        if (targetSelector.startsWith('#tour-casa-') || targetSelector === '#tour-create-savings-product-btn' || targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target' || targetSelector === '#tour-journal-entry-manual-opex' || targetSelector === '#tour-manual-submit-btn') {
+        if (targetSelector.startsWith('#tour-casa-') || targetSelector === '#tour-create-savings-product-btn' || targetSelector.startsWith('#tour-cell-') || targetSelector === '#tour-submit-opening-balances-btn' || targetSelector === '#tour-journal-entry-target' || targetSelector === '#tour-journal-entry-manual-opex' || targetSelector === '#tour-manual-submit-btn' || targetSelector.startsWith('#tour-rda-') || targetSelector.startsWith('#tour-rd-') || targetSelector.startsWith('#tour-client-')) {
           const inView = rect.top >= 60 && rect.bottom <= (window.innerHeight || 800) - 60;
           if (!inView) {
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3760,7 +3787,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 24)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-client-row-minh' || targetSelector === '#tour-saving-row-000000001' || targetSelector === '#tour-saving-link-000000001' || targetSelector === '#tour-saving-row-000000002' || targetSelector === '#tour-saving-link-000000002' || targetSelector === '#tour-client-row-lan') {
+      } else if (targetSelector === '#tour-client-row-minh' || targetSelector === '#tour-saving-row-000000001' || targetSelector === '#tour-saving-link-000000001' || targetSelector === '#tour-saving-row-000000002' || targetSelector === '#tour-saving-link-000000002' || targetSelector === '#tour-client-row-lan' || targetSelector === '#tour-rd-breadcrumb-client') {
         tooltipStyle = {
           position: 'fixed',
           top: `${box.bottom + 16}px`,
@@ -3782,11 +3809,25 @@ export default function PracticeSpotlightTour({
             left: `${box.left - tooltipWidth - 24}px`,
             width: `${tooltipWidth}px`
           };
-        } else {
+        } else if (box.bottom + 260 <= windowHeight) {
           tooltipStyle = {
             position: 'fixed',
             top: `${box.bottom + 16}px`,
             left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else if (box.top >= 280) {
+          tooltipStyle = {
+            position: 'fixed',
+            bottom: `${Math.max(16, windowHeight - box.top + 16)}px`,
+            left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
+            width: `${tooltipWidth}px`
+          };
+        } else {
+          tooltipStyle = {
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
             width: `${tooltipWidth}px`
           };
         }
@@ -4027,7 +4068,7 @@ export default function PracticeSpotlightTour({
       {/* 4. Instruction Tooltip Card */}
       <div
         style={tooltipStyle}
-        className="fixed z-[9999] bg-white rounded-[2px] shadow-2xl border border-gray-200 p-4 text-xs text-gray-800 space-y-3 animate-in fade-in zoom-in-95 duration-150 select-none"
+        className="fixed z-[9999] bg-white rounded-[2px] shadow-2xl border border-gray-200 p-4 text-xs text-gray-800 space-y-3 animate-in fade-in zoom-in-95 duration-150 select-none max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
@@ -6300,7 +6341,7 @@ export default function PracticeSpotlightTour({
                   <div className="font-bold text-sky-950 text-xs">
                     Phê duyệt hồ sơ Recurring Deposit
                   </div>
-                  <div>Nhập ngày phê duyệt Approved On Date là 10/13/2026. Nhấn nút "Submit" bên dưới để hoàn tất phê duyệt hồ sơ.</div>
+                  <div>Nhập ngày phê duyệt Approved On Date là 10/13/2026 theo Hình 2. Nhấn nút "Confirm" bên dưới để hoàn tất phê duyệt hồ sơ.</div>
                 </div>
                 <button
                   type="button"
@@ -6318,7 +6359,7 @@ export default function PracticeSpotlightTour({
                   }}
                   className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Xác nhận Phê duyệt (Submit)
+                  Xác nhận Phê duyệt (Confirm)
                 </button>
               </div>
             )}
@@ -6340,7 +6381,7 @@ export default function PracticeSpotlightTour({
                       <div className="font-bold text-amber-950 text-xs">
                         Hồ sơ đang ở trạng thái Pending Approval (ô vuông cam)
                       </div>
-                      <div>Hồ sơ tiền gửi gửi góp 000000004 đã được tạo. Hãy nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh và chọn <strong>Approve</strong> (có dấu tích) theo Hình 4.</div>
+                      <div>Hồ sơ tiền gửi gửi góp 000000004 đã được tạo. Hãy nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh và chọn <strong>Approve</strong> (có dấu tích) theo Hình 1.</div>
                     </div>
                     <button
                       type="button"
@@ -6360,9 +6401,9 @@ export default function PracticeSpotlightTour({
                   <div className="space-y-2 pt-1 border-t border-gray-100">
                     <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-[2px] text-[11px] text-indigo-900 leading-relaxed font-sans space-y-1">
                       <div className="font-bold text-indigo-950 text-xs">
-                        Hồ sơ đã được Approve (badge Approved xanh ngọc)
+                        Hồ sơ đã được Approve (ô vuông màu tím)
                       </div>
-                      <div>Tài khoản đã sẵn sàng kích hoạt với kỳ gửi đầu tiên là 500.000 VND. Nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong> để kích hoạt.</div>
+                      <div>Tài khoản đã sẵn sàng kích hoạt theo Hình 3. Nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong> để kích hoạt.</div>
                     </div>
                     <button
                       type="button"
@@ -6384,7 +6425,7 @@ export default function PracticeSpotlightTour({
                       <div className="font-bold text-emerald-900 text-xs">
                         Hoàn tất: Tài khoản TKB Goal Savings (000000004) đã kích hoạt thành công!
                       </div>
-                      <div>Tài khoản đã chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) với số dư ban đầu <strong>₫500,000.00</strong>, ngày kích hoạt <strong>13 October 2026</strong> và tab <strong>Transactions</strong>.</div>
+                      <div>Tài khoản đã chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) ngày <strong>13 October 2026</strong>. Bấm nút "Xem tài khoản trên hồ sơ khách hàng" để kiểm tra kết quả theo Hình 4.</div>
                     </div>
                     <button
                       type="button"

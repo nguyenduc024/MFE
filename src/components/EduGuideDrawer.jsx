@@ -3264,7 +3264,7 @@ export default function EduGuideDrawer({
                   <span>Phê Duyệt Hồ Sơ (Approve Account)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tại màn hình chi tiết tài khoản (trạng thái Pending, ô vuông cam), nhấp vào nút menu <strong>(≡)</strong> ở góc trên bên phải khung banner xanh, chọn <strong>Approve</strong>. Nhập ngày phê duyệt <strong>10/13/2026</strong> và nhấn <strong>Submit</strong>. Hồ sơ chuyển sang trạng thái <strong>Approved</strong>.
+                  Tại màn hình chi tiết tài khoản (trạng thái Pending, ô vuông cam), nhấp vào nút menu <strong>(≡)</strong> ở góc trên bên phải khung banner xanh, chọn <strong>Approve</strong>. Nhập ngày phê duyệt <strong>10/13/2026</strong> và nhấn nút <strong>Confirm</strong> theo Hình 2. Hồ sơ chuyển sang trạng thái <strong>Approved</strong> (ô vuông màu tím theo Hình 3).
                 </p>
               </div>
 
@@ -3275,7 +3275,7 @@ export default function EduGuideDrawer({
                   <span>Kích Hoạt Tài Khoản (Activate Account)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tiếp tục nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong>. Tài khoản được kích hoạt thành công (ngày <strong>13 October 2026</strong>), chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) với số dư ban đầu <strong>500.000 VND</strong> và xuất hiện tab <strong>Transactions</strong>.
+                  Tiếp tục nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong> theo Hình 3. Tài khoản được kích hoạt thành công, chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) ngày <strong>13 October 2026</strong>. Sau đó quay lại hồ sơ khách hàng Lan Ngoc Pham để thấy tài khoản đã hiển thị trong mục Recurring Deposit Accounts theo đúng Hình 4.
                 </p>
               </div>
             </div>
