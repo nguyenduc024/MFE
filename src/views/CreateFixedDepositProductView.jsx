@@ -1106,9 +1106,9 @@ export default function CreateFixedDepositProductView({
           <form 
             id="tour-fd-charges-form"
             onSubmit={handleNext}
-            className="space-y-6 pt-2"
+            className="space-y-12 pt-2"
           >
-            <div className="flex items-center space-x-4 max-w-lg">
+            <div className="flex items-center space-x-6 max-w-lg">
               <div className="flex-1">
                 <FloatingSelect
                   label="Charge"
@@ -1121,20 +1121,16 @@ export default function CreateFixedDepositProductView({
                 </FloatingSelect>
               </div>
 
-              <div className="pt-3">
+              <div className="pt-2">
                 <button
                   type="button"
                   disabled={!formData.chargeId}
-                  className="px-4 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium rounded-[2px] shadow-xs disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center space-x-1 transition-colors cursor-pointer"
+                  className="px-4 py-1.5 bg-[#e0e0e0] text-[#a0a0a0] text-xs font-medium rounded-[3px] shadow-2xs disabled:bg-[#e0e0e0] disabled:text-[#a0a0a0] disabled:cursor-not-allowed flex items-center space-x-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
                 </button>
               </div>
-            </div>
-
-            <div className="py-8 text-center text-xs text-gray-400 bg-gray-50 border border-dashed border-gray-200 rounded-[2px]">
-              No charges configured for this fixed deposit product. (Tab charge không bắt buộc vì không có phí).
             </div>
 
             {/* Bottom Actions */}

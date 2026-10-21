@@ -1200,6 +1200,7 @@ export default function PracticeSpotlightTour({
       const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-currency-form'));
       const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-terms-form'));
       const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-settings-form'));
+      const hasSlabModal = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-slab-modal'));
       const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-chart-form'));
       const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-charges-form'));
       const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-accounting-form'));
@@ -1253,36 +1254,48 @@ export default function PracticeSpotlightTour({
           stepSubtitle = 'Dữ liệu kỳ hạn đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
           stepInstruction = 'Kiểm tra lại Is Mandatory Deposit đã tích chọn và kỳ hạn 12 Tháng. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Interest Rate Chart" bên dưới.';
         }
+      } else if (hasSlabModal) {
+        currentStep = 7;
+        targetSelector = '#tour-rd-slab-modal';
+        stepTitle = 'Bước 7b: Cấu hình bậc lãi suất Slab (1 - 12 Months)';
+        stepSubtitle = 'Thiết lập kỳ hạn 1 - 12 tháng với lãi suất 4.0%/năm cho sản phẩm gửi góp.';
+        stepInstruction = 'Khai báo thông số bậc lãi suất: Period Type (Months), Period From (1), Period To (12), Annual Interest % (4.0), Description (Goal Savings 12M - 4.0% p.a.). Bấm nút "Điền dữ liệu mẫu Slab" bên dưới để điền tự động, sau đó nhấn "Add" để thêm vào bảng.';
       } else if (hasChart) {
         currentStep = 7;
         targetSelector = '#tour-rd-chart-form';
         if (!rdFilledSteps.chart) {
           stepTitle = 'Bước 7: Khai báo tab INTEREST RATE CHART (Biểu lãi suất 2026)';
           stepSubtitle = 'Thiết lập Biểu lãi suất tiết kiệm gửi góp 4.0%/năm hiệu lực từ ngày 13/10/2026.';
-          stepInstruction = 'Khai báo thông tin Biểu lãi suất: Name (TKB Goal Savings Interest 2026), Start Date (10/13/2026), Description (Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.). Bấm nút "Điền dữ liệu mẫu Chart" bên dưới để điền tự động.';
+          stepInstruction = 'Khai báo thông tin Biểu lãi suất: Name (TKB Goal Savings Interest 2026), Start Date (10/13/2026), Description (Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.). Bấm nút "Điền dữ liệu mẫu Chart" bên dưới để điền tự động, sau đó bấm "+ Add Slab" để thêm bậc lãi suất.';
         } else {
-          stepTitle = 'Bước 7: Rà soát Biểu lãi suất & Nút + Add Slab';
-          stepSubtitle = 'Biểu lãi suất đã được điền. Nút + Add Slab sẵn sàng cho các bước tiếp theo.';
-          stepInstruction = 'Đã hoàn tất cấu hình 5 bước đầu tiên của sản phẩm TKB Goal Savings. Bạn có thể nhấn "Hoàn tất 5 bước đầu" hoặc tiếp tục sang các tab tiếp theo.';
+          stepTitle = 'Bước 7: Rà soát Biểu lãi suất & Bậc Slab đã tạo';
+          stepSubtitle = 'Bậc lãi suất 1 - 12 Months (4.0% p.a.) đã được thêm vào bảng biểu lãi suất.';
+          stepInstruction = 'Kiểm tra thông tin biểu lãi suất và dòng bậc lãi suất trên bảng: 1 - 12 Months | null - null | 4 | Goal Savings 12M - 4.0% p.a. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
         }
       } else if (hasCharges) {
         currentStep = 8;
         targetSelector = '#tour-rd-charges-form';
         stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
         stepSubtitle = 'Sản phẩm tiết kiệm gửi góp này không áp dụng phí dịch vụ.';
-        stepInstruction = 'Tab Biểu phí không yêu cầu khai báo vì miễn phí hoàn toàn cho khách hàng. Nhấp vào nút "Next" trên form hoặc bên dưới để tiếp tục.';
+        stepInstruction = 'Theo thiết kế sản phẩm, tab Biểu phí không yêu cầu khai báo vì miễn phí hoàn toàn cho khách hàng. Nhấp vào nút "Next" trên form hoặc nút "Bỏ qua phí và sang Accounting" bên dưới để tiếp tục.';
       } else if (hasAccounting) {
         currentStep = 9;
         targetSelector = '#tour-rd-accounting-form';
-        stepTitle = 'Bước 9: Khai báo tab ACCOUNTING (Hạch toán kế toán Cash Based)';
-        stepSubtitle = 'Chọn phương pháp Cash và liên kết các tài khoản sổ cái GL tương ứng.';
-        stepInstruction = 'Kiểm tra hạch toán Cash Based và bấm Next để sang tab Preview.';
+        if (!rdFilledSteps.accounting) {
+          stepTitle = 'Bước 9: Khai báo tab ACCOUNTING (Hạch toán kế toán Cash Based)';
+          stepSubtitle = 'Chọn phương pháp Cash và liên kết các tài khoản sổ cái GL tương ứng.';
+          stepInstruction = 'Chọn Cash và gán các tài khoản GL: Saving reference (110201 Settlement Bank Account), Saving control (210104 Recurring Deposits), Transfers in suspense (220201 Clearing Payable), Interest on savings (510101 Savings Interest Expense), Income from fees (420102) & penalties (420108). Bấm nút "Điền dữ liệu mẫu Accounting" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 9: Rà soát tab ACCOUNTING';
+          stepSubtitle = 'Đã liên kết đầy đủ các tài khoản sổ cái kế toán Cash Based.';
+          stepInstruction = 'Kiểm tra lại các tài khoản GL đã gán (TK 110201, TK 210104, TK 220201, TK 510101, TK 420102, TK 420108). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Preview" bên dưới.';
+        }
       } else if (hasPreview) {
         currentStep = 10;
         targetSelector = '#tour-rd-preview-card';
-        stepTitle = 'Bước 10: Rà soát tổng thể & Bấm Submit';
-        stepSubtitle = 'Kiểm tra toàn bộ các phần cấu hình sản phẩm trước khi chính thức lưu.';
-        stepInstruction = 'Rà soát kỹ các thông số sản phẩm và bấm nút Submit màu xanh để hoàn tất.';
+        stepTitle = 'Bước 10: Rà soát tổng thể & Bấm Submit tạo sản phẩm';
+        stepSubtitle = 'Kiểm tra toàn bộ các phần cấu hình sản phẩm trước khi chính thức kích hoạt.';
+        stepInstruction = 'Rà soát kỹ các thông số sản phẩm: Details, Currency, Terms, Settings, Interest Rate Charts (1 Slab 1-12M 4.0%), Charges và Accounting. Sau đó bấm nút "Submit" màu xanh bên dưới để hoàn tất tạo sản phẩm TKB Goal Savings.';
       } else {
         currentStep = 3;
         targetSelector = '#tour-rd-stepper';
@@ -3612,7 +3625,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -5579,6 +5592,7 @@ export default function PracticeSpotlightTour({
               const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-currency-form'));
               const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-terms-form'));
               const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-settings-form'));
+              const hasSlabModal = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-slab-modal'));
               const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-chart-form'));
               const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-charges-form'));
               const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-accounting-form'));
@@ -5720,6 +5734,32 @@ export default function PracticeSpotlightTour({
                 );
               }
 
+              if (hasSlabModal) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-autofill-rd-slab-form'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Điền dữ liệu mẫu Slab (1 - 12 Months)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-confirm-add-rd-slab'));
+                        setRdFilledSteps(prev => ({ ...prev, chart: true }));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Xác nhận thêm Slab (Add)
+                    </button>
+                  </div>
+                );
+              }
+
               if (hasChart) {
                 return (
                   <div className="space-y-1.5">
@@ -5732,28 +5772,19 @@ export default function PracticeSpotlightTour({
                         }}
                         className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                       >
-                        Điền dữ liệu mẫu Chart
+                        Điền dữ liệu mẫu Chart &amp; Slab
                       </button>
                     ) : (
                       <div className="space-y-1.5">
                         <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
-                          Đã hoàn thành 5 bước đầu cấu hình sản phẩm TKB Goal Savings!
+                          Đã cấu hình Biểu lãi suất 2026 và bậc lãi suất 1 - 12 Months (4.0% p.a.).
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            window.dispatchEvent(new CustomEvent('practice-submit-rd'));
-                          }}
-                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                        >
-                          Hoàn tất lưu sản phẩm (TKB Goal Savings)
-                        </button>
                         <button
                           type="button"
                           onClick={() => {
                             window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
                           }}
-                          className="w-full py-1 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                         >
                           Tiếp tục sang tab Charges &rarr;
                         </button>
@@ -5766,14 +5797,17 @@ export default function PracticeSpotlightTour({
               if (hasCharges) {
                 return (
                   <div className="space-y-1.5">
+                    <div className="p-2 bg-blue-50 border border-blue-200 rounded-[2px] text-[11px] text-blue-800 leading-tight">
+                      Sản phẩm miễn phí dịch vụ. Nhấn tiếp tục để sang tab Accounting.
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
                         window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
                       }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
-                      Bỏ qua phí và tiếp tục sang Accounting
+                      Bỏ qua phí và sang Accounting &rarr;
                     </button>
                   </div>
                 );
@@ -5782,15 +5816,33 @@ export default function PracticeSpotlightTour({
               if (hasAccounting) {
                 return (
                   <div className="space-y-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
-                      }}
-                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
-                    >
-                      Tiếp tục sang tab Preview
-                    </button>
+                    {!rdFilledSteps.accounting ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-accounting'));
+                          setRdFilledSteps(prev => ({ ...prev, accounting: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Accounting (Cash Based)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Accounting đã được điền đầy đủ các tài khoản GL.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Preview &rarr;
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               }

@@ -2862,7 +2862,7 @@ export default function EduGuideDrawer({
             {/* Các bước thực hành */}
             <div className="space-y-3 text-xs">
               <h4 className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">
-                Các Bước Thiết Lập 5 Thẻ Đầu Tiên
+                Các Bước Thiết Lập Hoàn Chỉnh (8 Thẻ &amp; 1 Bậc Slab)
               </h4>
 
               {/* Bước 1 */}
@@ -2935,10 +2935,43 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
-                  <span>Khai Báo Tab INTEREST RATE CHART (Biểu Lãi Suất Gửi Góp)</span>
+                  <span>Khai Báo Tab INTEREST RATE CHART &amp; Bậc Slab (1 - 12 Months)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Tại khung Interest Rate Charts, nhập Name: <code>TKB Goal Savings Interest 2026</code>, Start Date: <code>10/13/2026</code>, Description: <code>Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.</code> và kiểm tra nút <strong>+ Add Slab</strong>.
+                  Nhập Biểu lãi suất: Name: <code>TKB Goal Savings Interest 2026</code>, Start Date: <code>10/13/2026</code>, Description: <code>Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.</code> Bấm nút <strong>+ Add Slab</strong>, nhập Period Type: <code>Months</code>, Period From: <code>1</code>, Period To: <code>12</code>, Interest: <code>4.0</code>, Description: <code>Goal Savings 12M - 4.0% p.a.</code> và nhấn <strong>Add</strong>.
+                </p>
+              </div>
+
+              {/* Bước 8 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">8</span>
+                  <span>Kiểm Tra Tab CHARGES (Biểu Phí)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Sản phẩm tiết kiệm gửi góp này miễn phí dịch vụ hoàn toàn. Bỏ qua cấu hình phí và nhấn <strong>Next</strong> để sang tab Accounting.
+                </p>
+              </div>
+
+              {/* Bước 9 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">9</span>
+                  <span>Khai Báo Tab ACCOUNTING (Hạch Toán Kế Toán Cash Based)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Chọn phương pháp <strong>Cash</strong>. Liên kết các tài khoản: Saving reference (<code>110201 Settlement Bank Account</code>), Saving control (<code>210104 Recurring Deposits</code>), Transfers in suspense (<code>220201 Clearing Payable</code>), Interest on savings (<code>510101 Savings Interest Expense</code>), Income from fees (<code>420102</code>) và Income from penalties (<code>420108</code>). Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 10 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">10</span>
+                  <span>Rà Soát Tab PREVIEW &amp; Bấm Submit Lưu Sản Phẩm</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Rà soát tổng hợp toàn bộ các thẻ cấu hình của sản phẩm TKB Goal Savings (TKGS). Sau đó nhấn nút <strong>Submit</strong> màu xanh để chính thức lưu sản phẩm vào hệ thống core banking.
                 </p>
               </div>
             </div>

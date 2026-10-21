@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Check, Calendar, Trash2, Plus, ChevronDown, X, Info } from 'lucide-react';
+import { Pencil, Check, Calendar, Trash2, Plus, ChevronDown, X, Info, Eye } from 'lucide-react';
 
 /**
  * Reusable Floating Label Input Component (Material underline style matching screenshot)
@@ -95,6 +95,16 @@ function FloatingSelect({
   );
 }
 
+const DEFAULT_RD_SLAB = {
+  periodType: 'Months',
+  periodFrom: '1',
+  periodTo: '12',
+  amountRangeFrom: '',
+  amountRangeTo: '',
+  interest: '4.0',
+  description: 'Goal Savings 12M - 4.0% p.a.'
+};
+
 export default function CreateRecurringDepositProductView({
   onNavigateHome,
   onNavigateProducts,
@@ -152,7 +162,7 @@ export default function CreateRecurringDepositProductView({
     penalInterestPeriod: '',
     isWithholdTaxApplicable: false,
 
-    // Step 5: INTEREST RATE CHART (Image 5)
+    // Step 5: INTEREST RATE CHART (Image 5 & Image 1, 2)
     hasChart: true,
     chartName: '',
     chartFromDate: '',
@@ -161,18 +171,30 @@ export default function CreateRecurringDepositProductView({
     isPrimaryGroupingByAmount: false,
     slabs: [],
 
-    // Step 6: CHARGES
+    // Step 6: CHARGES (Image 3)
     chargeId: '',
 
-    // Step 7: ACCOUNTING
+    // Step 7: ACCOUNTING (Image 4)
     accountingRule: 'Cash',
     savingReferenceAccountId: '110201',
-    savingControlAccountId: '210103',
-    transfersInSuspenseAccountId: '220201',
-    interestOnSavingsAccountId: '510102',
-    incomeFromFeeAccountId: '420102',
-    incomeFromPenaltyAccountId: '420107',
+    savingControlAccountId: '210104', // (210104) Recurring Deposits
+    transfersInSuspenseAccountId: '220201', // (220201) Clearing Payable
+    interestOnSavingsAccountId: '510101', // (510101) Savings Interest Expense
+    incomeFromFeeAccountId: '420102', // (420102) Savings Service Fee Income
+    incomeFromPenaltyAccountId: '420108', // (420108) Recurring Deposit Penalty Income
     advancedAccountingRules: false
+  });
+
+  // Modal State for Add Slab (Image 1)
+  const [showSlabModal, setShowSlabModal] = useState(false);
+  const [slabForm, setSlabForm] = useState({
+    periodType: 'Months',
+    periodFrom: '',
+    periodTo: '',
+    amountRangeFrom: '',
+    amountRangeTo: '',
+    interest: '',
+    description: ''
   });
 
   // Practice event listeners
@@ -238,8 +260,20 @@ export default function CreateRecurringDepositProductView({
         chartEndDate: '',
         chartDescription: 'Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.',
         isPrimaryGroupingByAmount: false,
-        slabs: []
+        slabs: [{ ...DEFAULT_RD_SLAB }]
       }));
+    };
+
+    const handleAutofillSlabForm = () => {
+      setSlabForm({ ...DEFAULT_RD_SLAB });
+    };
+
+    const handleConfirmAddSlab = () => {
+      setFormData(prev => ({
+        ...prev,
+        slabs: [{ ...DEFAULT_RD_SLAB }]
+      }));
+      setShowSlabModal(false);
     };
 
     const handleAutofillAccounting = () => {
@@ -247,11 +281,11 @@ export default function CreateRecurringDepositProductView({
         ...prev,
         accountingRule: 'Cash',
         savingReferenceAccountId: '110201',
-        savingControlAccountId: '210103',
+        savingControlAccountId: '210104',
         transfersInSuspenseAccountId: '220201',
-        interestOnSavingsAccountId: '510102',
+        interestOnSavingsAccountId: '510101',
         incomeFromFeeAccountId: '420102',
-        incomeFromPenaltyAccountId: '420107',
+        incomeFromPenaltyAccountId: '420108',
         advancedAccountingRules: false
       }));
     };
@@ -292,15 +326,15 @@ export default function CreateRecurringDepositProductView({
         chartEndDate: '',
         chartDescription: 'Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.',
         isPrimaryGroupingByAmount: false,
-        slabs: [],
+        slabs: [{ ...DEFAULT_RD_SLAB }],
         chargeId: '',
         accountingRule: 'Cash',
         savingReferenceAccountId: '110201',
-        savingControlAccountId: '210103',
+        savingControlAccountId: '210104',
         transfersInSuspenseAccountId: '220201',
-        interestOnSavingsAccountId: '510102',
+        interestOnSavingsAccountId: '510101',
         incomeFromFeeAccountId: '420102',
-        incomeFromPenaltyAccountId: '420107',
+        incomeFromPenaltyAccountId: '420108',
         advancedAccountingRules: false
       });
       setCurrentStep(8);
@@ -327,6 +361,8 @@ export default function CreateRecurringDepositProductView({
     window.addEventListener('practice-autofill-rd-terms', handleAutofillTerms);
     window.addEventListener('practice-autofill-rd-settings', handleAutofillSettings);
     window.addEventListener('practice-autofill-rd-chart', handleAutofillChart);
+    window.addEventListener('practice-autofill-rd-slab-form', handleAutofillSlabForm);
+    window.addEventListener('practice-confirm-add-rd-slab', handleConfirmAddSlab);
     window.addEventListener('practice-autofill-rd-accounting', handleAutofillAccounting);
     window.addEventListener('practice-autofill-rd-all', handleAutofillAll);
     window.addEventListener('practice-next-rd-step', handleNextStep);
@@ -338,6 +374,8 @@ export default function CreateRecurringDepositProductView({
       window.removeEventListener('practice-autofill-rd-terms', handleAutofillTerms);
       window.removeEventListener('practice-autofill-rd-settings', handleAutofillSettings);
       window.removeEventListener('practice-autofill-rd-chart', handleAutofillChart);
+      window.removeEventListener('practice-autofill-rd-slab-form', handleAutofillSlabForm);
+      window.removeEventListener('practice-confirm-add-rd-slab', handleConfirmAddSlab);
       window.removeEventListener('practice-autofill-rd-accounting', handleAutofillAccounting);
       window.removeEventListener('practice-autofill-rd-all', handleAutofillAll);
       window.removeEventListener('practice-next-rd-step', handleNextStep);
@@ -352,6 +390,40 @@ export default function CreateRecurringDepositProductView({
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleAddSlabSubmit = (e) => {
+    if (e) e.preventDefault();
+    const newSlab = {
+      periodType: slabForm.periodType || 'Months',
+      periodFrom: slabForm.periodFrom || '1',
+      periodTo: slabForm.periodTo || '12',
+      amountRangeFrom: slabForm.amountRangeFrom || '',
+      amountRangeTo: slabForm.amountRangeTo || '',
+      interest: slabForm.interest || '4.0',
+      description: slabForm.description || 'Goal Savings 12M - 4.0% p.a.'
+    };
+    setFormData(prev => ({
+      ...prev,
+      slabs: [...prev.slabs, newSlab]
+    }));
+    setSlabForm({
+      periodType: 'Months',
+      periodFrom: '',
+      periodTo: '',
+      amountRangeFrom: '',
+      amountRangeTo: '',
+      interest: '',
+      description: ''
+    });
+    setShowSlabModal(false);
+  };
+
+  const handleRemoveSlab = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      slabs: prev.slabs.filter((_, idx) => idx !== index)
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -881,7 +953,7 @@ export default function CreateRecurringDepositProductView({
           </form>
         )}
 
-        {/* Tab 5: INTEREST RATE CHART matching Image 5 */}
+        {/* Tab 5: INTEREST RATE CHART matching Image 5, Image 1 (Modal) & Image 2 (Table) */}
         {currentStep === 5 && (
           <form 
             id="tour-rd-chart-form"
@@ -971,12 +1043,74 @@ export default function CreateRecurringDepositProductView({
                   <button
                     type="button"
                     id="tour-rd-add-slab-btn"
+                    onClick={() => setShowSlabModal(true)}
                     className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-2 rounded-[3px] flex items-center space-x-1.5 shadow-2xs cursor-pointer transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Slab</span>
                   </button>
                 </div>
+
+                {/* Slabs Table matching Image 2 */}
+                {formData.slabs.length > 0 && (
+                  <div className="pt-2 overflow-x-auto border border-gray-200 rounded-[2px] bg-white">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
+                        <tr>
+                          <th className="py-2.5 px-4 font-normal">Period</th>
+                          <th className="py-2.5 px-4 font-normal">Amount Range</th>
+                          <th className="py-2.5 px-4 font-normal">Interest</th>
+                          <th className="py-2.5 px-4 font-normal">Description</th>
+                          <th className="py-2.5 px-4 font-normal text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {formData.slabs.map((slab, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-2.5 px-4 text-gray-800">
+                              {slab.periodFrom} - {slab.periodTo} {slab.periodType}
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-700">
+                              {slab.amountRangeFrom && slab.amountRangeTo ? `${slab.amountRangeFrom} - ${slab.amountRangeTo}` : 'null - null'}
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-800 font-medium">
+                              {slab.interest}
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-600">
+                              {slab.description}
+                            </td>
+                            <td className="py-2.5 px-4">
+                              <div className="flex items-center justify-center space-x-3">
+                                <button
+                                  type="button"
+                                  className="text-[#1072ba] hover:text-[#0e619e] p-1 cursor-pointer"
+                                  title="Edit Slab"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSlab(idx)}
+                                  className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
+                                  title="Delete Slab"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="text-[#1072ba] hover:underline flex items-center space-x-1 text-xs cursor-pointer font-medium ml-2"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>View Incentives</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
               </div>
             )}
@@ -1001,15 +1135,36 @@ export default function CreateRecurringDepositProductView({
           </form>
         )}
 
-        {/* Tab 6: CHARGES */}
+        {/* Tab 6: CHARGES matching Image 3 */}
         {currentStep === 6 && (
           <form 
             id="tour-rd-charges-form"
             onSubmit={handleNext} 
-            className="space-y-6 pt-2"
+            className="space-y-12 pt-2"
           >
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-600">
-              Sản phẩm TKB Goal Savings không áp dụng phí dịch vụ mở hoặc quản lý. Bấm Next để tiếp tục sang cấu hình Hạch toán kế toán.
+            <div className="flex items-center space-x-6 max-w-lg">
+              <div className="flex-1">
+                <FloatingSelect
+                  label="Charge"
+                  value={formData.chargeId}
+                  onChange={(e) => setFormData({ ...formData, chargeId: e.target.value })}
+                >
+                  <option value=""></option>
+                  <option value="1">Account Opening Fee</option>
+                  <option value="2">Early Withdrawal Penalty Fee</option>
+                </FloatingSelect>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  disabled={!formData.chargeId}
+                  className="px-4 py-1.5 bg-[#e0e0e0] text-[#a0a0a0] text-xs font-medium rounded-[3px] shadow-2xs disabled:bg-[#e0e0e0] disabled:text-[#a0a0a0] disabled:cursor-not-allowed flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
 
             {/* Bottom Actions */}
@@ -1032,88 +1187,138 @@ export default function CreateRecurringDepositProductView({
           </form>
         )}
 
-        {/* Tab 7: ACCOUNTING */}
+        {/* Tab 7: ACCOUNTING matching Image 4 */}
         {currentStep === 7 && (
           <form 
             id="tour-rd-accounting-form"
             onSubmit={handleNext} 
             className="space-y-6 pt-2"
           >
-            <div className="space-y-3">
-              <label className="text-xs font-medium text-gray-700 block">
-                Accounting Rule
+            {/* Accounting Rule Radio Options */}
+            <div className="flex items-center space-x-6 text-xs text-gray-700 pb-2 border-b border-gray-200">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="None"
+                  checked={formData.accountingRule === 'None'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#1072ba]"
+                />
+                <span>None</span>
               </label>
-              <div className="flex items-center space-x-6 text-xs text-gray-700">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="accountingRule"
-                    value="None"
-                    checked={formData.accountingRule === 'None'}
-                    onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
-                    className="text-[#1072ba]"
-                  />
-                  <span>None</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="accountingRule"
-                    value="Cash"
-                    checked={formData.accountingRule === 'Cash'}
-                    onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
-                    className="text-[#1072ba]"
-                  />
-                  <span className="font-semibold text-[#1072ba]">Cash</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="accountingRule"
-                    value="PeriodicAccrual"
-                    checked={formData.accountingRule === 'PeriodicAccrual'}
-                    onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
-                    className="text-[#1072ba]"
-                  />
-                  <span>Periodic Accrual</span>
-                </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="Cash"
+                  checked={formData.accountingRule === 'Cash'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#28a745]"
+                />
+                <span className="font-semibold text-gray-800">Cash</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="accountingRule"
+                  value="Accrual (periodic)"
+                  checked={formData.accountingRule === 'Accrual (periodic)'}
+                  onChange={(e) => setFormData({ ...formData, accountingRule: e.target.value })}
+                  className="text-[#1072ba]"
+                />
+                <span>Accrual (periodic)</span>
+              </label>
+            </div>
+
+            {/* Assets */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-semibold text-gray-800">Assets</h3>
+              <div className="max-w-md">
+                <FloatingSelect
+                  label="Saving reference *"
+                  value={formData.savingReferenceAccountId}
+                  onChange={(e) => setFormData({ ...formData, savingReferenceAccountId: e.target.value })}
+                >
+                  <option value="110201">(110201) Settlement Bank Account</option>
+                  <option value="110101">(110101) Vault Cash VND</option>
+                </FloatingSelect>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-4">
-              <FloatingSelect
-                label="Saving reference *"
-                value={formData.savingReferenceAccountId}
-                onChange={(e) => setFormData({ ...formData, savingReferenceAccountId: e.target.value })}
-              >
-                <option value="110201">(110201) Settlement Bank Account</option>
-                <option value="110101">(110101) Vault Cash VND</option>
-              </FloatingSelect>
+            {/* Liabilities */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-semibold text-gray-800">Liabilities</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <FloatingSelect
+                  label="Saving control *"
+                  value={formData.savingControlAccountId}
+                  onChange={(e) => setFormData({ ...formData, savingControlAccountId: e.target.value })}
+                >
+                  <option value="210104">(210104) Recurring Deposits</option>
+                  <option value="210103">(210103) Fixed Deposits</option>
+                  <option value="210101">(210101) Demand Deposits (CASA)</option>
+                </FloatingSelect>
 
-              <FloatingSelect
-                label="Saving control *"
-                value={formData.savingControlAccountId}
-                onChange={(e) => setFormData({ ...formData, savingControlAccountId: e.target.value })}
-              >
-                <option value="210103">(210103) Fixed Deposits</option>
-                <option value="210101">(210101) Demand Deposits (CASA)</option>
-              </FloatingSelect>
+                <FloatingSelect
+                  label="Savings transfers in suspense *"
+                  value={formData.transfersInSuspenseAccountId}
+                  onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
+                >
+                  <option value="220201">(220201) Clearing Payable</option>
+                </FloatingSelect>
+              </div>
+            </div>
 
-              <FloatingSelect
-                label="Transfers in suspense *"
-                value={formData.transfersInSuspenseAccountId}
-                onChange={(e) => setFormData({ ...formData, transfersInSuspenseAccountId: e.target.value })}
-              >
-                <option value="220201">(220201) Clearing Payable</option>
-              </FloatingSelect>
+            {/* Expenses */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-semibold text-gray-800">Expenses</h3>
+              <div className="max-w-md">
+                <FloatingSelect
+                  label="Interest on savings *"
+                  value={formData.interestOnSavingsAccountId}
+                  onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
+                >
+                  <option value="510101">(510101) Savings Interest Expense</option>
+                  <option value="510102">(510102) Fixed Deposit Interest Expense</option>
+                </FloatingSelect>
+              </div>
+            </div>
 
-              <FloatingSelect
-                label="Interest on savings *"
-                value={formData.interestOnSavingsAccountId}
-                onChange={(e) => setFormData({ ...formData, interestOnSavingsAccountId: e.target.value })}
-              >
-                <option value="510102">(510102) Fixed Deposit Interest Expense</option>
-              </FloatingSelect>
+            {/* Income */}
+            <div className="space-y-3 pt-2">
+              <h3 className="text-xs font-semibold text-gray-800">Income</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <FloatingSelect
+                  label="Income from fees *"
+                  value={formData.incomeFromFeeAccountId}
+                  onChange={(e) => setFormData({ ...formData, incomeFromFeeAccountId: e.target.value })}
+                >
+                  <option value="420102">(420102) Savings Service Fee Income</option>
+                </FloatingSelect>
+
+                <FloatingSelect
+                  label="Income from penalties *"
+                  value={formData.incomeFromPenaltyAccountId}
+                  onChange={(e) => setFormData({ ...formData, incomeFromPenaltyAccountId: e.target.value })}
+                >
+                  <option value="420108">(420108) Recurring Deposit Penalty Income</option>
+                  <option value="420107">(420107) Fixed Deposit Penalty Income</option>
+                </FloatingSelect>
+              </div>
+            </div>
+
+            {/* Advanced Accounting Rules */}
+            <div className="pt-3">
+              <label className="flex items-center space-x-2 text-xs text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.advancedAccountingRules}
+                  onChange={(e) => setFormData({ ...formData, advancedAccountingRules: e.target.checked })}
+                  className="rounded-[2px] border-gray-300 text-[#1072ba]"
+                />
+                <span className="font-semibold text-gray-800">Advanced Accounting Rules</span>
+              </label>
             </div>
 
             {/* Bottom Actions */}
@@ -1136,53 +1341,216 @@ export default function CreateRecurringDepositProductView({
           </form>
         )}
 
-        {/* Tab 8: PREVIEW */}
+        {/* Tab 8: PREVIEW matching Image 5 */}
         {currentStep === 8 && (
           <div 
             id="tour-rd-preview-card"
             className="space-y-6 pt-2"
           >
-            <div className="border border-gray-200 rounded-[2px] p-5 bg-white space-y-4 text-xs">
-              <h3 className="font-semibold text-gray-800 text-sm border-b border-gray-100 pb-2">
-                Product Summary
-              </h3>
+            <div className="border border-gray-200 rounded-[2px] p-6 bg-white space-y-6 text-xs">
+              <h2 className="text-base font-semibold text-gray-900 pb-1">
+                {formData.name || 'TKB Goal Savings'}
+              </h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-2 border-b border-gray-100">
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Product Name</span>
-                  <span className="font-semibold text-gray-800">{formData.name || 'TKB Goal Savings'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Short Name</span>
-                  <span className="font-semibold text-gray-800">{formData.shortName || 'TKGS'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Currency</span>
-                  <span className="text-gray-800">{formData.currency || 'Vietnamese Dong'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Deposit Term</span>
-                  <span className="text-gray-800">{formData.minDepositTermFrequency || '12'} Months</span>
+              {/* Details */}
+              <div className="space-y-2 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-700">
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Short Name:</span>
+                    <span className="col-span-2 text-gray-900">{formData.shortName || 'TKGS'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Description:</span>
+                    <span className="col-span-2 text-gray-900">{formData.description || 'A recurring deposit product designed to help customers achieve savings goals through regular monthly contributions.'}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-2">
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Deposit Range</span>
-                  <span className="text-gray-800">{formData.minDepositAmount || '100,000'} - {formData.maxDepositAmount || '10,000,000'} VND</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Mandatory Deposit</span>
-                  <span className="text-gray-800">{formData.isMandatoryDeposit ? 'Yes' : 'No'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[11px]">Interest Chart</span>
-                  <span className="text-gray-800">{formData.chartName || 'TKB Goal Savings Interest 2026'}</span>
+              {/* Currency */}
+              <div className="space-y-2 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Currency</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-700">
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Currency:</span>
+                    <span className="col-span-2 text-gray-900">{formData.currency || 'Vietnamese Dong'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Decimal Places:</span>
+                    <span className="col-span-2 text-gray-900">{formData.decimalPlaces ?? '0'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Currency in multiples of:</span>
+                    <span className="col-span-2 text-gray-900">{formData.currencyMultiplesOf || '1'}</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Terms */}
+              <div className="space-y-2 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Terms</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-700">
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Deposit Amount:</span>
+                    <span className="col-span-2 text-gray-900">{formData.defaultDepositAmount || '500000'} (Min: {formData.minDepositAmount || '100000'}, Max: {formData.maxDepositAmount || '10000000'})</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Interest Compounding Period:</span>
+                    <span className="col-span-2 text-gray-900">{formData.interestCompoundingPeriod || 'Monthly'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Interest Posting Period:</span>
+                    <span className="col-span-2 text-gray-900">{formData.interestPostingPeriod || 'Monthly'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Interest Calculated using:</span>
+                    <span className="col-span-2 text-gray-900">{formData.interestCalculationUsing || 'Daily Balance'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Days in Year:</span>
+                    <span className="col-span-2 text-gray-900">{formData.daysInYear || '365 Days'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings */}
+              <div className="space-y-2 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-700">
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Minimum Deposit Term:</span>
+                    <span className="col-span-2 text-gray-900">{formData.minDepositTermFrequency || '12'} Months</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Maximum Deposit Term:</span>
+                    <span className="col-span-2 text-gray-900">{formData.maxDepositTermFrequency || '12'} Months</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Apply Penal Interest (less):</span>
+                    <span className="col-span-2 text-gray-900">{formData.applyPenalInterest ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Recurring Deposit Type:</span>
+                    <span className="col-span-2 text-gray-900">{formData.isMandatoryDeposit ? 'Mandatory' : 'Voluntary'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Withhold Tax is Applicable:</span>
+                    <span className="col-span-2 text-gray-900">{formData.isWithholdTaxApplicable ? 'Yes' : 'No'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interest Rate Charts */}
+              <div className="space-y-3 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Interest Rate Charts</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-700">
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Name:</span>
+                    <span className="col-span-2 text-gray-900">{formData.chartName || 'TKB Goal Savings Interest 2026'}</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">From Date:</span>
+                    <span className="col-span-2 text-gray-900">13 October 2026</span>
+                  </div>
+                  <div className="grid grid-cols-3">
+                    <span className="text-gray-500">Primary Grouping by Amount:</span>
+                    <span className="col-span-2 text-gray-900">{formData.isPrimaryGroupingByAmount ? 'Yes' : ''}</span>
+                  </div>
+                </div>
+
+                {/* Slabs Table in Preview */}
+                <div className="overflow-x-auto border border-gray-200 rounded-[2px] mt-2">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
+                      <tr>
+                        <th className="py-2.5 px-4 font-normal">Period</th>
+                        <th className="py-2.5 px-4 font-normal">Amount Range</th>
+                        <th className="py-2.5 px-4 font-normal">Interest</th>
+                        <th className="py-2.5 px-4 font-normal">Description</th>
+                        <th className="py-2.5 px-4 font-normal text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(formData.slabs.length > 0 ? formData.slabs : [DEFAULT_RD_SLAB]).map((slab, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-2.5 px-4 text-gray-800">
+                            {slab.periodFrom || '1'} - {slab.periodTo || '12'} {slab.periodType || 'Months'}
+                          </td>
+                          <td className="py-2.5 px-4 text-gray-700">
+                            null - null
+                          </td>
+                          <td className="py-2.5 px-4 text-gray-800 font-medium">
+                            4.00 %
+                          </td>
+                          <td className="py-2.5 px-4 text-gray-600">
+                            {slab.description || 'Goal Savings 12M - 4.0% p.a.'}
+                          </td>
+                          <td className="py-2.5 px-4 text-center">
+                            <span className="text-[#1072ba] inline-flex items-center space-x-1 cursor-pointer hover:underline text-xs">
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View Incentives</span>
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Accounting */}
+              <div className="space-y-3 border-t border-gray-100 pt-3">
+                <h3 className="font-semibold text-gray-800 text-xs">Accounting</h3>
+                <div className="text-gray-700">
+                  <span className="text-gray-500">Type:</span> <span className="text-gray-900 font-medium">Cash</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-2">
+                  <div className="space-y-1">
+                    <span className="text-[#1072ba] font-medium block">Assets</span>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Saving reference:</span>
+                      <span className="col-span-2 text-gray-900">(110201) Settlement Bank Account</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[#1072ba] font-medium block">Liabilities</span>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Saving control:</span>
+                      <span className="col-span-2 text-gray-900">(210104) Recurring Deposits</span>
+                    </div>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Savings transfers in suspense:</span>
+                      <span className="col-span-2 text-gray-900">(220201) Clearing Payable</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[#1072ba] font-medium block">Income</span>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Income from fees:</span>
+                      <span className="col-span-2 text-gray-900">(420102) Savings Service Fee Income</span>
+                    </div>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Income from penalties:</span>
+                      <span className="col-span-2 text-gray-900">(420108) Recurring Deposit Penalty Income</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[#1072ba] font-medium block">Expenses</span>
+                    <div className="grid grid-cols-3 text-gray-700">
+                      <span className="text-gray-500">Interest on savings:</span>
+                      <span className="col-span-2 text-gray-900">(510101) Savings Interest Expense</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            {/* Bottom Actions */}
+            {/* Bottom Actions matching Image 5 */}
             <div className="flex items-center justify-center space-x-3 pt-6 border-t border-gray-100">
               <button
                 type="button"
@@ -1193,9 +1561,16 @@ export default function CreateRecurringDepositProductView({
               </button>
               <button
                 type="button"
+                onClick={onNavigateRecurringDepositProducts}
+                className="px-5 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-[3px] cursor-pointer select-none transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
                 id="tour-rd-submit-btn"
                 onClick={handleSubmit}
-                className="px-6 py-2 text-xs font-semibold text-white bg-[#28a745] hover:bg-[#218838] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
+                className="px-6 py-2 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
               >
                 Submit
               </button>
@@ -1204,6 +1579,91 @@ export default function CreateRecurringDepositProductView({
         )}
 
       </div>
+
+      {/* 3. Slab Modal matching Image 1 */}
+      {showSlabModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div 
+            id="tour-rd-slab-modal"
+            className="bg-white rounded-[4px] shadow-xl border border-gray-200 w-full max-w-sm p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <h2 className="text-base font-medium text-gray-900">
+              Slab
+            </h2>
+
+            <form onSubmit={handleAddSlabSubmit} className="space-y-4">
+              <FloatingSelect
+                label="Period Type *"
+                required
+                value={slabForm.periodType}
+                onChange={(e) => setSlabForm({ ...slabForm, periodType: e.target.value })}
+              >
+                <option value="Months">Months</option>
+                <option value="Days">Days</option>
+                <option value="Weeks">Weeks</option>
+                <option value="Years">Years</option>
+              </FloatingSelect>
+
+              <FloatingInput
+                label="Period From *"
+                required
+                value={slabForm.periodFrom}
+                onChange={(e) => setSlabForm({ ...slabForm, periodFrom: e.target.value })}
+              />
+
+              <FloatingInput
+                label="Period To"
+                value={slabForm.periodTo}
+                onChange={(e) => setSlabForm({ ...slabForm, periodTo: e.target.value })}
+              />
+
+              <FloatingInput
+                label="Amount Range From"
+                value={slabForm.amountRangeFrom}
+                onChange={(e) => setSlabForm({ ...slabForm, amountRangeFrom: e.target.value })}
+              />
+
+              <FloatingInput
+                label="Amount Range To"
+                value={slabForm.amountRangeTo}
+                onChange={(e) => setSlabForm({ ...slabForm, amountRangeTo: e.target.value })}
+              />
+
+              <FloatingInput
+                label="Interest *"
+                required
+                value={slabForm.interest}
+                onChange={(e) => setSlabForm({ ...slabForm, interest: e.target.value })}
+              />
+
+              <FloatingInput
+                label="Description *"
+                required
+                value={slabForm.description}
+                onChange={(e) => setSlabForm({ ...slabForm, description: e.target.value })}
+              />
+
+              {/* Bottom Actions matching Image 1 */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowSlabModal(false)}
+                  className="px-4 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-[3px] cursor-pointer select-none transition-colors shadow-2xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  id="tour-rd-modal-add-slab-btn"
+                  className="px-5 py-1.5 text-xs font-semibold text-white bg-[#1072ba] hover:bg-[#0e619e] rounded-[3px] shadow-xs cursor-pointer select-none transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
