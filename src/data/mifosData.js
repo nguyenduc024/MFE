@@ -2390,5 +2390,17 @@ export const EDU_MODULES = [
     objective: "Thực hiện nghiệp vụ mở tài khoản tiền gửi tiết kiệm có kỳ hạn TKB Fixed Deposit cho khách hàng Minh Quang Tran với số tiền gửi 1.000.000 VND, kỳ hạn 6 tháng, áp dụng lãi suất bậc 2 (4.5% p.a.), ngày gửi 13/10/2026, ngày đáo hạn 13/04/2027 với số tiền đáo hạn dự tính 1.022.653 VND.",
     targetMenu: "clients",
     subPath: "create-fixed-deposit-account"
+  },
+  {
+    id: "saving-part-3",
+    moduleNumber: "03",
+    moduleTitle: "Phân hệ 03: Saving",
+    partNumber: "3",
+    name: "Phần 3: Tạo Sản Phẩm Tiền Gửi Góp (TKB Goal Savings - TKGS)",
+    shortLabel: "Phần 3: Tạo SP Goal Savings",
+    title: "Thiết Lập Sản Phẩm Tiền Gửi Tiết Kiệm Gửi Góp (TKB Goal Savings - TKGS)",
+    objective: "Thiết lập sản phẩm tiền gửi tiết kiệm gửi góp TKB Goal Savings (TKGS) theo chuẩn Core Banking Mifos X. Cấu hình các thông tin cơ bản: Tên sản phẩm TKB Goal Savings, mã viết tắt TKGS, đồng tiền VND, hạn mức gửi từ 100.000 đến 10.000.000 VND, mặc định 500.000 VND, chu kỳ tính lãi hàng tháng, chế độ gửi bắt buộc (Mandatory Deposit) kỳ hạn 12 tháng, và khởi tạo Biểu lãi suất tiết kiệm gửi góp (Interest Rate Chart) 2026.",
+    targetMenu: "admin-products",
+    subPath: "recurring-deposit-products"
   }
 ];

@@ -38,7 +38,9 @@ export default function EduGuideDrawer({
   onResetSavingsForWithdraw,
   onResetSavingsForTransfer,
   onResetFixedDepositProducts,
-  onResetFixedDepositAccounts
+  onResetFixedDepositAccounts,
+  recurringDepositProducts = [],
+  onResetRecurringDepositProducts
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -236,6 +238,11 @@ export default function EduGuideDrawer({
     return 40;
   };
 
+  const calculateSavingPart3Progress = () => {
+    const hasRd = recurringDepositProducts.some(p => p.shortName === 'TKGS' || p.name?.toLowerCase().includes('goal savings'));
+    return hasRd ? 100 : 0;
+  };
+
   const calculateCasaPart5Progress = () => {
     const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
     const account002 = savingsAccounts.find(s => s.accountNo === '000000002');
@@ -273,6 +280,7 @@ export default function EduGuideDrawer({
   const casaPart5Progress = calculateCasaPart5Progress();
   const savingPart1Progress = calculateSavingPart1Progress();
   const savingPart2Progress = calculateSavingPart2Progress();
+  const savingPart3Progress = calculateSavingPart3Progress();
 
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
@@ -291,6 +299,7 @@ export default function EduGuideDrawer({
     activePartId === 'casa-part-5' ? casaPart5Progress :
     activePartId === 'saving-part-1' ? savingPart1Progress :
     activePartId === 'saving-part-2' ? savingPart2Progress :
+    activePartId === 'saving-part-3' ? savingPart3Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -309,6 +318,7 @@ export default function EduGuideDrawer({
   const isCasaPart5Complete = casaPart5Progress === 100;
   const isSavingPart1Complete = savingPart1Progress === 100;
   const isSavingPart2Complete = savingPart2Progress === 100;
+  const isSavingPart3Complete = savingPart3Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -462,7 +472,8 @@ export default function EduGuideDrawer({
               {EDU_MODULES.filter(m => m.moduleNumber === "03").map((item) => {
                 const isSelected = item.id === activePartId;
                 const itemProgress = item.id === 'saving-part-1' ? savingPart1Progress :
-                                     item.id === 'saving-part-2' ? savingPart2Progress : 0;
+                                     item.id === 'saving-part-2' ? savingPart2Progress :
+                                     item.id === 'saving-part-3' ? savingPart3Progress : 0;
 
                 return (
                   <div
@@ -2832,8 +2843,107 @@ export default function EduGuideDrawer({
         )}
 
         {/* ==========================================================
-            BÀI HỌC: PHÂN HỆ 03 - PHẦN 2: MỞ TÀI KHOẢN FIXED DEPOSIT CHO KHÁCH HÀNG
+            BÀI HỌC: PHÂN HỆ 03 - PHẦN 3: TẠO SẢN PHẨM RECURRING DEPOSIT (TKB GOAL SAVINGS)
             ========================================================== */}
+        {activePartId === 'saving-part-3' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 03: Saving &bull; Phần 3
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-0.5">
+                Thiết Lập Sản Phẩm Tiền Gửi Góp (TKB Goal Savings - TKGS)
+              </h3>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Hướng dẫn thiết lập sản phẩm tiền gửi tiết kiệm gửi góp <strong>TKB Goal Savings (TKGS)</strong> định kỳ hàng tháng theo tài liệu Core Banking Mifos X. Sản phẩm phục vụ khách hàng tích lũy mục tiêu với hạn mức 100.000 - 10.000.000 VND, kỳ hạn gửi 12 tháng bắt buộc (Mandatory Deposit) và biểu lãi suất 4.0%/năm.
+              </p>
+            </div>
+
+            {/* Các bước thực hành */}
+            <div className="space-y-3 text-xs">
+              <h4 className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">
+                Các Bước Thiết Lập 5 Thẻ Đầu Tiên
+              </h4>
+
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Truy Cập Danh Mục Recurring Deposit Products</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Từ menu <strong>Admin &gt; Products</strong>, chọn <strong>Recurring Deposit Products</strong> để mở danh sách sản phẩm tiền gửi gửi góp.
+                </p>
+              </div>
+
+              {/* Bước 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Tạo Sản Phẩm Mới (Create Recurring Deposit Product)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhấp vào nút <strong>+ Create Recurring Deposit Product</strong> ở góc trên bên phải để bắt đầu biểu mẫu cấu hình 8 bước.
+                </p>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Khai Báo Tab DETAILS (Thông Tin Sản Phẩm)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhập Product Name: <code>TKB Goal Savings</code>, Short Name: <code>TKGS</code> và Description: <code>A recurring deposit product designed to help customers achieve savings goals through regular monthly contributions.</code> Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Khai Báo Tab CURRENCY (Đơn Vị Tiền Tệ)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Chọn Currency: <code>Vietnamese Dong</code>, Decimal Places: <code>0</code>, Currency in multiples of: <code>1</code>. Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Khai Báo Tab TERMS (Hạn Mức Tiền Gửi &amp; Chu Kỳ Lãi)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhập Deposit Amount: Minimum: <code>100000</code>, Default: <code>500000</code>, Maximum: <code>10000000</code>. Chu kỳ tính lãi: Compounding Period: <code>Monthly</code>, Posting Period: <code>Monthly</code>, Calculated using: <code>Daily Balance</code>, Days in Year: <code>365 Days</code>. Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 6 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">6</span>
+                  <span>Khai Báo Tab SETTINGS (Cấu Hình Gửi Góp Bắt Buộc)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tích chọn <strong>Is Mandatory Deposit</strong>. Thiết lập Minimum Deposit Term: <code>12 Months</code>, Maximum Deposit Term: <code>12 Months</code>. Các mục Lock-in Period và Pre-mature closure để trống. Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 7 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
+                  <span>Khai Báo Tab INTEREST RATE CHART (Biểu Lãi Suất Gửi Góp)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại khung Interest Rate Charts, nhập Name: <code>TKB Goal Savings Interest 2026</code>, Start Date: <code>10/13/2026</code>, Description: <code>Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.</code> và kiểm tra nút <strong>+ Add Slab</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {activePartId === 'saving-part-2' && (
           <div className="space-y-6 animate-in fade-in duration-100">
             <div>
@@ -3621,6 +3731,38 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu Tạo Sản Phẩm TKB Fixed Deposit (TKFD)
+              </button>
+            )
+          ) : activePartId === 'saving-part-3' ? (
+            isSavingPart3Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành 100% Cấu hình sản phẩm TKB Goal Savings (TKGS)!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetRecurringDepositProducts) onResetRecurringDepositProducts();
+                    if (onStartPractice) {
+                      onStartPractice('saving-part-3');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Làm lại phần thực hành này
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('saving-part-3');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt đầu Tạo Sản Phẩm TKB Goal Savings (TKGS)
               </button>
             )
           ) : activePartId === 'saving-part-2' ? (

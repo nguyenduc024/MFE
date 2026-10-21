@@ -8,7 +8,8 @@ export default function ProductsView({
   onNavigateHome,
   onNavigateSavingsProducts,
   onNavigateLoanProducts,
-  onNavigateFixedDepositProducts
+  onNavigateFixedDepositProducts,
+  onNavigateRecurringDepositProducts
 }) {
   const column1Items = [
     {
@@ -57,7 +58,7 @@ export default function ProductsView({
     {
       label: 'Recurring Deposit Products',
       icon: Briefcase,
-      onClick: null
+      onClick: onNavigateRecurringDepositProducts
     },
     {
       label: 'Manage Tax Configurations',
@@ -130,7 +131,13 @@ export default function ProductsView({
               return (
                 <div
                   key={idx}
-                  id={item.label === 'Fixed Deposit Products' ? 'tour-products-fixed-deposit' : undefined}
+                  id={
+                    item.label === 'Fixed Deposit Products' 
+                      ? 'tour-products-fixed-deposit' 
+                      : item.label === 'Recurring Deposit Products'
+                      ? 'tour-products-recurring-deposit'
+                      : undefined
+                  }
                   onClick={item.onClick || undefined}
                   className={`flex items-center justify-between py-3 px-3 rounded-[2px] transition-colors ${
                     item.onClick 

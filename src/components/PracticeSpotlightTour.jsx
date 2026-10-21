@@ -27,6 +27,7 @@ export default function PracticeSpotlightTour({
   glAccounts = [],
   savingsProducts = [],
   fixedDepositProducts = [],
+  recurringDepositProducts = [],
   clients = [],
   savingsAccounts = [],
   onSelectClient,
@@ -146,6 +147,16 @@ export default function PracticeSpotlightTour({
     terms: false,
     settings: false
   });
+  // Phân hệ 03 - Phần 3 state (Recurring Deposit Product Creation)
+  const [rdFilledSteps, setRdFilledSteps] = useState({
+    details: false,
+    currency: false,
+    terms: false,
+    settings: false,
+    chart: false,
+    charges: false,
+    accounting: false
+  });
 
 
   const startRoleCountRef = useRef(roles.length);
@@ -189,6 +200,16 @@ export default function PracticeSpotlightTour({
           details: false,
           terms: false,
           settings: false
+        });
+      } else if (module === 'saving-part-3') {
+        setRdFilledSteps({
+          details: false,
+          currency: false,
+          terms: false,
+          settings: false,
+          chart: false,
+          charges: false,
+          accounting: false
         });
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
@@ -1150,6 +1171,131 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1: Mở danh sách khách hàng (Clients)';
       stepSubtitle = 'Truy cập danh mục quản lý khách hàng từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
+    }
+  } else if (module === 'saving-part-3') {
+    const hasTkgsCreated = recurringDepositProducts.some(p => p.shortName === 'TKGS' || p.name?.toLowerCase().includes('goal savings'));
+
+    if (currentPath === 'admin-products') {
+      currentStep = 1;
+      targetSelector = '#tour-products-recurring-deposit';
+      stepTitle = 'Bước 1: Chọn Recurring Deposit Products';
+      stepSubtitle = 'Mở danh mục quản lý sản phẩm tiền gửi tiết kiệm gửi góp.';
+      stepInstruction = 'Tại trang Products, nhấp vào mục "Recurring Deposit Products" để truy cập danh sách các sản phẩm tiền gửi gửi góp của ngân hàng.';
+    } else if (currentPath === 'admin-recurring-deposit-products') {
+      if (!hasTkgsCreated) {
+        currentStep = 2;
+        targetSelector = '#tour-create-rd-product-btn';
+        stepTitle = 'Bước 2: Tạo sản phẩm Recurring Deposit mới';
+        stepSubtitle = 'Mở biểu mẫu khai báo sản phẩm tiền gửi gửi góp mới.';
+        stepInstruction = 'Nhấp vào nút "+ Create Recurring Deposit Product" màu xanh ở góc trên bên phải để bắt đầu thiết lập sản phẩm TKB Goal Savings (TKGS).';
+      } else {
+        currentStep = 8;
+        targetSelector = '#tour-rd-product-row-tkgs';
+        stepTitle = 'Hoàn tất: Sản phẩm TKB Goal Savings (TKGS) đã được cấu hình';
+        stepSubtitle = 'Sản phẩm Tiền gửi gửi góp đã được khởi tạo thành công trên Core Banking!';
+        stepInstruction = 'Sản phẩm TKB Goal Savings (TKGS) với định kỳ gửi góp hàng tháng và kỳ hạn 12 tháng đã được lưu vào hệ thống. Nhấn nút "Hoàn thành phần thực hành" bên dưới để hoàn tất.';
+      }
+    } else if (currentPath === 'admin-create-recurring-deposit-product') {
+      const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-details-form'));
+      const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-currency-form'));
+      const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-terms-form'));
+      const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-settings-form'));
+      const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-chart-form'));
+      const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-charges-form'));
+      const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-accounting-form'));
+      const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-preview-card'));
+
+      if (hasDetails) {
+        currentStep = 3;
+        targetSelector = '#tour-rd-details-form';
+        if (!rdFilledSteps.details) {
+          stepTitle = 'Bước 3: Khai báo tab DETAILS (Thông tin sản phẩm)';
+          stepSubtitle = 'Nhập tên sản phẩm, mã viết tắt và mô tả theo đúng hình ảnh tài liệu.';
+          stepInstruction = 'Khai báo: Product Name (TKB Goal Savings), Short Name (TKGS), và Description (A recurring deposit product designed to help customers achieve savings goals through regular monthly contributions.). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 3: Rà soát dữ liệu tab DETAILS';
+          stepSubtitle = 'Dữ liệu đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại Product Name (TKB Goal Savings), Short Name (TKGS) và Description. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Currency" bên dưới.';
+        }
+      } else if (hasCurrency) {
+        currentStep = 4;
+        targetSelector = '#tour-rd-currency-form';
+        if (!rdFilledSteps.currency) {
+          stepTitle = 'Bước 4: Khai báo tab CURRENCY (Đơn vị tiền tệ)';
+          stepSubtitle = 'Cấu hình loại tiền tệ VND và số thập phân hiển thị.';
+          stepInstruction = 'Khai báo các trường: Currency (Vietnamese Dong), Decimal Places (0), và Currency in multiples of (1). Bấm nút "Điền dữ liệu mẫu Currency" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 4: Rà soát dữ liệu tab CURRENCY';
+          stepSubtitle = 'Dữ liệu tiền tệ đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại Currency (Vietnamese Dong), Decimal Places (0), Currency in multiples of (1). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Terms" bên dưới.';
+        }
+      } else if (hasTerms) {
+        currentStep = 5;
+        targetSelector = '#tour-rd-terms-form';
+        if (!rdFilledSteps.terms) {
+          stepTitle = 'Bước 5: Khai báo tab TERMS (Hạn mức & Chu kỳ tính lãi)';
+          stepSubtitle = 'Thiết lập hạn mức tiền gửi gửi góp và chu kỳ ghi nhận lãi suất hàng tháng.';
+          stepInstruction = 'Khai báo Deposit Amount: Minimum (100000), Default (500000), Maximum (10000000). Cấu hình chu kỳ: Compounding Period (Monthly), Posting Period (Monthly), Calculated using (Daily Balance), Days in Year (365 Days). Bấm nút "Điền dữ liệu mẫu Terms" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 5: Rà soát dữ liệu tab TERMS';
+          stepSubtitle = 'Dữ liệu hạn mức và chu kỳ đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại hạn mức tiền gửi gửi góp 100.000 - 10.000.000 VND và chu kỳ tính lãi hàng tháng (Monthly). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Settings" bên dưới.';
+        }
+      } else if (hasSettings) {
+        currentStep = 6;
+        targetSelector = '#tour-rd-settings-form';
+        if (!rdFilledSteps.settings) {
+          stepTitle = 'Bước 6: Khai báo tab SETTINGS (Gửi góp bắt buộc & Kỳ hạn)';
+          stepSubtitle = 'Thiết lập gửi góp bắt buộc và kỳ hạn gửi 12 tháng.';
+          stepInstruction = 'Tích chọn Is Mandatory Deposit. Khai báo Minimum Deposit Term (Frequency 12, Months), Maximum Deposit Term (Frequency 12, Months). Các mục khác để trống. Bấm nút "Điền dữ liệu mẫu Settings" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 6: Rà soát dữ liệu tab SETTINGS';
+          stepSubtitle = 'Dữ liệu kỳ hạn đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại Is Mandatory Deposit đã tích chọn và kỳ hạn 12 Tháng. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Interest Rate Chart" bên dưới.';
+        }
+      } else if (hasChart) {
+        currentStep = 7;
+        targetSelector = '#tour-rd-chart-form';
+        if (!rdFilledSteps.chart) {
+          stepTitle = 'Bước 7: Khai báo tab INTEREST RATE CHART (Biểu lãi suất 2026)';
+          stepSubtitle = 'Thiết lập Biểu lãi suất tiết kiệm gửi góp 4.0%/năm hiệu lực từ ngày 13/10/2026.';
+          stepInstruction = 'Khai báo thông tin Biểu lãi suất: Name (TKB Goal Savings Interest 2026), Start Date (10/13/2026), Description (Annual interest rate of 4.0% for TKB Goal Savings with a 12-month deposit term.). Bấm nút "Điền dữ liệu mẫu Chart" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 7: Rà soát Biểu lãi suất & Nút + Add Slab';
+          stepSubtitle = 'Biểu lãi suất đã được điền. Nút + Add Slab sẵn sàng cho các bước tiếp theo.';
+          stepInstruction = 'Đã hoàn tất cấu hình 5 bước đầu tiên của sản phẩm TKB Goal Savings. Bạn có thể nhấn "Hoàn tất 5 bước đầu" hoặc tiếp tục sang các tab tiếp theo.';
+        }
+      } else if (hasCharges) {
+        currentStep = 8;
+        targetSelector = '#tour-rd-charges-form';
+        stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
+        stepSubtitle = 'Sản phẩm tiết kiệm gửi góp này không áp dụng phí dịch vụ.';
+        stepInstruction = 'Tab Biểu phí không yêu cầu khai báo vì miễn phí hoàn toàn cho khách hàng. Nhấp vào nút "Next" trên form hoặc bên dưới để tiếp tục.';
+      } else if (hasAccounting) {
+        currentStep = 9;
+        targetSelector = '#tour-rd-accounting-form';
+        stepTitle = 'Bước 9: Khai báo tab ACCOUNTING (Hạch toán kế toán Cash Based)';
+        stepSubtitle = 'Chọn phương pháp Cash và liên kết các tài khoản sổ cái GL tương ứng.';
+        stepInstruction = 'Kiểm tra hạch toán Cash Based và bấm Next để sang tab Preview.';
+      } else if (hasPreview) {
+        currentStep = 10;
+        targetSelector = '#tour-rd-preview-card';
+        stepTitle = 'Bước 10: Rà soát tổng thể & Bấm Submit';
+        stepSubtitle = 'Kiểm tra toàn bộ các phần cấu hình sản phẩm trước khi chính thức lưu.';
+        stepInstruction = 'Rà soát kỹ các thông số sản phẩm và bấm nút Submit màu xanh để hoàn tất.';
+      } else {
+        currentStep = 3;
+        targetSelector = '#tour-rd-stepper';
+        stepTitle = 'Khai báo sản phẩm Recurring Deposit';
+        stepSubtitle = 'Khai báo các tab cấu hình sản phẩm.';
+        stepInstruction = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
+      }
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-admin';
+      stepTitle = 'Bước 1: Truy cập Admin -> Products';
+      stepSubtitle = 'Mở danh mục quản trị sản phẩm từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Admin > Products trên thanh điều hướng để mở danh sách sản phẩm.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -3443,9 +3589,9 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3') {
       const tooltipWidth = 340;
-      if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn') {
+      if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn' || targetSelector === '#tour-create-rd-product-btn') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(20, box.top + 36)}px`,
@@ -3466,7 +3612,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -5376,6 +5522,324 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Module 03 - Part 3 Tour Actions: Recurring Deposit Product (TKB Goal Savings - TKGS) */}
+        {module === 'saving-part-3' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1: admin-products view */}
+            {currentPath === 'admin-products' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-recurring-deposit-products');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở Recurring Deposit Products
+              </button>
+            )}
+
+            {/* Step 2: admin-recurring-deposit-products view */}
+            {currentPath === 'admin-recurring-deposit-products' && (
+              <>
+                {recurringDepositProducts.some(p => p.shortName === 'TKGS' || p.name?.toLowerCase().includes('goal savings')) ? (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Đã tạo thành công sản phẩm TKB Goal Savings (TKGS)!
+                      </div>
+                      <div>Sản phẩm Tiết kiệm gửi góp đã được lưu vào hệ thống core banking với hạn mức 100.000 - 10.000.000 VND và kỳ hạn 12 tháng.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('admin-create-recurring-deposit-product');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Tạo sản phẩm Recurring Deposit
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* Step 3+: inside admin-create-recurring-deposit-product */}
+            {currentPath === 'admin-create-recurring-deposit-product' && (() => {
+              const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-details-form'));
+              const hasCurrency = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-currency-form'));
+              const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-terms-form'));
+              const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-settings-form'));
+              const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-chart-form'));
+              const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-charges-form'));
+              const hasAccounting = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-accounting-form'));
+              const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-rd-preview-card'));
+
+              if (hasDetails) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdFilledSteps.details ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-details'));
+                          setRdFilledSteps(prev => ({ ...prev, details: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Details
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Details đã được điền. Hãy rà soát lại thông tin trước khi chuyển sang tab tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Currency
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasCurrency) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdFilledSteps.currency ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-currency'));
+                          setRdFilledSteps(prev => ({ ...prev, currency: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Currency
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Currency đã được điền. Hãy rà soát lại thông tin trước khi chuyển sang tab tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Terms
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasTerms) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdFilledSteps.terms ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-terms'));
+                          setRdFilledSteps(prev => ({ ...prev, terms: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Terms
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Terms đã được điền. Hãy rà soát lại thông tin trước khi chuyển sang tab tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Settings
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasSettings) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdFilledSteps.settings ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-settings'));
+                          setRdFilledSteps(prev => ({ ...prev, settings: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Settings
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Settings đã được điền. Hãy rà soát lại thông tin trước khi chuyển sang tab tiếp theo.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Interest Rate Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasChart) {
+                return (
+                  <div className="space-y-1.5">
+                    {!rdFilledSteps.chart ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-rd-chart'));
+                          setRdFilledSteps(prev => ({ ...prev, chart: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Chart
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Đã hoàn thành 5 bước đầu cấu hình sản phẩm TKB Goal Savings!
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-submit-rd'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Hoàn tất lưu sản phẩm (TKB Goal Savings)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                          }}
+                          className="w-full py-1 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                        >
+                          Tiếp tục sang tab Charges &rarr;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasCharges) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bỏ qua phí và tiếp tục sang Accounting
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasAccounting) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-rd-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Preview
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasPreview) {
+                return (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-rd'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Submit - Lưu sản phẩm Goal Savings
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+
+            {/* Quick autofill all */}
+            {currentPath === 'admin-create-recurring-deposit-product' && (
+              <div className="pt-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-rd-all'));
+                    setRdFilledSteps({
+                      details: true,
+                      currency: true,
+                      terms: true,
+                      settings: true,
+                      chart: true,
+                      charges: true,
+                      accounting: true
+                    });
+                  }}
+                  className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
+                >
+                  Điền nhanh toàn bộ và đến Preview
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
           <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -6370,7 +6834,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'saving-part-2' && savingsAccounts.some(s => s.accountNo === '000000003' && (s.status === 'Active' || s.status === 'Activated')))
+            {(module === 'saving-part-3' && recurringDepositProducts.some(p => p.shortName === 'TKGS'))
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'saving-part-2' && savingsAccounts.some(s => s.accountNo === '000000003' && (s.status === 'Active' || s.status === 'Activated')))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
