@@ -52,14 +52,21 @@ function formatMifosCurrency(amount) {
 
 export default function SavingsDetailView({ 
   savings, 
+  initialTab = 'general',
   onBack, 
   onNavigateHome, 
   onNavigateClients, 
   onNavigateDeposit,
   onNavigateWithdraw 
 }) {
-  const [activeTab, setActiveTab] = useState('general'); // 'general', 'transactions', 'charges', 'documents', 'notes', 'standing'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'general', 'transactions', 'charges', 'documents', 'notes', 'standing'
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   if (!savings) {
     return (
@@ -72,26 +79,37 @@ export default function SavingsDetailView({
   const clientName = savings.clientName || 'Minh Quang Tran';
   const productName = savings.productName || 'TKB Current Account';
   const accountNo = savings.accountNo || '000000001';
-  const balance = savings.balance || 0;
+  const balance = savings.balance !== null && savings.balance !== undefined ? savings.balance : 0;
   const transactions = savings.transactions || (balance > 0 ? [
     {
       id: '1',
       date: savings.lastActive || '2026-10-13',
       transactionType: 'Deposit',
       amount: balance,
+      credit: balance,
+      debit: null,
       balanceAfter: balance,
       paymentType: 'Money Transfer',
       desc: 'Initial CASA deposit via external bank transfer. TKB-CASA-DEP-001.'
     }
   ] : []);
 
+  // Compute total deposits and withdrawals
+  const totalDeposits = transactions
+    .filter(t => t.transactionType === 'Deposit' || t.type === 'DEPOSIT')
+    .reduce((sum, t) => sum + (Number(t.amount) || Number(t.credit) || 0), 0) || (balance > 0 ? balance : 0);
+
+  const totalWithdrawals = transactions
+    .filter(t => t.transactionType === 'Withdrawal' || t.type === 'WITHDRAWAL')
+    .reduce((sum, t) => sum + (Number(t.amount) || Number(t.debit) || 0), 0);
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-5 select-none font-sans text-gray-800">
       
-      {/* 1. Header & Breadcrumb matching Image 1: General | Home / Clients / Minh Quang Tran / Savings / TKB Current Account (000000001) / General */}
+      {/* 1. Header & Breadcrumb matching Image 1 & Image 3 */}
       <div className="flex items-center space-x-2.5 mb-4">
         <h1 className="text-xl font-normal text-[#212529]">
-          General
+          {activeTab === 'transactions' ? 'Transactions' : 'General'}
         </h1>
         <span className="text-gray-300 font-light text-base">|</span>
         <div className="text-xs text-gray-500 font-normal flex items-center space-x-1.5 flex-wrap">
@@ -130,7 +148,9 @@ export default function SavingsDetailView({
             {productName} ({accountNo})
           </span>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-500">General</span>
+          <span className="text-gray-500">
+            {activeTab === 'transactions' ? 'Transactions' : 'General'}
+          </span>
         </div>
       </div>
 
@@ -211,6 +231,7 @@ export default function SavingsDetailView({
 
                   {/* Withdrawal */}
                   <div 
+                    id="tour-savings-menu-withdraw"
                     onClick={() => {
                       setMenuOpen(false);
                       if (onNavigateWithdraw) onNavigateWithdraw();
@@ -418,66 +439,124 @@ export default function SavingsDetailView({
               Performance History
             </h3>
             <div className="w-full h-[1px] bg-gray-200" />
+            <div className="border border-gray-200 rounded-[2px] divide-y divide-gray-100 text-xs">
+              <div className="grid grid-cols-12 py-2 px-3 bg-white">
+                <span className="col-span-6 text-gray-600">Total Deposits</span>
+                <span className="col-span-6 font-normal text-gray-900 text-right">
+                  {formatMifosCurrency(totalDeposits)}
+                </span>
+              </div>
+              {totalWithdrawals > 0 && (
+                <div className="grid grid-cols-12 py-2 px-3 bg-[#fafafa]">
+                  <span className="col-span-6 text-gray-600">Total Withdrawals</span>
+                  <span className="col-span-6 font-normal text-gray-900 text-right">
+                    {formatMifosCurrency(totalWithdrawals)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
       )}
 
-      {/* 5. Tab Content: Transactions */}
+      {/* 5. Tab Content: Transactions matching Image 3 */}
       {activeTab === 'transactions' && (
-        <div className="bg-white border-x border-b border-gray-200 p-6 space-y-4">
+        <div id="tour-savings-transactions-tab-content" className="bg-white border-x border-b border-gray-200 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold text-gray-800">
-              Transactions History
+              All Transactions
             </h3>
-            <button
-              type="button"
-              onClick={onNavigateDeposit}
-              className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-3.5 py-1.5 rounded-[3px] shadow-2xs transition-colors cursor-pointer"
-            >
-              Deposit
-            </button>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                <input type="checkbox" className="rounded-[2px] border-gray-300 text-[#1072ba]" />
+                <span>Hide Reversed</span>
+              </label>
+              <label className="flex items-center space-x-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                <input type="checkbox" className="rounded-[2px] border-gray-300 text-[#1072ba]" />
+                <span>Hide Accruals</span>
+              </label>
+              <button
+                type="button"
+                className="bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-medium px-4 py-1.5 rounded-[3px] shadow-2xs transition-colors cursor-pointer select-none"
+              >
+                Export
+              </button>
+            </div>
           </div>
 
-          <div className="overflow-x-auto border border-gray-200 rounded-[2px]">
+          <div id="tour-savings-transactions-table" className="overflow-x-auto border border-gray-200 rounded-[2px]">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#f8f9fa] border-b border-gray-200 text-gray-500 font-normal">
                 <tr>
-                  <th className="py-2.5 px-3 font-normal">ID</th>
-                  <th className="py-2.5 px-3 font-normal">Office</th>
+                  <th className="py-2.5 px-3 font-normal">#</th>
+                  <th className="py-2.5 px-3 font-normal">Id</th>
                   <th className="py-2.5 px-3 font-normal">Transaction Date</th>
+                  <th className="py-2.5 px-3 font-normal">External Id</th>
                   <th className="py-2.5 px-3 font-normal">Transaction Type</th>
-                  <th className="py-2.5 px-3 font-normal text-right">Amount (VND)</th>
-                  <th className="py-2.5 px-3 font-normal text-right">Balance After</th>
-                  <th className="py-2.5 px-3 font-normal">Payment Type</th>
+                  <th className="py-2.5 px-3 font-normal text-right">Debit</th>
+                  <th className="py-2.5 px-3 font-normal text-right">Credit</th>
+                  <th className="py-2.5 px-3 font-normal text-right">Balance</th>
+                  <th className="py-2.5 px-3 font-normal text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {transactions.length > 0 ? (
-                  transactions.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50">
-                      <td className="py-2.5 px-3 font-mono text-gray-700">{t.id}</td>
-                      <td className="py-2.5 px-3 text-gray-800">Thu Duc Transaction Office</td>
-                      <td className="py-2.5 px-3 text-gray-800">{formatDisplayDate(t.date, '13 October 2026')}</td>
-                      <td className="py-2.5 px-3 font-medium text-emerald-700">{t.transactionType || t.type}</td>
-                      <td className="py-2.5 px-3 font-mono text-right text-gray-900 font-medium">
-                        {Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-right text-gray-900">
-                        {Number(t.balanceAfter || t.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-2.5 px-3 text-gray-600">{t.paymentType || 'Money Transfer'}</td>
-                    </tr>
-                  ))
+                  transactions.map((t, idx) => {
+                    const isWithdrawal = t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal';
+                    const debitVal = isWithdrawal ? (t.debit || t.amount) : null;
+                    const creditVal = !isWithdrawal ? (t.credit || t.amount) : null;
+                    const balanceVal = t.balanceAfter !== undefined ? t.balanceAfter : balance;
+
+                    return (
+                      <tr key={t.id || idx} className="hover:bg-gray-50">
+                        <td className="py-2.5 px-3 text-gray-600">{idx + 1}</td>
+                        <td className="py-2.5 px-3 font-mono text-gray-700">{t.id}</td>
+                        <td className="py-2.5 px-3 text-gray-800">{formatDisplayDate(t.date || t.transactionDate, '13 October 2026')}</td>
+                        <td className="py-2.5 px-3 text-gray-400">{t.externalId || ''}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{t.transactionType || t.type}</td>
+                        <td className="py-2.5 px-3 font-mono text-right text-gray-800">
+                          {debitVal ? Number(debitVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-right text-gray-800">
+                          {creditVal ? Number(creditVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-right text-gray-900 font-medium">
+                          {Number(balanceVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-gray-500 cursor-pointer hover:text-gray-800">
+                          ⋮
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="7" className="py-8 text-center text-gray-400">
+                    <td colSpan="9" className="py-8 text-center text-gray-400">
                       No transactions recorded yet.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination bar matching Image 3 */}
+          <div className="flex items-center justify-end space-x-6 text-xs text-gray-500 pt-2 select-none">
+            <div className="flex items-center space-x-2">
+              <span>Items per page:</span>
+              <span className="font-medium text-gray-700">50</span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            </div>
+            <div>
+              1-{transactions.length || 0} of {transactions.length || 0}
+            </div>
+            <div className="flex items-center space-x-2 text-gray-400">
+              <span className="cursor-pointer hover:text-gray-600">&lt;&lt;</span>
+              <span className="cursor-pointer hover:text-gray-600">&lt;</span>
+              <span className="cursor-pointer hover:text-gray-600">&gt;</span>
+              <span className="cursor-pointer hover:text-gray-600">&gt;&gt;</span>
+            </div>
           </div>
         </div>
       )}

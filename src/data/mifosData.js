@@ -2336,11 +2336,23 @@ export const EDU_MODULES = [
     moduleNumber: "02",
     moduleTitle: "Phân hệ 02: Account / CASA",
     partNumber: "3",
-    name: "Phần 3: Cấp Tài Khoản CASA Cho Khách Hàng Quang Minh Tran",
-    shortLabel: "Phần 3: Cấp CASA",
-    title: "Mở & Kích Hoạt Tài Khoản Tiền Gửi Thanh Toán CASA (Account 000000001)",
-    objective: "Cấp tài khoản tiền gửi thanh toán CASA theo sản phẩm TKB Current Account (TKCA) cho khách hàng Minh Quang Tran, nộp số dư mở tài khoản ban đầu 12.000.000 VND và kiểm tra cập nhật số dư, trạng thái hoạt động trên trang chi tiết khách hàng.",
+    name: "Phần 3: Nạp Tiền Vào Tài Khoản CASA (Deposit To Saving Account)",
+    shortLabel: "Phần 3: Nạp tiền CASA",
+    title: "Nạp Tiền Vào Tài Khoản Tiền Gửi CASA (Minh Quang Tran - Account 000000001)",
+    objective: "Thực hiện nghiệp vụ nộp tiền 5.000.000 VND vào tài khoản CASA 000000001 của khách hàng Minh Quang Tran qua hình thức Money Transfer và theo dõi biến động số dư, ghi nhận giao dịch tại tab Transactions.",
     targetMenu: "clients",
-    subPath: "client-detail"
+    subPath: "savings-detail"
+  },
+  {
+    id: "casa-part-4",
+    moduleNumber: "02",
+    moduleTitle: "Phân hệ 02: Account / CASA",
+    partNumber: "4",
+    name: "Phần 4: Rút Tiền Khỏi Tài Khoản CASA (Withdraw From Saving Account)",
+    shortLabel: "Phần 4: Rút tiền CASA",
+    title: "Rút Tiền Khỏi Tài Khoản Tiền Gửi CASA (Minh Quang Tran - Account 000000001)",
+    objective: "Thực hiện nghiệp vụ rút tiền 2.000.000 VND từ tài khoản CASA 000000001 của khách hàng Minh Quang Tran qua hình thức Money Transfer, đối soát số dư còn lại 3.000.000 VND và kiểm tra đối chiếu lịch sử giao dịch tại tab Transactions.",
+    targetMenu: "clients",
+    subPath: "savings-withdraw"
   }
 ];

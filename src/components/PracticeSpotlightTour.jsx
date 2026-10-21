@@ -124,6 +124,10 @@ export default function PracticeSpotlightTour({
   const [casaDepositPopup, setCasaDepositPopup] = useState(false);
   const [depositFilled, setDepositFilled] = useState(false);
 
+  // Phân hệ 02 - Phần 4 state (CASA Withdrawal: Minh Quang Tran)
+  const [casaWithdrawPopup, setCasaWithdrawPopup] = useState(false);
+  const [withdrawFilled, setWithdrawFilled] = useState(false);
+
   const startRoleCountRef = useRef(roles.length);
   const startUserCountRef = useRef(users.length);
 
@@ -146,6 +150,9 @@ export default function PracticeSpotlightTour({
       } else if (module === 'casa-part-3') {
         setCasaDepositPopup(false);
         setDepositFilled(false);
+      } else if (module === 'casa-part-4') {
+        setCasaWithdrawPopup(false);
+        setWithdrawFilled(false);
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
         setRolePermissionsImported(false);
@@ -237,6 +244,20 @@ export default function PracticeSpotlightTour({
       }
     }
   }, [savingsAccounts, isActive, module, currentPath, casaDepositPopup]);
+
+  // Track if CASA Withdrawal was completed (Phân hệ 02 - Phần 4)
+  useEffect(() => {
+    if (isActive && module === 'casa-part-4') {
+      const account = savingsAccounts.find(s => s.accountNo === '000000001');
+      const hasWithdrawn = account && (
+        account.transactions?.some(t => t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal') ||
+        (account.balance !== null && Number(account.balance) <= 3000000 && Number(account.balance) > 0)
+      );
+      if (hasWithdrawn && currentPath === 'savings-detail' && !casaWithdrawPopup) {
+        setCasaWithdrawPopup(true);
+      }
+    }
+  }, [savingsAccounts, isActive, module, currentPath, casaWithdrawPopup]);
 
   // Track if Financial Activity Mapping was submitted / created (GL Part 5)
   useEffect(() => {
@@ -678,6 +699,58 @@ export default function PracticeSpotlightTour({
         stepTitle = 'Bước 4 / 5: Rà soát dữ liệu giao dịch';
         stepSubtitle = 'Dữ liệu nộp tiền đã được điền. Vui lòng kiểm tra lại trước khi bấm Submit.';
         stepInstruction = 'Kiểm tra kỹ các trường đã điền: Transaction Date (10/13/2026), Transaction Amount (VND 5,000,000.00), Payment Type (Money Transfer), và Notes. Sau khi xem lại xong, bạn có thể bấm nút "Submit" màu xanh trên form hoặc bấm nút "Bấm Submit nạp tiền" bên dưới để hoàn tất giao dịch.';
+      }
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1 / 5: Truy cập danh sách khách hàng (Clients)';
+      stepSubtitle = 'Mở danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
+    }
+  } else if (module === 'casa-part-4') {
+    const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+    const isWithdrawn = account001 && (
+      account001.transactions?.some(t => t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal') ||
+      (account001.balance !== null && Number(account001.balance) <= 3000000 && Number(account001.balance) > 0)
+    );
+
+    if (currentPath === 'clients') {
+      currentStep = 1;
+      targetSelector = '#tour-client-row-minh';
+      stepTitle = 'Bước 1 / 5: Chọn khách hàng Minh Quang Tran';
+      stepSubtitle = 'Mở hồ sơ khách hàng để truy cập danh sách tài khoản tiền gửi CASA.';
+      stepInstruction = 'Tìm khách hàng Minh Quang Tran (Mã định danh 000000011 / TKB-CIF-TDU-001) trong danh sách và nhấp vào dòng của khách hàng để mở trang chi tiết.';
+    } else if (currentPath === 'client-detail') {
+      currentStep = 2;
+      targetSelector = '#tour-saving-row-000000001';
+      stepTitle = 'Bước 2 / 5: Chọn tài khoản CASA (000000001)';
+      stepSubtitle = 'Truy cập thông tin chi tiết tài khoản tiền gửi TKB Current Account.';
+      stepInstruction = 'Tại bảng Saving Accounts, nhấp vào liên kết tài khoản 000000001 (TKB Current Account) để mở màn hình quản lý nghiệp vụ tài khoản.';
+    } else if (currentPath === 'savings-detail') {
+      if (isWithdrawn) {
+        currentStep = 5;
+        targetSelector = '#tour-savings-account-overview';
+        stepTitle = 'Bước 5 / 5: Hoàn tất rút tiền khỏi tài khoản CASA';
+        stepSubtitle = 'Số dư khả dụng của tài khoản 000000001 đã giảm còn 3,000,000.00 VND sau giao dịch rút tiền.';
+        stepInstruction = 'Kiểm tra số dư tại Account Overview: Current Balance đ3,000,000.00 và Available Balance đ3,000,000.00. Tab Transactions cũng đã ghi nhận giao dịch rút tiền (Debit: 2,000,000.00). Bấm nút "Hoàn tất bài thực hành Rút tiền CASA" bên dưới để kết thúc.';
+      } else {
+        currentStep = 3;
+        targetSelector = '#tour-savings-action-menu';
+        stepTitle = 'Bước 3 / 5: Mở danh mục tác vụ & chọn Withdrawal';
+        stepSubtitle = 'Thực hiện nghiệp vụ rút tiền từ tài khoản tiền gửi thanh toán.';
+        stepInstruction = 'Nhấp vào nút menu tác vụ (biểu tượng 3 dấu gạch ngang) ở góc trên bên phải khung màu xanh, sau đó chọn "Withdrawal" để mở biểu mẫu rút tiền từ tài khoản.';
+      }
+    } else if (currentPath === 'savings-withdraw') {
+      currentStep = 4;
+      targetSelector = '#tour-withdraw-savings-form';
+      if (!withdrawFilled) {
+        stepTitle = 'Bước 4 / 5: Khai báo giao dịch rút tiền CASA';
+        stepSubtitle = 'Nhập thông tin giao dịch rút 2,000,000 VND từ tài khoản 000000001.';
+        stepInstruction = 'Khai báo các thông tin: Ngày giao dịch (10/13/2026), Số tiền rút (2,000,000.00 VND), Phương thức thanh toán (Money Transfer), và Ghi chú (CASA withdrawal via bank transfer. TKB-CASA-WD-001). Bấm nút "Điền dữ liệu mẫu Rút tiền" bên dưới để điền tự động.';
+      } else {
+        stepTitle = 'Bước 4 / 5: Rà soát dữ liệu giao dịch rút tiền';
+        stepSubtitle = 'Dữ liệu rút tiền đã được điền. Vui lòng kiểm tra lại trước khi bấm Submit.';
+        stepInstruction = 'Kiểm tra kỹ các trường đã điền: Transaction Date (10/13/2026), Transaction Amount (VND 2,000,000.00), Payment Type (Money Transfer), và Notes. Sau khi xem lại xong, bạn có thể bấm nút "Submit" màu xanh trên form hoặc bấm nút "Bấm Submit rút tiền" bên dưới để hoàn tất giao dịch.';
       }
     } else {
       currentStep = 1;
@@ -2864,6 +2937,89 @@ export default function PracticeSpotlightTour({
     );
   }
 
+  // CASA Part 4 completion modal (Withdraw Money From Saving Account)
+  if (module === 'casa-part-4' && casaWithdrawPopup) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="bg-white rounded-[2px] shadow-2xl max-w-lg w-full p-6 text-gray-800 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#28a745]">
+              Rút tiền CASA thành công
+            </span>
+            <button
+              onClick={() => setCasaWithdrawPopup(false)}
+              className="text-gray-400 hover:text-gray-600 text-xs cursor-pointer p-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <h3 className="text-base font-bold text-gray-900 leading-snug">
+            Giao dịch rút 2,000,000 VND khỏi tài khoản CASA thành công!
+          </h3>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Hệ thống Core Banking đã hoàn tất hạch toán giao dịch rút tiền và đối soát số dư cho tài khoản tiền gửi thanh toán của khách hàng Minh Quang Tran:
+          </p>
+
+          <div className="py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-[2px] text-xs text-gray-700 space-y-2 font-sans">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Khách hàng:</span>
+              <strong className="text-gray-900">Minh Quang Tran (000000011)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tài khoản CASA:</span>
+              <strong className="text-[#1072ba]">000000001 (TKB Current Account)</strong>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Ngày giao dịch:</span>
+              <span className="text-gray-800 font-mono">10/13/2026</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Phương thức thanh toán:</span>
+              <span className="text-gray-800">Money Transfer</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Số tiền rút (Debit):</span>
+              <strong className="text-red-700 font-mono">2,000,000.00 VND</strong>
+            </div>
+            <div className="flex justify-between border-t border-gray-200 pt-1.5">
+              <span className="text-gray-500">Số dư khả dụng còn lại:</span>
+              <strong className="text-emerald-700 font-mono text-sm">đ3,000,000.00</strong>
+            </div>
+            <div className="text-[11px] text-gray-500 pt-1 border-t border-gray-100">
+              Ghi chú: CASA withdrawal via bank transfer. TKB-CASA-WD-001.
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setCasaWithdrawPopup(false);
+              }}
+              className="py-2 px-3 border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-[2px] cursor-pointer transition-colors"
+            >
+              Xem chi tiết tài khoản
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCasaWithdrawPopup(false);
+                if (onClose) onClose();
+                if (navigate) navigate('clients');
+              }}
+              className="py-2 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+            >
+              Hoàn thành bài thực hành Rút tiền CASA
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Tooltip position calculation
   const padding = 6;
   const box = targetRect ? {
@@ -2895,7 +3051,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn') {
         tooltipStyle = {
@@ -2918,7 +3074,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -2941,7 +3097,7 @@ export default function PracticeSpotlightTour({
             width: `${tooltipWidth}px`
           };
         }
-      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn') {
+      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn' || targetSelector === '#tour-withdraw-submit-btn') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -3825,6 +3981,128 @@ export default function PracticeSpotlightTour({
                       className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
                       Bấm Submit nạp tiền
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick autofill & interactive actions for CASA Part 4 (Withdraw Money From Saving Account) */}
+        {module === 'casa-part-4' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1: clients view */}
+            {currentPath === 'clients' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetClient = clients.find(c => 
+                    c.accountNo === '000000011' || 
+                    c.externalId === 'TKB-CIF-TDU-001' || 
+                    c.displayName?.toLowerCase().includes('minh quang tran')
+                  ) || clients[0];
+                  if (navigate) navigate('client-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở hồ sơ Minh Quang Tran
+              </button>
+            )}
+
+            {/* Step 2: client-detail view */}
+            {currentPath === 'client-detail' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('savings-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Mở chi tiết tài khoản CASA (000000001)
+              </button>
+            )}
+
+            {/* Step 3: savings-detail view */}
+            {currentPath === 'savings-detail' && (() => {
+              const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
+              const isWithdrawn = account001 && (
+                account001.transactions?.some(t => t.type === 'WITHDRAWAL' || t.transactionType === 'Withdrawal') ||
+                (account001.balance !== null && Number(account001.balance) <= 3000000 && Number(account001.balance) > 0)
+              );
+              
+              if (!isWithdrawn) {
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) navigate('savings-withdraw');
+                    }}
+                    className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Mở biểu mẫu Withdrawal (Rút tiền)
+                  </button>
+                );
+              }
+
+              return (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed">
+                    <div className="font-bold text-emerald-900 mb-0.5">
+                      Giao dịch rút tiền thành công!
+                    </div>
+                    <div>Tài khoản 000000001 đã giảm còn số dư khả dụng đ3,000,000.00. Tab Transactions đã ghi nhận giao dịch rút tiền.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCasaWithdrawPopup(true);
+                    }}
+                    className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Hoàn tất bài thực hành Rút tiền CASA
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Step 4: savings-withdraw view */}
+            {currentPath === 'savings-withdraw' && (
+              <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] space-y-1.5 animate-in fade-in duration-150">
+                <div className="text-[11px] font-bold text-[#1072ba]">
+                  Thông tin giao dịch rút tiền mẫu:
+                </div>
+                <div className="text-[10px] text-gray-700 font-mono bg-white p-2 rounded border border-sky-100 space-y-0.5">
+                  <div>Transaction Date: <strong>10/13/2026</strong></div>
+                  <div>Transaction Amount: <strong>VND 2,000,000.00</strong></div>
+                  <div>Payment Type: <strong>Money Transfer</strong></div>
+                  <div>Notes: <strong>CASA withdrawal via bank transfer. TKB-CASA-WD-001.</strong></div>
+                </div>
+
+                {!withdrawFilled ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('practice-autofill-withdraw'));
+                      setWithdrawFilled(true);
+                    }}
+                    className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  >
+                    Điền dữ liệu mẫu Rút tiền
+                  </button>
+                ) : (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                      Dữ liệu rút tiền đã được điền vào biểu mẫu. Hãy rà soát lại thông tin trước khi gửi.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-withdraw'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Bấm Submit rút tiền
                     </button>
                   </div>
                 )}
@@ -4827,7 +5105,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'casa-part-3' && currentStep === 5)
+            {(module === 'casa-part-4' && currentStep === 5)
+              ? 'Nhấn nút "Hoàn tất bài thực hành Rút tiền CASA" phía trên để kết thúc'
+              : (module === 'casa-part-3' && currentStep === 5)
               ? 'Nhấn nút "Hoàn tất bài thực hành CASA" phía trên để kết thúc'
               : (module === 'casa-part-2' && currentStep === 8)
               ? 'Nhấn nút "Hoàn tất bài thực hành CIF" phía trên để kết thúc'
