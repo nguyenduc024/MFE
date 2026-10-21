@@ -156,7 +156,7 @@ function FloatingSelect({
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 appearance-none cursor-pointer"
+          className={`w-full bg-transparent text-xs outline-none pr-6 pt-0.5 appearance-none cursor-pointer ${!hasValue && !isFocused ? 'text-transparent' : 'text-gray-800'}`}
         >
           {children}
         </select>
@@ -442,7 +442,7 @@ export default function CreateAccountingRuleView({
                 value={accountToDebit}
                 onChange={(e) => setAccountToDebit(e.target.value)}
               >
-                <option value="">Select Account</option>
+                <option value=""></option>
                 {detailGlAccounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
                     {acc.name}
@@ -456,7 +456,7 @@ export default function CreateAccountingRuleView({
                   value={debitTags}
                   onChange={(e) => setDebitTags(e.target.value)}
                 >
-                  <option value="">Select Tag</option>
+                  <option value=""></option>
                   {PREDEFINED_TAG_OPTIONS.map((tag) => (
                     <option key={tag.id} value={tag.id}>
                       {tag.name}
@@ -519,7 +519,7 @@ export default function CreateAccountingRuleView({
                 value={accountToCredit}
                 onChange={(e) => setAccountToCredit(e.target.value)}
               >
-                <option value="">Select Account</option>
+                <option value=""></option>
                 {detailGlAccounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
                     {acc.name}
@@ -533,7 +533,7 @@ export default function CreateAccountingRuleView({
                   value={creditTags}
                   onChange={(e) => setCreditTags(e.target.value)}
                 >
-                  <option value="">Select Tag</option>
+                  <option value=""></option>
                   {PREDEFINED_TAG_OPTIONS.map((tag) => (
                     <option key={tag.id} value={tag.id}>
                       {tag.name}

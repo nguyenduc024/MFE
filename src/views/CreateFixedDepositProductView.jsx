@@ -69,8 +69,8 @@ function FloatingSelect({
       <label
         className={`absolute left-0 transition-all duration-200 pointer-events-none origin-[0] select-none ${
           isFloated
-            ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : 'text-gray-500')
-            : 'top-3.5 text-xs text-gray-500'
+            ? '-top-1 text-[11px] ' + (isFocused ? 'text-[#1072ba] font-medium' : (disabled ? 'text-gray-400' : 'text-gray-500'))
+            : 'top-3.5 text-xs ' + (disabled ? 'text-gray-400' : 'text-gray-500')
         }`}
       >
         {label}
@@ -83,11 +83,13 @@ function FloatingSelect({
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 cursor-pointer appearance-none disabled:text-gray-400 disabled:cursor-not-allowed"
+          className={`w-full bg-transparent text-xs outline-none pr-6 pt-0.5 cursor-pointer appearance-none disabled:cursor-not-allowed ${
+            disabled ? 'text-gray-400' : (!hasValue && !isFocused ? 'text-transparent' : 'text-gray-800')
+          }`}
         >
           {children}
         </select>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-0 pointer-events-none" />
+        <ChevronDown className={`w-3.5 h-3.5 absolute right-0 pointer-events-none ${disabled ? 'text-gray-300' : 'text-gray-400'}`} />
       </div>
     </div>
   );
@@ -739,7 +741,7 @@ export default function CreateFixedDepositProductView({
                   value={formData.lockinPeriodType}
                   onChange={(e) => setFormData({ ...formData, lockinPeriodType: e.target.value })}
                 >
-                  <option value="">Select Type</option>
+                  <option value=""></option>
                   <option value="Days">Days</option>
                   <option value="Weeks">Weeks</option>
                   <option value="Months">Months</option>
@@ -851,7 +853,7 @@ export default function CreateFixedDepositProductView({
                     value={formData.penalInterestPeriod}
                     onChange={(e) => setFormData({ ...formData, penalInterestPeriod: e.target.value })}
                   >
-                    <option value="">Select Period</option>
+                    <option value=""></option>
                     <option value="Whole Term">Whole Term</option>
                     <option value="Till Premature Date">Till Premature Date</option>
                   </FloatingSelect>
@@ -1105,7 +1107,7 @@ export default function CreateFixedDepositProductView({
                   value={formData.chargeId}
                   onChange={(e) => setFormData({ ...formData, chargeId: e.target.value })}
                 >
-                  <option value="">Select Charge</option>
+                  <option value=""></option>
                   <option value="1">Fixed Deposit Account Opening Fee</option>
                   <option value="2">Early Withdrawal Penalty Fee</option>
                 </FloatingSelect>

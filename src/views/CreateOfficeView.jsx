@@ -122,7 +122,7 @@ function FloatingSelect({
           setIsFocused(false);
           if (onBlur) onBlur(e);
         }}
-        className="w-full bg-transparent text-xs text-gray-800 outline-none pr-6 pt-0.5 appearance-none cursor-pointer"
+        className={`w-full bg-transparent text-xs outline-none pr-6 pt-0.5 appearance-none cursor-pointer ${!hasValue && !isFocused ? 'text-transparent' : 'text-gray-800'}`}
       >
         {children}
       </select>
@@ -375,7 +375,7 @@ export default function CreateOfficeView({
             onBlur={() => handleFieldBlur('parentId')}
             error={touched.parentId && !formData.parentId ? 'Parent Office is required' : ''}
           >
-            <option value="">Select Parent Office</option>
+            <option value=""></option>
             {/* Cho phép chọn Root đối với Hội sở chính */}
             <option value="none">(None / Root - Hội sở chính)</option>
             {offices.map((office) => (
