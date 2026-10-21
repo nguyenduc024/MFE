@@ -1205,6 +1205,11 @@ export default function App() {
               setSelectedRecurringDeposit(newAcc);
               navigate('recurring-deposit-detail');
             }}
+            onSaveRecurringDepositAccount={(newAcc) => {
+              setSavingsAccounts(prev => [newAcc, ...prev.filter(s => s.accountNo !== newAcc.accountNo)]);
+              setSelectedRecurringDeposit(newAcc);
+              navigate('recurring-deposit-detail');
+            }}
             onCancel={() => navigate('client-detail')}
             onNavigateHome={() => navigate('home')}
             onNavigateClients={() => navigate('clients')}

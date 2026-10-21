@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, ChevronDown, CheckCircle2, Pencil, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 
 /**
@@ -119,6 +119,7 @@ export default function CreateRecurringDepositAccountView({
   client,
   recurringDepositProducts = [],
   users = [],
+  onSave,
   onSaveRecurringDepositAccount,
   onCancel,
   onNavigateHome,
@@ -189,6 +190,53 @@ export default function CreateRecurringDepositAccountView({
     chargeId: ''
   });
 
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+    const depositAmt = Number(formData.recurringDepositAmount) || 500000;
+    const periodMonths = Number(formData.depositPeriod) || 12;
+    const totalPrincipal = depositAmt * periodMonths;
+
+    const newAccount = {
+      id: 4,
+      accountNo: '000000004',
+      accountType: 'Recurring Deposit',
+      clientId: client?.id || '000000012',
+      clientName: clientName,
+      productName: formData.productName || 'TKB Goal Savings',
+      externalId: formData.externalId || 'TKB-RD-TDU-002',
+      status: 'Submitted and pending approval',
+      submittedDate: '13 October 2026',
+      openedDate: '13 October 2026',
+      dateOfDeposit: '13 October 2026',
+      maturityDate: '13 October 2027',
+      period: `${periodMonths} Months`,
+      depositPeriod: `${periodMonths} Months`,
+      recurringDepositAmount: depositAmt,
+      principal: totalPrincipal,
+      maturityAmount: 6131646,
+      interestRate: 4.0,
+      rateOfInterest: '4.00 %',
+      balance: 0,
+      totalDeposits: 0,
+      actualAvailableBalance: 0,
+      totalWithdrawals: 0,
+      depositsFrequency: `${formData.depositFrequency || 1} Months`,
+      interestCompoundingPeriod: 'Monthly',
+      interestPostingPeriod: 'Monthly',
+      interestCalculatedUsing: 'Daily Balance',
+      daysInYear: '365 Days',
+      fieldOfficer: formData.fieldOfficer || 'Unassigned'
+    };
+
+    const saveHandler = onSaveRecurringDepositAccount || onSave;
+    if (saveHandler) {
+      saveHandler(newAccount);
+    }
+  };
+
+  const handleSubmitRef = useRef();
+  handleSubmitRef.current = handleSubmit;
+
   // Autofill handlers for practice tour
   useEffect(() => {
     const handleAutofillDetails = () => {
@@ -224,7 +272,9 @@ export default function CreateRecurringDepositAccountView({
     };
 
     const handleSubmitEvent = () => {
-      handleSubmit();
+      if (handleSubmitRef.current) {
+        handleSubmitRef.current();
+      }
     };
 
     window.addEventListener('practice-autofill-rda-details', handleAutofillDetails);
@@ -257,45 +307,6 @@ export default function CreateRecurringDepositAccountView({
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
-  };
-
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault();
-    const newAccount = {
-      id: 4,
-      accountNo: '000000004',
-      accountType: 'Recurring Deposit',
-      clientId: client?.id || '000000012',
-      clientName: clientName,
-      productName: formData.productName || 'TKB Goal Savings',
-      externalId: formData.externalId || 'TKB-RD-TDU-002',
-      status: 'Submitted and pending approval',
-      submittedDate: '13 October 2026',
-      openedDate: '13 October 2026',
-      dateOfDeposit: '13 October 2026',
-      maturityDate: '13 October 2027',
-      period: '12 Months',
-      depositPeriod: '12 Months',
-      recurringDepositAmount: 500000,
-      principal: 6000000,
-      maturityAmount: 6131646,
-      interestRate: 4.0,
-      rateOfInterest: '4.00 %',
-      balance: 0,
-      totalDeposits: 0,
-      actualAvailableBalance: 0,
-      totalWithdrawals: 0,
-      depositsFrequency: '1 Months',
-      interestCompoundingPeriod: 'Monthly',
-      interestPostingPeriod: 'Monthly',
-      interestCalculatedUsing: 'Daily Balance',
-      daysInYear: '365 Days',
-      fieldOfficer: formData.fieldOfficer || 'Unassigned'
-    };
-
-    if (onSaveRecurringDepositAccount) {
-      onSaveRecurringDepositAccount(newAccount);
-    }
   };
 
   return (

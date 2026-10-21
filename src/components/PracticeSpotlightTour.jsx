@@ -6321,7 +6321,12 @@ export default function PracticeSpotlightTour({
                     <button
                       type="button"
                       onClick={() => {
-                        window.dispatchEvent(new CustomEvent('practice-submit-rda'));
+                        const submitBtn = document.getElementById('tour-rda-submit-btn');
+                        if (submitBtn) {
+                          submitBtn.click();
+                        } else {
+                          window.dispatchEvent(new CustomEvent('practice-submit-rda'));
+                        }
                       }}
                       className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                     >
@@ -6355,7 +6360,12 @@ export default function PracticeSpotlightTour({
                 <button
                   type="button"
                   onClick={() => {
-                    window.dispatchEvent(new CustomEvent('practice-confirm-rda-approve'));
+                    const confirmBtn = document.getElementById('tour-rd-approve-submit-btn');
+                    if (confirmBtn) {
+                      confirmBtn.click();
+                    } else {
+                      window.dispatchEvent(new CustomEvent('practice-confirm-rda-approve'));
+                    }
                   }}
                   className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
