@@ -140,6 +140,12 @@ export default function PracticeSpotlightTour({
     settings: false,
     chart: false
   });
+  // Phân hệ 03 - Phần 2 state (Fixed Deposit Account Creation)
+  const [fdaFilledSteps, setFdaFilledSteps] = useState({
+    details: false,
+    terms: false,
+    settings: false
+  });
 
 
   const startRoleCountRef = useRef(roles.length);
@@ -177,6 +183,12 @@ export default function PracticeSpotlightTour({
           settings: false,
           chart: false,
           accounting: false
+        });
+      } else if (module === 'saving-part-2') {
+        setFdaFilledSteps({
+          details: false,
+          terms: false,
+          settings: false
         });
       } else if (module === 'role-permissions') {
         setRolePermissionsPopup(false);
@@ -998,6 +1010,123 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1: Truy cập Admin -> Products';
       stepSubtitle = 'Mở danh mục quản trị sản phẩm từ thanh điều hướng.';
       stepInstruction = 'Bấm vào menu Admin > Products trên thanh điều hướng để mở danh sách sản phẩm.';
+    }
+  } else if (module === 'saving-part-2') {
+    const hasFdAccount = savingsAccounts.some(s => 
+      s.accountNo === '000000003' || 
+      (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))
+    );
+
+    if (currentPath === 'clients') {
+      currentStep = 1;
+      targetSelector = '#tour-client-row-minh';
+      stepTitle = 'Bước 1: Chọn khách hàng Minh Quang Tran';
+      stepSubtitle = 'Mở hồ sơ khách hàng để mở tài khoản tiền gửi tiết kiệm có kỳ hạn.';
+      stepInstruction = 'Tại danh sách Clients, nhấp vào dòng khách hàng "Minh Quang Tran" (Client ID: 000000011, Mã CIF: TKB-CIF-TDU-001) để mở trang quản lý tài khoản của khách hàng.';
+    } else if (currentPath === 'client-detail') {
+      if (hasFdAccount) {
+        currentStep = 10;
+        targetSelector = '#tour-client-fixed-deposits-section';
+        stepTitle = 'Hoàn tất: Tài khoản Fixed Deposit 000000003 đã kích hoạt trên hồ sơ khách hàng';
+        stepSubtitle = 'Sản phẩm TKB Fixed Deposit đã được cấp thành công cho khách hàng Minh Quang Tran!';
+        stepInstruction = 'Tài khoản Fixed Deposit 000000003 với số tiền 1.000.000 VND và kỳ hạn 6 tháng đã xuất hiện trong bảng Fixed Deposit Accounts. Bấm nút "Hoàn thành phần thực hành" bên dưới để hoàn tất bài học.';
+      } else {
+        const hasAppsSubmenu = typeof document !== 'undefined' && Boolean(document.getElementById('tour-client-new-fixed-deposit-btn'));
+        if (!hasAppsSubmenu) {
+          currentStep = 2;
+          targetSelector = '#tour-client-actions-menu-btn';
+          stepTitle = 'Bước 2: Mở menu thao tác khách hàng (Client Actions)';
+          stepSubtitle = 'Mở danh mục ứng dụng nghiệp vụ tài khoản trên thanh banner.';
+          stepInstruction = 'Nhấp vào nút menu 3 dấu gạch ngang (≡) ở góc trên bên phải khung banner màu xanh của khách hàng để mở danh sách chức năng.';
+        } else {
+          currentStep = 3;
+          targetSelector = '#tour-client-new-fixed-deposit-btn';
+          stepTitle = 'Bước 3: Chọn New Fixed Deposits Account';
+          stepSubtitle = 'Mở biểu mẫu khai báo cấp tài khoản tiền gửi có kỳ hạn mới.';
+          stepInstruction = 'Trong menu Applications, nhấp vào mục "New Fixed Deposits Account" (ô viền đỏ) để mở form tạo tài khoản tiền gửi tiết kiệm có kỳ hạn.';
+        }
+      }
+    } else if (currentPath === 'create-fixed-deposit-account') {
+      const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-details-form'));
+      const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-terms-form'));
+      const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-settings-form'));
+      const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-chart-form'));
+      const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-charges-form'));
+      const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-preview-card'));
+
+      if (hasDetails) {
+        currentStep = 4;
+        targetSelector = '#tour-fda-details-form';
+        if (!fdaFilledSteps.details) {
+          stepTitle = 'Bước 4: Khai báo tab DETAILS (Thông tin tài khoản)';
+          stepSubtitle = 'Khai báo sản phẩm TKB Fixed Deposit, ngày lập và mã hồ sơ.';
+          stepInstruction = 'Khai báo các trường: Product Name (TKB Fixed Deposit), Submitted On (10/13/2026), Field Officer (Unassigned), External id (TKB-FD-TDU-001). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 4: Rà soát dữ liệu tab DETAILS';
+          stepSubtitle = 'Dữ liệu đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại Product Name (TKB Fixed Deposit) và External id (TKB-FD-TDU-001). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Terms" bên dưới.';
+        }
+      } else if (hasTerms) {
+        currentStep = 5;
+        targetSelector = '#tour-fda-terms-form';
+        if (!fdaFilledSteps.terms) {
+          stepTitle = 'Bước 5: Khai báo tab TERMS (Hạn mức & Kỳ hạn gửi tiền)';
+          stepSubtitle = 'Nhập số tiền gửi 1.000.000 VND và kỳ hạn 6 tháng.';
+          stepInstruction = 'Khai báo: Deposit Amount (1,000,000.00 VND), Deposit Period (6 Months), chu kỳ tính lãi hàng tháng (Monthly), ngày trong năm (365 Days). Bấm nút "Điền dữ liệu mẫu Terms" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 5: Rà soát dữ liệu tab TERMS';
+          stepSubtitle = 'Dữ liệu hạn mức và kỳ hạn đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Kiểm tra lại số tiền gửi 1.000.000 VND và kỳ hạn 6 Tháng. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Settings" bên dưới.';
+        }
+      } else if (hasSettings) {
+        currentStep = 6;
+        targetSelector = '#tour-fda-settings-form';
+        if (!fdaFilledSteps.settings) {
+          stepTitle = 'Bước 6: Khai báo tab SETTINGS (Kỳ hạn gửi tiền)';
+          stepSubtitle = 'Thiết lập kỳ hạn tối thiểu 3 tháng, bội số 3 tháng, tối đa 3 tháng.';
+          stepInstruction = 'Khai báo: Minimum Deposit Term (3 Months), Multiples of (3 Months), Maximum Deposit Term (3 Months). Các mục Lock-in Period và Pre-mature closure để trống. Bấm nút "Điền dữ liệu mẫu Settings" bên dưới để điền tự động.';
+        } else {
+          stepTitle = 'Bước 6: Rà soát dữ liệu tab SETTINGS';
+          stepSubtitle = 'Dữ liệu kỳ hạn đã được điền. Vui lòng kiểm tra lại trước khi sang bước tiếp theo.';
+          stepInstruction = 'Rà soát lại các thông số kỳ hạn gửi tiền. Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab Interest Rate Chart" bên dưới.';
+        }
+      } else if (hasChart) {
+        currentStep = 7;
+        targetSelector = '#tour-fda-chart-form';
+        stepTitle = 'Bước 7: Kiểm tra INTEREST RATE CHART (Lãi suất áp dụng)';
+        stepSubtitle = 'Hệ thống tự động áp dụng bậc lãi suất 4.5% p.a. cho kỳ hạn 6 tháng.';
+        stepInstruction = 'Đối chiếu biểu lãi suất TKB FD VND Interest Rates 2026: Với kỳ hạn gửi 6 tháng, bậc lãi suất tương ứng là 4-6 Months với tỷ lệ 4.5% / năm. Nhấp nút "Next" trên form hoặc nút "Tiếp tục sang tab Charges" bên dưới.';
+      } else if (hasCharges) {
+        currentStep = 8;
+        targetSelector = '#tour-fda-charges-form';
+        stepTitle = 'Bước 8: Kiểm tra tab CHARGES (Biểu phí)';
+        stepSubtitle = 'Sản phẩm tiết kiệm có kỳ hạn được miễn phí hoàn toàn.';
+        stepInstruction = 'Tab Charges không phát sinh phí dịch vụ. Nhấp nút "Next" trên form hoặc nút "Tiếp tục sang tab Preview" bên dưới.';
+      } else if (hasPreview) {
+        currentStep = 9;
+        targetSelector = '#tour-fda-preview-card';
+        stepTitle = 'Bước 9: Rà soát và Gửi phê duyệt hồ sơ (Submit)';
+        stepSubtitle = 'Kiểm tra toàn bộ hồ sơ tiền gửi có kỳ hạn trước khi gửi phê duyệt.';
+        stepInstruction = 'Rà soát số tiền gốc 1.000.000 VND, kỳ hạn 6 Tháng, ngày đáo hạn 13/04/2027 và số tiền đáo hạn dự tính 1.022.653 VND. Nhấp vào nút "Submit" màu xanh để gửi phê duyệt hồ sơ mở tài khoản!';
+      } else {
+        currentStep = 4;
+        targetSelector = '#tour-fda-stepper';
+        stepTitle = 'Tạo tài khoản Fixed Deposit';
+        stepSubtitle = 'Khai báo các thông tin mở sổ tiết kiệm có kỳ hạn.';
+        stepInstruction = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
+      }
+    } else if (currentPath === 'fixed-deposit-detail') {
+      currentStep = 10;
+      targetSelector = '#tour-fd-account-detail-card';
+      stepTitle = 'Hoàn tất: Mở tài khoản Fixed Deposit 000000003 thành công!';
+      stepSubtitle = 'Hồ sơ tiền gửi có kỳ hạn đã được tạo và lưu trữ trên hệ thống Core Banking!';
+      stepInstruction = 'Tài khoản Fixed Deposit Product: TKB Fixed Deposit 000000003 của khách hàng Minh Quang Tran đã được khởi tạo thành công với số tiền gốc 1.000.000 VND, lãi suất 4.5% p.a., kỳ hạn 6 tháng và số tiền đáo hạn 1.022.653 VND. Nhấn nút "Hoàn thành phần thực hành" bên dưới để hoàn tất.';
+    } else {
+      currentStep = 1;
+      targetSelector = '#tour-nav-institution';
+      stepTitle = 'Bước 1: Mở danh sách khách hàng (Clients)';
+      stepSubtitle = 'Truy cập danh mục quản lý khách hàng từ thanh điều hướng.';
+      stepInstruction = 'Bấm vào menu Institution > Clients trên thanh điều hướng để mở danh sách khách hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -3291,7 +3420,7 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
-    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1') {
+    if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn') {
         tooltipStyle = {
@@ -3300,7 +3429,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(60, box.top)}px`,
@@ -3314,7 +3443,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -4872,6 +5001,270 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
+        {/* Module 03 - Part 2 Tour Actions: New Fixed Deposits Account */}
+        {module === 'saving-part-2' && (
+          <div className="space-y-2 mt-2">
+            {/* Step 1: Clients list */}
+            {currentPath === 'clients' && (
+              <button
+                type="button"
+                onClick={() => {
+                  const clientMinh = clients.find(c => c.id === '11' || c.accountNo === '000000011' || c.displayName?.includes('Minh Quang Tran'));
+                  if (onSelectClient && clientMinh) onSelectClient(clientMinh);
+                  if (navigate) navigate('client-detail');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+              >
+                Chọn khách hàng Minh Quang Tran
+              </button>
+            )}
+
+            {/* Step 2 & 3: Client Detail view */}
+            {currentPath === 'client-detail' && (
+              <>
+                {savingsAccounts.some(s => s.accountNo === '000000003' || (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))) ? (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Đã mở thành công tài khoản TKB Fixed Deposit (000000003)!
+                      </div>
+                      <div>Tài khoản tiết kiệm có kỳ hạn của khách hàng Minh Quang Tran đã được cập nhật hiển thị trong danh mục Fixed Deposit Accounts với số tiền 1.000.000 VND và kỳ hạn 6 tháng.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] text-gray-600 bg-sky-50 p-2 border border-sky-100 rounded-[2px]">
+                      Nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh của khách hàng, sau đó chọn <strong>Applications &gt; New Fixed Deposits Account</strong> (ô viền đỏ).
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('create-fixed-deposit-account');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Mở biểu mẫu New Fixed Deposits Account
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Step 4-9: inside create-fixed-deposit-account */}
+            {currentPath === 'create-fixed-deposit-account' && (() => {
+              const hasDetails = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-details-form'));
+              const hasTerms = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-terms-form'));
+              const hasSettings = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-settings-form'));
+              const hasChart = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-chart-form'));
+              const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-charges-form'));
+              const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-fda-preview-card'));
+
+              if (hasDetails) {
+                return (
+                  <div className="space-y-1.5">
+                    {!fdaFilledSteps.details ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-fda-step1'));
+                          setFdaFilledSteps(prev => ({ ...prev, details: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Details
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Details đã được điền. Hãy rà soát lại thông tin trước khi chuyển sang tab Terms.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-fda-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Terms
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasTerms) {
+                return (
+                  <div className="space-y-1.5">
+                    {!fdaFilledSteps.terms ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-fda-step2'));
+                          setFdaFilledSteps(prev => ({ ...prev, terms: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Terms (1M VND - 6 Tháng)
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Terms đã được điền: Số tiền gửi 1.000.000 VND, kỳ hạn 6 Tháng. Hãy rà soát trước khi sang tab Settings.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-fda-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Settings
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasSettings) {
+                return (
+                  <div className="space-y-1.5">
+                    {!fdaFilledSteps.settings ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-autofill-fda-step3'));
+                          setFdaFilledSteps(prev => ({ ...prev, settings: true }));
+                        }}
+                        className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                      >
+                        Điền dữ liệu mẫu Settings
+                      </button>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                          Dữ liệu Settings đã được điền. Hãy rà soát các thông số kỳ hạn trước khi chuyển sang tab Biểu lãi suất.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('practice-next-fda-step'));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Tiếp tục sang tab Interest Rate Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              if (hasChart) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-tight">
+                      Biểu lãi suất áp dụng: Với kỳ hạn 6 Tháng, hệ thống áp dụng bậc lãi suất 4.5% / năm.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-fda-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Charges
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasCharges) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-tight">
+                      Tab Charges: Không áp dụng phí dịch vụ. Hãy bấm Tiếp tục để chuyển sang tab Preview.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-next-fda-step'));
+                      }}
+                      className="w-full py-1.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Tiếp tục sang tab Preview
+                    </button>
+                  </div>
+                );
+              }
+
+              if (hasPreview) {
+                return (
+                  <div className="space-y-1.5">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Rà soát hồ sơ mở tài khoản Fixed Deposit
+                      </div>
+                      <div>Khách hàng: Minh Quang Tran &bull; Gốc gửi: 1.000.000 VND &bull; Kỳ hạn: 6 Tháng &bull; Lãi suất: 4.5% &bull; Tiền đáo hạn: 1.022.653 VND.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-submit-fda'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Submit - Mở tài khoản Fixed Deposit
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+
+            {/* Step 10: Fixed Deposit Account Details View */}
+            {currentPath === 'fixed-deposit-detail' && (
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                  <div className="font-bold text-emerald-900 text-xs">
+                    Mở tài khoản TKB Fixed Deposit (000000003) thành công!
+                  </div>
+                  <div>Hồ sơ tiền gửi có kỳ hạn đã được tạo và kích hoạt trên Core Banking với số tiền 1.000.000 VND, kỳ hạn 6 Tháng, lãi suất 4.5% p.a., ngày đáo hạn 13/04/2027 với số tiền đáo hạn dự tính 1.022.653 VND.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('client-detail');
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                >
+                  Xem tài khoản trên hồ sơ khách hàng
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Hoàn thành phần thực hành
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (
           <div className="p-3 bg-gradient-to-br from-sky-50 to-blue-50/80 border border-sky-200 rounded-[3px] space-y-2 mt-2 shadow-xs animate-in fade-in duration-150">
@@ -5866,7 +6259,9 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
+            {(module === 'saving-part-2' && (currentPath === 'fixed-deposit-detail' || savingsAccounts.some(s => s.accountNo === '000000003')))
+              ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'casa-part-5' && currentStep === 7)
               ? 'Nhấn nút "Hoàn tất bài thực hành Chuyển khoản nội bộ" phía trên để kết thúc'

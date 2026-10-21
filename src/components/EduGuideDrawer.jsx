@@ -37,7 +37,8 @@ export default function EduGuideDrawer({
   onResetSavingsAccounts,
   onResetSavingsForWithdraw,
   onResetSavingsForTransfer,
-  onResetFixedDepositProducts
+  onResetFixedDepositProducts,
+  onResetFixedDepositAccounts
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -224,6 +225,14 @@ export default function EduGuideDrawer({
     return hasFdProduct ? 100 : 0;
   };
 
+  const calculateSavingPart2Progress = () => {
+    const hasFdAccount = savingsAccounts.some(s => 
+      s.accountNo === '000000003' || 
+      (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))
+    );
+    return hasFdAccount ? 100 : 0;
+  };
+
   const calculateCasaPart5Progress = () => {
     const account001 = savingsAccounts.find(s => s.accountNo === '000000001');
     const account002 = savingsAccounts.find(s => s.accountNo === '000000002');
@@ -260,6 +269,7 @@ export default function EduGuideDrawer({
   const casaPart4Progress = calculateCasaPart4Progress();
   const casaPart5Progress = calculateCasaPart5Progress();
   const savingPart1Progress = calculateSavingPart1Progress();
+  const savingPart2Progress = calculateSavingPart2Progress();
 
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
@@ -277,6 +287,7 @@ export default function EduGuideDrawer({
     activePartId === 'casa-part-4' ? casaPart4Progress :
     activePartId === 'casa-part-5' ? casaPart5Progress :
     activePartId === 'saving-part-1' ? savingPart1Progress :
+    activePartId === 'saving-part-2' ? savingPart2Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -294,6 +305,7 @@ export default function EduGuideDrawer({
   const isCasaPart4Complete = casaPart4Progress === 100;
   const isCasaPart5Complete = casaPart5Progress === 100;
   const isSavingPart1Complete = savingPart1Progress === 100;
+  const isSavingPart2Complete = savingPart2Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -446,7 +458,8 @@ export default function EduGuideDrawer({
 
               {EDU_MODULES.filter(m => m.moduleNumber === "03").map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = item.id === 'saving-part-1' ? savingPart1Progress : 0;
+                const itemProgress = item.id === 'saving-part-1' ? savingPart1Progress :
+                                     item.id === 'saving-part-2' ? savingPart2Progress : 0;
 
                 return (
                   <div
@@ -2815,6 +2828,123 @@ export default function EduGuideDrawer({
           </div>
         )}
 
+        {/* ==========================================================
+            BÀI HỌC: PHÂN HỆ 03 - PHẦN 2: MỞ TÀI KHOẢN FIXED DEPOSIT CHO KHÁCH HÀNG
+            ========================================================== */}
+        {activePartId === 'saving-part-2' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 03: Saving &bull; Phần 2
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-0.5">
+                Mở Tài Khoản Tiết Kiệm Có Kỳ Hạn (TKB Fixed Deposit)
+              </h3>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Hướng dẫn thao tác mở tài khoản tiền gửi tiết kiệm có kỳ hạn cho khách hàng <strong>Minh Quang Tran</strong> (mã CIF: <code>TKB-CIF-TDU-001</code>) với số tiền gốc <strong>1.000.000 VND</strong>, kỳ hạn gửi <strong>6 Tháng</strong>, hưởng bậc lãi suất <strong>4.5% / năm</strong>, hạch toán ngày gửi <strong>13/10/2026</strong> và ngày đáo hạn <strong>13/04/2027</strong>.
+              </p>
+            </div>
+
+            {/* Các bước thực hành */}
+            <div className="space-y-3 text-xs">
+              <h4 className="font-bold text-gray-800 text-[11px] uppercase tracking-wider">
+                Các Bước Thực Hiện Nghiệp Vụ
+              </h4>
+
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Mở Hồ Sơ Khách Hàng Minh Quang Tran</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại danh mục <strong>Clients</strong>, tìm và nhấp vào khách hàng <strong>Minh Quang Tran</strong> (Client ID: <code>000000011</code>, External ID: <code>TKB-CIF-TDU-001</code>).
+                </p>
+              </div>
+
+              {/* Bước 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Chọn Menu Hamburger &gt; Applications &gt; New Fixed Deposits Account</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại góc trên bên phải khung banner màu xanh của khách hàng, nhấp vào nút menu <strong>(≡)</strong>, trỏ vào <strong>Applications</strong> và chọn <strong>New Fixed Deposits Account</strong>.
+                </p>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Khai Báo Tab DETAILS</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Product Name *:</strong> <code>TKB Fixed Deposit</code></div>
+                  <div><strong>Submitted On *:</strong> <code>10/13/2026</code></div>
+                  <div><strong>Field Officer:</strong> <code>Unassigned</code></div>
+                  <div><strong>External id:</strong> <code>TKB-FD-TDU-001</code></div>
+                  <div className="text-[11px] text-gray-500 pt-1">Nhấn <strong>Next</strong> để sang tab TERMS.</div>
+                </div>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Khai Báo Tab TERMS</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Deposit Amount *:</strong> <code>1,000,000.00 VND</code></div>
+                  <div><strong>Deposit Period *:</strong> <code>6</code> - Type <code>Months</code></div>
+                  <div><strong>Interest Compounding Period *:</strong> <code>Monthly</code></div>
+                  <div><strong>Interest Posting Period *:</strong> <code>Monthly</code></div>
+                  <div><strong>Interest Calculated using *:</strong> <code>Daily Balance</code></div>
+                  <div><strong>Days in Year *:</strong> <code>365 Days</code></div>
+                  <div className="text-[11px] text-gray-500 pt-1">Nhấn <strong>Next</strong> để sang tab SETTINGS.</div>
+                </div>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-2">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Khai Báo Tab SETTINGS</span>
+                </div>
+                <div className="pl-6 space-y-1.5 text-xs text-gray-600">
+                  <div><strong>Minimum Deposit Term:</strong> Frequency <code>3</code> - Type <code>Months</code></div>
+                  <div><strong>And thereafter, in Multiples of:</strong> Frequency <code>3</code> - Type <code>Months</code></div>
+                  <div><strong>Maximum Deposit Term:</strong> Frequency <code>3</code> - Type <code>Months</code></div>
+                  <div><strong>Lock-in Period &amp; Pre-mature closure:</strong> Để trống</div>
+                  <div className="text-[11px] text-gray-500 pt-1">Nhấn <strong>Next</strong> để sang tab INTEREST RATE CHART.</div>
+                </div>
+              </div>
+
+              {/* Bước 6 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">6</span>
+                  <span>Kiểm Tra Biểu Lãi Suất Áp Dụng (Chart &amp; Slabs)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Hệ thống tự động tra cứu kỳ hạn 6 Tháng ứng với bậc 4 - 6 Tháng có mức lãi suất <strong>4.5% / năm</strong>. Nhấn <strong>Next</strong> sang tab CHARGES rồi sang tab PREVIEW.
+                </p>
+              </div>
+
+              {/* Bước 7 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
+                  <span>Rà Soát Tab PREVIEW &amp; Bấm Submit</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Kiểm tra số tiền gốc 1.000.000 VND, kỳ hạn 6 tháng, ngày đáo hạn 13/04/2027 và số tiền đáo hạn dự tính 1.022.653 VND. Nhấn <strong>Submit</strong> để mở tài khoản thành công.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
 
 
         {/* Nút hành động ở chân bài học */}
@@ -3433,6 +3563,18 @@ export default function EduGuideDrawer({
                 <button
                   type="button"
                   onClick={() => {
+                    setActivePartId('saving-part-2');
+                    if (onStartPractice) {
+                      onStartPractice('saving-part-2');
+                    }
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Chuyển sang Phần 2: Mở TK Fixed Deposit Cho Khách Hàng
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     if (onResetFixedDepositProducts) onResetFixedDepositProducts();
                     if (onStartPractice) {
                       onStartPractice('saving-part-1');
@@ -3454,6 +3596,38 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt đầu Tạo Sản Phẩm TKB Fixed Deposit (TKFD)
+              </button>
+            )
+          ) : activePartId === 'saving-part-2' ? (
+            isSavingPart2Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành 100% Mở tài khoản Fixed Deposit 000000003!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetFixedDepositAccounts) onResetFixedDepositAccounts();
+                    if (onStartPractice) {
+                      onStartPractice('saving-part-2');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Làm lại phần thực hành này
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('saving-part-2');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt Đầu Thực Hành Mở TK Fixed Deposit (000000003)
               </button>
             )
           ) : activePartId === 'casa-part-5' ? (

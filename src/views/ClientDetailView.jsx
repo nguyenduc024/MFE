@@ -66,10 +66,12 @@ export default function ClientDetailView({
   onSelectLoan, 
   onSelectSavings,
   onOpenNewLoanModal,
-  onOpenNewSavingsModal
+  onOpenNewSavingsModal,
+  onOpenNewFixedDeposit
 }) {
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'address', 'family', 'identities', 'documents', 'notes'
   const [menuOpen, setMenuOpen] = useState(false);
+  const [appsSubmenuOpen, setAppsSubmenuOpen] = useState(true);
 
   if (!client) {
     return (
@@ -229,11 +231,15 @@ export default function ClientDetailView({
 
           </div>
 
-          {/* Far Right: Hamburger Action Menu matching Image */}
+          {/* Far Right: Hamburger Action Menu matching Image 1 */}
           <div className="relative">
             <button
+              id="tour-client-actions-menu-btn"
               type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => {
+                setMenuOpen(!menuOpen);
+                setAppsSubmenuOpen(true);
+              }}
               className="p-1.5 text-white hover:bg-white/10 rounded-[2px] transition-colors cursor-pointer"
               title="Client Actions"
             >
@@ -242,50 +248,100 @@ export default function ClientDetailView({
 
             {/* Dropdown Menu when clicked */}
             {menuOpen && (
-              <div className="absolute right-0 top-8 w-56 bg-white text-gray-800 rounded-[2px] shadow-xl border border-gray-100 py-1.5 z-50 text-xs animate-in fade-in duration-100">
-                <div 
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (onOpenNewSavingsModal) onOpenNewSavingsModal();
-                  }}
-                  className="px-4 py-2 hover:bg-sky-50 hover:text-[#1072ba] cursor-pointer flex items-center space-x-2 font-medium"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Savings (Cấp CASA)</span>
+              <div 
+                id="tour-client-actions-dropdown" 
+                className="absolute right-0 top-8 bg-white text-gray-800 rounded-[2px] shadow-xl border border-gray-200 py-1 z-50 text-xs flex animate-in fade-in duration-100"
+              >
+                {/* Main Menu Items */}
+                <div className="w-44 py-1">
+                  <div 
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2 text-gray-700"
+                  >
+                    <span>Edit</span>
+                  </div>
+
+                  <div 
+                    onMouseEnter={() => setAppsSubmenuOpen(true)}
+                    onClick={() => setAppsSubmenuOpen(!appsSubmenuOpen)}
+                    className={`px-4 py-2 cursor-pointer flex items-center justify-between text-gray-700 ${
+                      appsSubmenuOpen ? 'bg-sky-50 text-[#1072ba] font-medium' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <span>Applications</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                  </div>
+
+                  <div 
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between text-gray-700"
+                  >
+                    <span>Actions</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                  </div>
+
+                  <div 
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                  >
+                    <span>Unassign Staff</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setMenuOpen(false)}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between text-gray-700"
+                  >
+                    <span>More</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                  </div>
                 </div>
-                <div 
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (onOpenNewLoanModal) onOpenNewLoanModal();
-                  }}
-                  className="px-4 py-2 hover:bg-sky-50 hover:text-[#1072ba] cursor-pointer flex items-center space-x-2 font-medium"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Loan</span>
-                </div>
-                <div 
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (onOpenNewSavingsModal) onOpenNewSavingsModal();
-                  }}
-                  className="px-4 py-2 hover:bg-sky-50 hover:text-[#1072ba] cursor-pointer flex items-center space-x-2 font-medium"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Fixed Deposit</span>
-                </div>
-                <div className="border-t border-gray-100 my-1" />
-                <div 
-                  onClick={() => setMenuOpen(false)}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-600"
-                >
-                  Edit Client
-                </div>
-                <div 
-                  onClick={() => setMenuOpen(false)}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600"
-                >
-                  Close Client Account
-                </div>
+
+                {/* Submenu: Applications matching Image 1 */}
+                {appsSubmenuOpen && (
+                  <div 
+                    id="tour-client-apps-submenu" 
+                    className="w-56 border-l border-gray-200 py-1 bg-white"
+                  >
+                    <div 
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (onOpenNewLoanModal) onOpenNewLoanModal();
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                    >
+                      New Loan Account
+                    </div>
+                    <div 
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (onOpenNewSavingsModal) onOpenNewSavingsModal();
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                    >
+                      New Savings Account
+                    </div>
+                    <div 
+                      className="px-4 py-2 text-gray-400 cursor-not-allowed"
+                    >
+                      New Share Account
+                    </div>
+                    <div 
+                      className="px-4 py-2 text-gray-400 cursor-not-allowed"
+                    >
+                      New Recurring Deposit Account
+                    </div>
+                    <div 
+                      id="tour-client-new-fixed-deposit-btn"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        if (onOpenNewFixedDeposit) onOpenNewFixedDeposit();
+                      }}
+                      className="px-4 py-2 bg-red-50/60 border border-red-500 text-red-700 font-semibold cursor-pointer hover:bg-red-100/60 transition-colors"
+                    >
+                      New Fixed Deposits Account
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -590,7 +646,7 @@ export default function ClientDetailView({
           </div>
 
           {/* Section: Fixed Deposit Accounts matching Image */}
-          <div className="space-y-2">
+          <div id="tour-client-fixed-deposits-section" className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-gray-800">
                 Fixed Deposit Accounts
@@ -617,7 +673,11 @@ export default function ClientDetailView({
                 <tbody className="divide-y divide-gray-100">
                   {fixedDepositAccounts.length > 0 ? (
                     fixedDepositAccounts.map((fd) => (
-                      <tr key={fd.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={fd.id} 
+                        id={`tour-client-fd-row-${fd.accountNo}`}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="py-3 px-3 font-normal text-gray-900 flex items-center space-x-1.5">
                           <span className="w-2 h-2 bg-[#28a745] inline-block rounded-[1px]" />
                           <span 

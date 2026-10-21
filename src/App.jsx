@@ -45,6 +45,8 @@ import DepositSavingsAccountView from './views/DepositSavingsAccountView';
 import WithdrawSavingsAccountView from './views/WithdrawSavingsAccountView';
 import AccountTransferView from './views/AccountTransferView';
 import CreateSavingsAccountView from './views/CreateSavingsAccountView';
+import CreateFixedDepositAccountView from './views/CreateFixedDepositAccountView';
+import FixedDepositDetailView from './views/FixedDepositDetailView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
 import CreateJournalEntryView from './views/CreateJournalEntryView';
@@ -142,6 +144,7 @@ export default function App() {
   const [selectedClient, setSelectedClient] = useState(INITIAL_CLIENTS[10] || INITIAL_CLIENTS[0]); // Minh Quang Tran
   const [selectedLoan, setSelectedLoan] = useState(INITIAL_LOANS[0] || null);
   const [selectedSavings, setSelectedSavings] = useState(INITIAL_SAVINGS_ACCOUNTS[0] || null);
+  const [selectedFixedDeposit, setSelectedFixedDeposit] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedAccountingRule, setSelectedAccountingRule] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -692,7 +695,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -1071,11 +1074,44 @@ export default function App() {
               navigate('loan-detail');
             }}
             onSelectSavings={(s) => {
-              setSelectedSavings(s);
-              navigate('savings-detail');
+              if (s.accountType === 'Fixed Deposit' || s.productName?.toLowerCase().includes('fixed')) {
+                setSelectedFixedDeposit(s);
+                navigate('fixed-deposit-detail');
+              } else {
+                setSelectedSavings(s);
+                navigate('savings-detail');
+              }
             }}
             onOpenNewLoanModal={() => navigate('admin-loan-products')}
             onOpenNewSavingsModal={() => navigate('create-savings-account')}
+            onOpenNewFixedDeposit={() => navigate('create-fixed-deposit-account')}
+          />
+        )}
+
+        {currentPath === 'create-fixed-deposit-account' && (
+          <CreateFixedDepositAccountView
+            client={selectedClient}
+            fixedDepositProducts={fixedDepositProducts}
+            users={users}
+            onSaveFixedDepositAccount={(newAcc) => {
+              setSavingsAccounts(prev => [newAcc, ...prev.filter(s => s.accountNo !== newAcc.accountNo)]);
+              setSelectedFixedDeposit(newAcc);
+              navigate('fixed-deposit-detail');
+            }}
+            onCancel={() => navigate('client-detail')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+          />
+        )}
+
+        {currentPath === 'fixed-deposit-detail' && (
+          <FixedDepositDetailView
+            fixedDeposit={selectedFixedDeposit}
+            client={selectedClient}
+            onBack={() => navigate('client-detail')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateClientDetail={() => navigate('client-detail')}
           />
         )}
 
@@ -1290,6 +1326,52 @@ export default function App() {
           if (targetModule === 'saving-part-1') {
             setCurrentPath('admin-products');
           }
+          if (targetModule === 'saving-part-2') {
+            if (!fixedDepositProducts.some(p => p.shortName === 'TKFD')) {
+              setFixedDepositProducts(prev => [
+                {
+                  id: '1',
+                  name: 'TKB Fixed Deposit',
+                  shortName: 'TKFD',
+                  description: 'A VND fixed term deposit product offered by Takashimaya Bank, supporting 3, 6, and 12-month deposit terms with tiered annual interest rates.',
+                  currency: 'Vietnamese Dong',
+                  digitsAfterDecimal: 0,
+                  inMultiplesOf: 1,
+                  minDepositAmount: 1000000,
+                  defaultDepositAmount: 10000000,
+                  maxDepositAmount: 1000000000,
+                  compoundingPeriod: 'Monthly',
+                  postingPeriod: 'Monthly',
+                  interestCalculationType: 'Daily Balance',
+                  daysInYear: '365 Days',
+                  minDepositTermFrequency: 3,
+                  minDepositTermType: 'Months',
+                  maxDepositTermFrequency: 12,
+                  maxDepositTermType: 'Months'
+                },
+                ...prev
+              ]);
+            }
+            let targetClientMinh = clients.find(c => c.id === '11' || c.accountNo === '000000011' || c.displayName?.includes('Minh Quang Tran'));
+            if (!targetClientMinh) {
+              targetClientMinh = {
+                id: '11',
+                accountNo: '000000011',
+                displayName: 'Minh Quang Tran',
+                officeName: 'Thu Duc Transaction Office',
+                staffName: 'Dang, Quan',
+                status: 'Active',
+                activationDate: '2026-10-13',
+                externalId: 'TKB-CIF-TDU-001',
+                mobileNo: '0955738216',
+                emailAddress: 'quang2004@gmail.com'
+              };
+              setClients(prev => [targetClientMinh, ...prev.filter(c => c.id !== '11')]);
+            }
+            setSelectedClient(targetClientMinh);
+            setSavingsAccounts(prev => prev.filter(s => s.accountNo !== '000000003'));
+            setCurrentPath('clients');
+          }
           if (targetModule === 'casa-part-1') {
             if (currentPath !== 'admin-create-savings-product') {
               setCurrentPath('admin-savings-products');
@@ -1475,6 +1557,9 @@ export default function App() {
         }}
         onResetFixedDepositProducts={() => {
           setFixedDepositProducts(prev => prev.filter(p => p.shortName !== 'TKFD'));
+        }}
+        onResetFixedDepositAccounts={() => {
+          setSavingsAccounts(prev => prev.filter(s => s.accountNo !== '000000003'));
         }}
         onResetClients={() => {
           setClients(prev => prev.filter(c => c.id !== '11' && c.id !== '12' && c.externalId !== 'TKB-CIF-TDU-001' && c.externalId !== 'TKB-CIF-TDU-002' && !c.displayName?.toLowerCase().includes('minh quang tran') && !c.displayName?.toLowerCase().includes('lan ngoc pham')));

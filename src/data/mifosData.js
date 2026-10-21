@@ -2378,5 +2378,17 @@ export const EDU_MODULES = [
     objective: "Thiết lập sản phẩm tiền gửi tiết kiệm có kỳ hạn TKB Fixed Deposit (TKFD) theo chuẩn Core Banking Mifos X, cấu hình đơn vị tiền tệ VND, định mức số tiền gửi 1.000.000 - 1.000.000.000 VND, kỳ hạn gửi từ 3 đến 12 tháng, và khởi tạo Biểu lãi suất tiết kiệm có kỳ hạn (Interest Rate Chart).",
     targetMenu: "admin-fixed-deposit-products",
     subPath: "fixed-deposit-products"
+  },
+  {
+    id: "saving-part-2",
+    moduleNumber: "03",
+    moduleTitle: "Phân hệ 03: Saving",
+    partNumber: "2",
+    name: "Phần 2: Mở Tài Khoản Tiền Gửi Tiết Kiệm Có Kỳ Hạn (New Fixed Deposits Account)",
+    shortLabel: "Phần 2: Mở TK Fixed Deposit",
+    title: "Mở Tài Khoản Tiết Kiệm Có Kỳ Hạn Cho Khách Hàng (Minh Quang Tran - TKB Fixed Deposit)",
+    objective: "Thực hiện nghiệp vụ mở tài khoản tiền gửi tiết kiệm có kỳ hạn TKB Fixed Deposit cho khách hàng Minh Quang Tran với số tiền gửi 1.000.000 VND, kỳ hạn 6 tháng, áp dụng lãi suất bậc 2 (4.5% p.a.), ngày gửi 13/10/2026, ngày đáo hạn 13/04/2027 với số tiền đáo hạn dự tính 1.022.653 VND.",
+    targetMenu: "clients",
+    subPath: "create-fixed-deposit-account"
   }
 ];
