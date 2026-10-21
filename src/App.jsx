@@ -47,6 +47,7 @@ import AccountTransferView from './views/AccountTransferView';
 import CreateSavingsAccountView from './views/CreateSavingsAccountView';
 import CreateFixedDepositAccountView from './views/CreateFixedDepositAccountView';
 import FixedDepositDetailView from './views/FixedDepositDetailView';
+import ApproveFixedDepositAccountView from './views/ApproveFixedDepositAccountView';
 import ConfigurationsView from './views/ConfigurationsView';
 import MigrateOpeningBalancesView from './views/MigrateOpeningBalancesView';
 import CreateJournalEntryView from './views/CreateJournalEntryView';
@@ -695,7 +696,7 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
           {/* Breadcrumb Bar */}
-          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && (
+          {currentPath !== 'home' && currentPath !== 'accounting' && currentPath !== 'accounting-coa' && currentPath !== 'accounting-activities' && currentPath !== 'accounting-opening-balances' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-rules' && currentPath !== 'accounting-create-rule' && currentPath !== 'accounting-view-rule' && currentPath !== 'accounting-frequent-postings' && currentPath !== 'accounting-view-transaction' && currentPath !== 'admin-currency-config' && currentPath !== 'admin-manage-currencies' && currentPath !== 'clients' && currentPath !== 'create-client' && currentPath !== 'admin-users' && currentPath !== 'admin-create-user' && currentPath !== 'admin-user-detail' && currentPath !== 'admin-organization' && currentPath !== 'admin-system' && currentPath !== 'admin-roles' && currentPath !== 'admin-add-role' && currentPath !== 'admin-role-detail' && currentPath !== 'admin-configurations' && currentPath !== 'admin-products' && currentPath !== 'admin-savings-products' && currentPath !== 'admin-create-savings-product' && currentPath !== 'admin-fixed-deposit-products' && currentPath !== 'admin-create-fixed-deposit-product' && currentPath !== 'client-detail' && currentPath !== 'create-savings-account' && currentPath !== 'create-fixed-deposit-account' && currentPath !== 'fixed-deposit-detail' && currentPath !== 'approve-fixed-deposit-account' && (
             <Breadcrumb
               items={getBreadcrumbs()}
               onBack={() => {
@@ -1104,6 +1105,29 @@ export default function App() {
           />
         )}
 
+        {currentPath === 'approve-fixed-deposit-account' && (
+          <ApproveFixedDepositAccountView
+            fixedDeposit={selectedFixedDeposit}
+            client={selectedClient}
+            onApprove={({ approvedOn, note }) => {
+              const updated = {
+                ...(selectedFixedDeposit || {}),
+                status: 'Approved',
+                approvedDate: approvedOn || '10/13/2026',
+                note: note || '',
+                balance: 0
+              };
+              setSelectedFixedDeposit(updated);
+              setSavingsAccounts(prev => [updated, ...prev.filter(s => s.accountNo !== updated.accountNo)]);
+              navigate('fixed-deposit-detail');
+            }}
+            onCancel={() => navigate('fixed-deposit-detail')}
+            onNavigateHome={() => navigate('home')}
+            onNavigateClients={() => navigate('clients')}
+            onNavigateClientDetail={() => navigate('client-detail')}
+          />
+        )}
+
         {currentPath === 'fixed-deposit-detail' && (
           <FixedDepositDetailView
             fixedDeposit={selectedFixedDeposit}
@@ -1112,6 +1136,20 @@ export default function App() {
             onNavigateHome={() => navigate('home')}
             onNavigateClients={() => navigate('clients')}
             onNavigateClientDetail={() => navigate('client-detail')}
+            onNavigateApprove={() => navigate('approve-fixed-deposit-account')}
+            onActivateFixedDeposit={(fdAcc) => {
+              const target = fdAcc || selectedFixedDeposit || {};
+              const updated = {
+                ...target,
+                status: 'Active',
+                activatedOn: '13 October 2026',
+                balance: target.principal || 1000000,
+                totalDeposits: target.principal || 1000000,
+                totalInterestEarned: 123
+              };
+              setSelectedFixedDeposit(updated);
+              setSavingsAccounts(prev => [updated, ...prev.filter(s => s.accountNo !== updated.accountNo)]);
+            }}
           />
         )}
 

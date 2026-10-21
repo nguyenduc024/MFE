@@ -1012,10 +1012,13 @@ export default function PracticeSpotlightTour({
       stepInstruction = 'Bấm vào menu Admin > Products trên thanh điều hướng để mở danh sách sản phẩm.';
     }
   } else if (module === 'saving-part-2') {
-    const hasFdAccount = savingsAccounts.some(s => 
+    const fd = savingsAccounts.find(s => 
       s.accountNo === '000000003' || 
       (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))
     );
+    const isApproved = fd?.status === 'Approved';
+    const isActive = fd?.status === 'Active' || fd?.status === 'Activated';
+    const isPending = fd && !isApproved && !isActive;
 
     if (currentPath === 'clients') {
       currentStep = 1;
@@ -1024,12 +1027,12 @@ export default function PracticeSpotlightTour({
       stepSubtitle = 'Mở hồ sơ khách hàng để mở tài khoản tiền gửi tiết kiệm có kỳ hạn.';
       stepInstruction = 'Tại danh sách Clients, nhấp vào dòng khách hàng "Minh Quang Tran" (Client ID: 000000011, Mã CIF: TKB-CIF-TDU-001) để mở trang quản lý tài khoản của khách hàng.';
     } else if (currentPath === 'client-detail') {
-      if (hasFdAccount) {
-        currentStep = 10;
+      if (isActive) {
+        currentStep = 13;
         targetSelector = '#tour-client-fixed-deposits-section';
-        stepTitle = 'Hoàn tất: Tài khoản Fixed Deposit 000000003 đã kích hoạt trên hồ sơ khách hàng';
-        stepSubtitle = 'Sản phẩm TKB Fixed Deposit đã được cấp thành công cho khách hàng Minh Quang Tran!';
-        stepInstruction = 'Tài khoản Fixed Deposit 000000003 với số tiền 1.000.000 VND và kỳ hạn 6 tháng đã xuất hiện trong bảng Fixed Deposit Accounts. Bấm nút "Hoàn thành phần thực hành" bên dưới để hoàn tất bài học.';
+        stepTitle = 'Hoàn tất: Tài khoản Fixed Deposit 000000003 đã kích hoạt (Active)';
+        stepSubtitle = 'Sản phẩm TKB Fixed Deposit đã được kích hoạt thành công trên hồ sơ khách hàng!';
+        stepInstruction = 'Tài khoản Fixed Deposit 000000003 với số tiền 1.000.000 VND và kỳ hạn 6 tháng đã ở trạng thái Active trong bảng Fixed Deposit Accounts. Bấm nút "Hoàn thành phần thực hành" bên dưới để hoàn tất bài học.';
       } else {
         const hasAppsSubmenu = typeof document !== 'undefined' && Boolean(document.getElementById('tour-client-new-fixed-deposit-btn'));
         if (!hasAppsSubmenu) {
@@ -1115,12 +1118,32 @@ export default function PracticeSpotlightTour({
         stepSubtitle = 'Khai báo các thông tin mở sổ tiết kiệm có kỳ hạn.';
         stepInstruction = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
       }
+    } else if (currentPath === 'approve-fixed-deposit-account') {
+      currentStep = 11;
+      targetSelector = '#tour-fd-approve-form';
+      stepTitle = 'Bước 11: Phê duyệt hồ sơ tài khoản (Approved On Date)';
+      stepSubtitle = 'Nhập ngày phê duyệt 10/13/2026 và nhấn Confirm.';
+      stepInstruction = 'Nhập ngày phê duyệt Approved On Date là 10/13/2026. Bấm nút "Điền dữ liệu mẫu (10/13/2026)" bên dưới để điền nhanh, sau đó nhấn "Confirm" để phê duyệt hồ sơ.';
     } else if (currentPath === 'fixed-deposit-detail') {
-      currentStep = 10;
-      targetSelector = '#tour-fd-account-detail-card';
-      stepTitle = 'Hoàn tất: Mở tài khoản Fixed Deposit 000000003 thành công!';
-      stepSubtitle = 'Hồ sơ tiền gửi có kỳ hạn đã được tạo và lưu trữ trên hệ thống Core Banking!';
-      stepInstruction = 'Tài khoản Fixed Deposit Product: TKB Fixed Deposit 000000003 của khách hàng Minh Quang Tran đã được khởi tạo thành công với số tiền gốc 1.000.000 VND, lãi suất 4.5% p.a., kỳ hạn 6 tháng và số tiền đáo hạn 1.022.653 VND. Nhấn nút "Hoàn thành phần thực hành" bên dưới để hoàn tất.';
+      if (isActive) {
+        currentStep = 13;
+        targetSelector = '#tour-fd-account-detail-card';
+        stepTitle = 'Hoàn tất: Kích hoạt thành công tài khoản TKB Fixed Deposit (000000003)!';
+        stepSubtitle = 'Tài khoản đã Active, ghi nhận số dư 1.000.000 VND và lịch sử hiệu lực!';
+        stepInstruction = 'Tài khoản Fixed Deposit Product: TKB Fixed Deposit 000000003 của khách hàng Minh Quang Tran đã chuyển sang trạng thái Active (ô vuông xanh lá) với số dư Current Balance 1.000.000 VND, ngày kích hoạt 13 October 2026 và xuất hiện tab Transactions. Nhấn nút "Hoàn thành phần thực hành" bên dưới để kết thúc bài học.';
+      } else if (isApproved) {
+        currentStep = 12;
+        targetSelector = '#tour-fd-actions-menu';
+        stepTitle = 'Bước 12: Mở menu thao tác để Kích hoạt (Activate)';
+        stepSubtitle = 'Hồ sơ đã được Approve. Tiếp tục kích hoạt tài khoản để ghi nhận tiền gửi.';
+        stepInstruction = 'Hồ sơ đã chuyển sang trạng thái "Approved" với số dư Current Balance 0.00 VND. Nhấp vào menu 3 dấu gạch ngang (≡) và chọn mục "Activate" để kích hoạt tài khoản chính thức.';
+      } else {
+        currentStep = 10;
+        targetSelector = '#tour-fd-actions-menu';
+        stepTitle = 'Bước 10: Mở menu thao tác để Phê duyệt (Approve)';
+        stepSubtitle = 'Hồ sơ đang ở trạng thái Pending Approval. Tiến hành phê duyệt hồ sơ.';
+        stepInstruction = 'Nhấp vào nút menu 3 dấu gạch ngang (≡) ở góc trên bên phải khung banner tài khoản, sau đó chọn mục "Approve" để mở biểu mẫu phê duyệt.';
+      }
     } else {
       currentStep = 1;
       targetSelector = '#tour-nav-institution';
@@ -3429,7 +3452,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(60, box.top)}px`,
@@ -3443,7 +3466,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -5233,35 +5256,123 @@ export default function PracticeSpotlightTour({
               return null;
             })()}
 
-            {/* Step 10: Fixed Deposit Account Details View */}
-            {currentPath === 'fixed-deposit-detail' && (
+            {/* Step 11: Approve Fixed Deposit Account View (Image 2) */}
+            {currentPath === 'approve-fixed-deposit-account' && (
               <div className="space-y-2 pt-1 border-t border-gray-100">
-                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
-                  <div className="font-bold text-emerald-900 text-xs">
-                    Mở tài khoản TKB Fixed Deposit (000000003) thành công!
+                <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-[2px] text-[11px] text-sky-900 leading-relaxed font-sans space-y-1">
+                  <div className="font-bold text-sky-950 text-xs">
+                    Phê duyệt hồ sơ Fixed Deposit
                   </div>
-                  <div>Hồ sơ tiền gửi có kỳ hạn đã được tạo và kích hoạt trên Core Banking với số tiền 1.000.000 VND, kỳ hạn 6 Tháng, lãi suất 4.5% p.a., ngày đáo hạn 13/04/2027 với số tiền đáo hạn dự tính 1.022.653 VND.</div>
+                  <div>Nhập ngày phê duyệt Approved On Date là 10/13/2026. Nhấn nút "Confirm" bên dưới để hoàn tất phê duyệt hồ sơ.</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    if (navigate) navigate('client-detail');
+                    window.dispatchEvent(new CustomEvent('practice-autofill-fda-approve'));
                   }}
-                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                  className="w-full py-1.5 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Xem tài khoản trên hồ sơ khách hàng
+                  Điền dữ liệu mẫu (10/13/2026)
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (onClose) onClose();
+                    window.dispatchEvent(new CustomEvent('practice-confirm-fda-approve'));
                   }}
-                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors"
                 >
-                  Hoàn thành phần thực hành
+                  Xác nhận Phê duyệt (Confirm)
                 </button>
               </div>
             )}
+
+            {/* Step 10, 12, 13: Fixed Deposit Account Details View */}
+            {currentPath === 'fixed-deposit-detail' && (() => {
+              const fd = savingsAccounts.find(s => 
+                s.accountNo === '000000003' || 
+                (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))
+              );
+              const isApproved = fd?.status === 'Approved';
+              const isActive = fd?.status === 'Active' || fd?.status === 'Activated';
+              const isPending = !isApproved && !isActive;
+
+              if (isPending) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-[2px] text-[11px] text-amber-900 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-amber-950 text-xs">
+                        Hồ sơ đang ở trạng thái Pending Approval (ô vuông vàng)
+                      </div>
+                      <div>Hồ sơ tiền gửi có kỳ hạn 000000003 đã được tạo. Hãy nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh và chọn <strong>Approve</strong>.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('approve-fixed-deposit-account');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Mở biểu mẫu Approve hồ sơ
+                    </button>
+                  </div>
+                );
+              }
+
+              if (isApproved) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-[2px] text-[11px] text-indigo-900 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-indigo-950 text-xs">
+                        Hồ sơ đã được Approve (badge Approved xanh tím)
+                      </div>
+                      <div>Tài khoản đã sẵn sàng kích hoạt với số dư khả dụng ban đầu là 0.00 VND. Nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong> để kích hoạt.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-click-fd-activate'));
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Kích hoạt tài khoản (Activate)
+                    </button>
+                  </div>
+                );
+              }
+
+              if (isActive) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-relaxed font-sans space-y-1">
+                      <div className="font-bold text-emerald-900 text-xs">
+                        Hoàn tất: Tài khoản TKB Fixed Deposit (000000003) đã kích hoạt thành công!
+                      </div>
+                      <div>Tài khoản đã chuyển sang trạng thái <strong>Active</strong> (ô vuông xanh lá) với số dư Current Balance <strong>1.000.000 VND</strong>, ngày kích hoạt <strong>13 October 2026</strong> và xuất hiện tab <strong>Transactions</strong>.</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('client-detail');
+                      }}
+                      className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                    >
+                      Xem tài khoản trên hồ sơ khách hàng
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
           </div>
         )}
 
@@ -6259,7 +6370,7 @@ export default function PracticeSpotlightTour({
 
         <div className="pt-1 text-[10px] text-gray-400 flex items-center justify-between">
           <span>
-            {(module === 'saving-part-2' && (currentPath === 'fixed-deposit-detail' || savingsAccounts.some(s => s.accountNo === '000000003')))
+            {(module === 'saving-part-2' && savingsAccounts.some(s => s.accountNo === '000000003' && (s.status === 'Active' || s.status === 'Activated')))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'

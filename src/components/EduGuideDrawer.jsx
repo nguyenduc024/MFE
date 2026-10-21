@@ -226,11 +226,14 @@ export default function EduGuideDrawer({
   };
 
   const calculateSavingPart2Progress = () => {
-    const hasFdAccount = savingsAccounts.some(s => 
+    const fd = savingsAccounts.find(s => 
       s.accountNo === '000000003' || 
       (s.externalId === 'TKB-FD-TDU-001' && (s.productName?.toLowerCase().includes('fixed') || s.accountType === 'Fixed Deposit'))
     );
-    return hasFdAccount ? 100 : 0;
+    if (!fd) return 0;
+    if (fd.status === 'Active' || fd.status === 'Activated') return 100;
+    if (fd.status === 'Approved') return 70;
+    return 40;
   };
 
   const calculateCasaPart5Progress = () => {
@@ -345,7 +348,7 @@ export default function EduGuideDrawer({
 
           {/* List bài học thả xuống khi user bấm vào */}
           {dropdownOpen && (
-            <div className="absolute left-0 top-9 w-80 bg-white text-gray-800 rounded-[2px] shadow-xl py-1.5 z-50 text-xs border border-gray-100 animate-in fade-in duration-100">
+            <div className="absolute left-0 top-9 w-80 bg-white text-gray-800 rounded-[2px] shadow-xl py-1.5 z-50 text-xs border border-gray-100 animate-in fade-in duration-100 max-h-[310px] overflow-y-auto">
               {/* Phân hệ 01: Accounting / GL */}
               <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1072ba] bg-sky-50/70 border-b border-sky-100 mb-1">
                 Phân hệ 01: Accounting / GL
@@ -2939,6 +2942,28 @@ export default function EduGuideDrawer({
                 </div>
                 <p className="text-gray-600 pl-6">
                   Kiểm tra số tiền gốc 1.000.000 VND, kỳ hạn 6 tháng, ngày đáo hạn 13/04/2027 và số tiền đáo hạn dự tính 1.022.653 VND. Nhấn <strong>Submit</strong> để mở tài khoản thành công.
+                </p>
+              </div>
+
+              {/* Bước 8 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">8</span>
+                  <span>Phê Duyệt Hồ Sơ (Approve Account)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại màn hình chi tiết tài khoản, nhấp vào menu <strong>(≡)</strong> ở góc trên bên phải khung xanh, chọn <strong>Approve</strong>. Nhập ngày phê duyệt <strong>10/13/2026</strong> và nhấn <strong>Confirm</strong>. Tài khoản chuyển sang trạng thái <strong>Approved</strong>.
+                </p>
+              </div>
+
+              {/* Bước 9 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">9</span>
+                  <span>Kích Hoạt Tài Khoản (Activate Account)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tiếp tục nhấp vào menu <strong>(≡)</strong> và chọn <strong>Activate</strong>. Tài khoản được kích hoạt chính thức (ngày <strong>13 October 2026</strong>), chuyển sang trạng thái <strong>Active</strong> với số dư khả dụng <strong>1.000.000 VND</strong> và xuất hiện tab <strong>Transactions</strong>.
                 </p>
               </div>
             </div>
