@@ -513,10 +513,11 @@ export default function CreateLoanAccountView({
         formData,
         currentStep,
         isTkbFixInstalled,
-        isScheduleGenerated
+        isScheduleGenerated,
+        consoleModalOpen
       }
     }));
-  }, [formData, currentStep, isTkbFixInstalled, isScheduleGenerated]);
+  }, [formData, currentStep, isTkbFixInstalled, isScheduleGenerated, consoleModalOpen]);
 
   const steps = [
     { id: 1, label: 'DETAILS' },
@@ -559,6 +560,7 @@ export default function CreateLoanAccountView({
         { type: 'command', text: consoleCode },
         { type: 'info', text: 'TKB FIX: Installed' }
       ]);
+      window.dispatchEvent(new CustomEvent('tkb-fix-installed'));
     } catch (err) {
       setConsoleLogs(prev => [
         ...prev,
@@ -1462,8 +1464,11 @@ export default function CreateLoanAccountView({
 
       {/* Simulated DevTools Console (F12) Modal */}
       {consoleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-[#202124] text-[#e8eaed] w-full max-w-2xl rounded-[4px] shadow-2xl border border-[#3c4043] flex flex-col overflow-hidden font-mono text-xs">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div 
+            id="tour-loan-acc-console-modal"
+            className="bg-[#202124] text-[#e8eaed] w-full max-w-2xl rounded-[4px] shadow-2xl border border-[#3c4043] flex flex-col overflow-hidden font-mono text-xs"
+          >
             {/* Modal Header */}
             <div className="bg-[#292a2d] px-4 py-2.5 border-b border-[#3c4043] flex items-center justify-between select-none">
               <div className="flex items-center space-x-2">
@@ -1472,6 +1477,7 @@ export default function CreateLoanAccountView({
               </div>
               <button
                 type="button"
+                id="tour-loan-acc-console-close-btn-top"
                 onClick={() => setConsoleModalOpen(false)}
                 className="text-gray-400 hover:text-white p-1 rounded hover:bg-[#3c4043] cursor-pointer"
               >
@@ -1524,15 +1530,17 @@ export default function CreateLoanAccountView({
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
+                  id="tour-loan-acc-console-close-btn"
                   onClick={() => setConsoleModalOpen(false)}
-                  className="px-3 py-1.5 bg-[#3c4043] hover:bg-[#4a4d51] text-gray-200 text-xs rounded transition-colors"
+                  className="px-3 py-1.5 bg-[#3c4043] hover:bg-[#4a4d51] text-gray-200 text-xs rounded transition-colors cursor-pointer"
                 >
                   Đóng
                 </button>
                 <button
                   type="button"
+                  id="tour-loan-acc-console-run-btn"
                   onClick={handleRunConsoleScript}
-                  className="px-4 py-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded transition-colors shadow-xs"
+                  className="px-4 py-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded transition-colors shadow-xs cursor-pointer"
                 >
                   Chạy lệnh (Run Script)
                 </button>

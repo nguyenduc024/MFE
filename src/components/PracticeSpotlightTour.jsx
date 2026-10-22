@@ -27,6 +27,10 @@ export default function PracticeSpotlightTour({
   glAccounts = [],
   loanProducts = [],
   loans = [],
+  selectedLoan = null,
+  onSelectLoan,
+  onApproveLoan,
+  onDisburseLoan,
   savingsProducts = [],
   fixedDepositProducts = [],
   recurringDepositProducts = [],
@@ -186,6 +190,7 @@ export default function PracticeSpotlightTour({
     tkbFix: false,
     scheduleGenerated: false
   });
+  const [loanConsoleModalOpen, setLoanConsoleModalOpen] = useState(false);
 
 
   const startRoleCountRef = useRef(roles.length);
@@ -380,7 +385,10 @@ export default function PracticeSpotlightTour({
   // Listen for loan account form changes (Phân hệ 04 - Phần 2)
   useEffect(() => {
     const handleLoanAccFormChanged = (e) => {
-      const { formData, isTkbFixInstalled, isScheduleGenerated } = e?.detail || {};
+      const { formData, isTkbFixInstalled, isScheduleGenerated, consoleModalOpen } = e?.detail || {};
+      if (consoleModalOpen !== undefined) {
+        setLoanConsoleModalOpen(Boolean(consoleModalOpen));
+      }
       if (!formData) return;
       setLoanAccFilledSteps({
         details: Boolean(formData.productName && formData.externalId && formData.loanOfficer),
@@ -390,8 +398,15 @@ export default function PracticeSpotlightTour({
         scheduleGenerated: Boolean(isScheduleGenerated)
       });
     };
+    const handleTkbFixInstalled = () => {
+      setLoanAccFilledSteps(prev => ({ ...prev, tkbFix: true }));
+    };
     window.addEventListener('loan-acc-form-changed', handleLoanAccFormChanged);
-    return () => window.removeEventListener('loan-acc-form-changed', handleLoanAccFormChanged);
+    window.addEventListener('tkb-fix-installed', handleTkbFixInstalled);
+    return () => {
+      window.removeEventListener('loan-acc-form-changed', handleLoanAccFormChanged);
+      window.removeEventListener('tkb-fix-installed', handleTkbFixInstalled);
+    };
   }, []);
 
   // Auto-filter transfer journal entries when navigating to journal in casa-part-5
@@ -1743,29 +1758,40 @@ export default function PracticeSpotlightTour({
       }
     }
   } else if (module === 'loan-part-2') {
-    const hasLoanAccountCreated = (loans || []).some(
-      l => l.externalId === 'TKB-PL-TDU-001'
+    const targetLoan = (loans || []).find(
+      l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
+    ) || (selectedLoan?.externalId === 'TKB-PL-TDU-001' || selectedLoan?.accountNo === '000000001' ? selectedLoan : null);
+    const hasLoanAccountCreated = Boolean(targetLoan);
+    const isLoanApproved = targetLoan && (
+      targetLoan.status === 'Approved' || 
+      (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('approved'))
     );
+    const isLoanActive = targetLoan && (
+      targetLoan.status === 'Active' || 
+      (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('active')) ||
+      Boolean(targetLoan.disbursementDate && targetLoan.disbursementDate !== 'Not Available')
+    );
+    const isLoanPending = hasLoanAccountCreated && !isLoanApproved && !isLoanActive;
 
     if (currentPath === 'client-detail') {
       if (hasLoanAccountCreated) {
         currentStep = 10;
-        targetSelector = '#tour-client-loan-row-000000001';
-        stepTitle = 'Bước 10 / 10: Hoàn tất tiếp nhận hồ sơ vay vốn TKB Personal Loan!';
-        stepSubtitle = 'Hồ sơ vay vốn 000000001 (TKB-PL-TDU-001) đã được tạo thành công cho khách hàng Minh Quang Tran!';
-        stepInstruction = 'Tại bảng Loan Accounts, tài khoản vay số 000000001 với sản phẩm TKB Personal Loan, số tiền giải ngân 10.000.000 VND đã xuất hiện với trạng thái nộp hồ sơ thành công (chấm xanh). Nhấn nút "Hoàn thành phần thực hành (Phân hệ 04 - Phần 2)" bên dưới để hoàn tất bài học.';
+        targetSelector = '#tour-client-loan-link-000000001';
+        stepTitle = 'Bước 10 / 15: Mở chi tiết hồ sơ vay vốn 000000001';
+        stepSubtitle = 'Hồ sơ vay 000000001 (TKB-PL-TDU-001) đã được tạo thành công ở trạng thái Pending Approval (ô màu cam).';
+        stepInstruction = 'Tại bảng Loan Accounts, nhấp vào số tài khoản khoản vay "000000001" (TKB Personal Loan) để mở trang chi tiết hồ sơ vay vốn và tiến hành quy trình phê duyệt.';
       } else {
         const hasSubmenu = typeof document !== 'undefined' && Boolean(document.getElementById('tour-client-new-loan-account-btn'));
         if (hasSubmenu) {
           currentStep = 2;
           targetSelector = '#tour-client-new-loan-account-btn';
-          stepTitle = 'Bước 2 / 10: Chọn New Loan Account (Hình 1)';
+          stepTitle = 'Bước 2 / 15: Chọn New Loan Account (Hình 1)';
           stepSubtitle = 'Mở biểu mẫu tiếp nhận hồ sơ vay vốn mới cho khách hàng.';
           stepInstruction = 'Trong menu con Applications xổ xuống, nhấp vào dòng "New Loan Account" (viền đỏ nổi bật) để chuyển sang màn hình Create Loans Account.';
         } else {
           currentStep = 1;
           targetSelector = '#tour-client-actions-menu-btn';
-          stepTitle = 'Bước 1 / 10: Mở Menu tác vụ khách hàng (Hình 1)';
+          stepTitle = 'Bước 1 / 15: Mở Menu tác vụ khách hàng (Hình 1)';
           stepSubtitle = 'Nhấp vào nút menu hamburger ở góc trên bên phải thanh tiêu đề xanh.';
           stepInstruction = 'Tại trang chi tiết khách hàng Minh Quang Tran (CIF: TKB-CIF-TDU-001), nhấp vào biểu tượng menu hamburger (ba dấu gạch ngang) để mở danh sách thao tác hồ sơ.';
         }
@@ -1781,11 +1807,11 @@ export default function PracticeSpotlightTour({
         currentStep = 3;
         targetSelector = '#tour-loan-acc-details-form';
         if (!loanAccFilledSteps.details) {
-          stepTitle = 'Bước 3 / 10: Khai báo Tab 1: DETAILS (Hình 2)';
+          stepTitle = 'Bước 3 / 15: Khai báo Tab 1: DETAILS (Hình 2)';
           stepSubtitle = 'Chọn sản phẩm TKB Personal Loan, nhập External id, cán bộ quản lý và ngày nộp hồ sơ.';
           stepInstruction = 'Khai báo các trường: Product Name (TKB Personal Loan), External id (TKB-PL-TDU-001), Loan officer (Mai, Son), Submitted on (10/14/2026), Disbursement on (10/14/2026). Bấm nút "Điền dữ liệu mẫu Details" bên dưới để điền nhanh.';
         } else {
-          stepTitle = 'Bước 3 / 10: Rà soát dữ liệu Tab 1: DETAILS';
+          stepTitle = 'Bước 3 / 15: Rà soát dữ liệu Tab 1: DETAILS';
           stepSubtitle = 'Thông tin chi tiết hồ sơ vay đã được điền đầy đủ.';
           stepInstruction = 'Kiểm tra lại Product Name (TKB Personal Loan), External id (TKB-PL-TDU-001). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab TERMS" bên dưới.';
         }
@@ -1793,49 +1819,64 @@ export default function PracticeSpotlightTour({
         currentStep = 4;
         targetSelector = '#tour-loan-acc-terms-form';
         if (!loanAccFilledSteps.terms) {
-          stepTitle = 'Bước 4 / 10: Thiết lập Tab 2: TERMS (Hình 3)';
+          stepTitle = 'Bước 4 / 15: Thiết lập Tab 2: TERMS (Hình 3)';
           stepSubtitle = 'Nhập số tiền vay 10.000.000 VND, kỳ hạn 12 tháng, lãi suất 12%/năm dư nợ giảm dần.';
           stepInstruction = 'Khai báo: Principal (10,000,000.00), Loan Term (12 Months), Number of repayments (12), First repayment on (11/14/2026), Nominal interest rate (12% Per year), Amortization (Equal installments), Interest Method (Declining Balance). Giữ nguyên tích chọn "Calculate interest for exact days in partial period". Bấm nút "Điền dữ liệu mẫu Terms" bên dưới để điền nhanh.';
         } else {
-          stepTitle = 'Bước 4 / 10: Rà soát dữ liệu Tab 2: TERMS';
+          stepTitle = 'Bước 4 / 15: Rà soát dữ liệu Tab 2: TERMS';
           stepSubtitle = 'Điều khoản vay và tính lãi đã được thiết lập đầy đủ.';
           stepInstruction = 'Kiểm tra lại Principal (10,000,000.00), Loan Term (12), Rate (12%). Sau đó bấm nút "Next" trên form hoặc nút "Tiếp tục sang tab CHARGES" bên dưới.';
         }
       } else if (hasCharges) {
         currentStep = 5;
         targetSelector = '#tour-loan-acc-charges-form';
-        stepTitle = 'Bước 5 / 10: Kiểm tra Tab 3: CHARGES';
+        stepTitle = 'Bước 5 / 15: Kiểm tra Tab 3: CHARGES';
         stepSubtitle = 'Gói vay không áp dụng chi phí phụ thu ban đầu.';
         stepInstruction = 'Tab Charges để trống theo chính sách sản phẩm. Nhấn nút "Next" trên form hoặc nút "Tiếp tục sang tab REPAYMENT SCHEDULE" bên dưới.';
       } else if (hasSchedule) {
+        const isConsoleModalInDOM = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-acc-console-modal'));
         const isFixInstalled = loanAccFilledSteps.tkbFix || (typeof window !== 'undefined' && Boolean(window.__tkbLoanFixInstalled));
         const isGenerated = loanAccFilledSteps.scheduleGenerated;
 
-        if (!isGenerated) {
+        if (isConsoleModalInDOM) {
+          if (!isFixInstalled) {
+            currentStep = 6;
+            targetSelector = '#tour-loan-acc-console-run-btn';
+            stepTitle = 'Bước 6 / 15: Chạy Script TKB FIX trong F12 Console';
+            stepSubtitle = 'Thực thi script hook để loại bỏ tham số không hỗ trợ allowPartialPeriodInterestCalculation.';
+            stepInstruction = 'Cửa sổ giả lập Chrome DevTools Console (F12) đang mở. Nhấp vào nút "Chạy lệnh (Run Script)" màu xanh để thực thi đoạn mã loại bỏ tham số lỗi.';
+          } else {
+            currentStep = 6;
+            targetSelector = '#tour-loan-acc-console-close-btn';
+            stepTitle = 'Bước 6 / 15: Đóng cửa sổ F12 DevTools Console';
+            stepSubtitle = 'Script TKB FIX đã cài đặt thành công (TKB FIX: Installed).';
+            stepInstruction = 'Đoạn mã khắc phục lỗi đã được kích hoạt thành công. Nhấp vào nút "Đóng" (hoặc dấu X) để quay lại màn hình và tiến hành tạo lịch trả nợ.';
+          }
+        } else if (!isGenerated) {
           if (!isFixInstalled) {
             currentStep = 6;
             targetSelector = '#tour-loan-acc-open-console-btn';
-            stepTitle = 'Bước 6 / 10: Tab 4: REPAYMENT SCHEDULE & Chạy F12 Workaround Script (Hình 4)';
+            stepTitle = 'Bước 6 / 15: Tab 4: REPAYMENT SCHEDULE & Mở F12 DevTools Console (Hình 4)';
             stepSubtitle = 'Cần chạy script F12 Console để loại bỏ tham số không hỗ trợ allowPartialPeriodInterestCalculation.';
-            stepInstruction = 'Nếu bấm "Generate Repayment Schedule" lúc này, hệ thống sẽ báo lỗi 400. Nhấn nút "Mở Chrome DevTools Console" (hoặc bấm F12 trên bàn phím) và chạy đoạn script TKB FIX để hook loại bỏ tham số bị lỗi. Bạn cũng có thể bấm nút "Chạy script F12 Workaround" bên dưới để áp dụng ngay.';
+            stepInstruction = 'Nếu bấm "Generate Repayment Schedule" lúc này, hệ thống sẽ báo lỗi 400. Nhấn nút "Mở Chrome DevTools Console (F12)" màu xám đen để mở cửa sổ Console, sau đó thực thi đoạn mã TKB FIX.';
           } else {
             currentStep = 7;
             targetSelector = '#tour-loan-acc-generate-schedule-btn';
-            stepTitle = 'Bước 7 / 10: Nhấp Generate Repayment Schedule (Hình 4)';
+            stepTitle = 'Bước 7 / 15: Nhấp Generate Repayment Schedule (Hình 4)';
             stepSubtitle = 'Script workaround đã được cài đặt thành công! Hệ thống đã sẵn sàng sinh lịch trả nợ.';
             stepInstruction = 'Nhấn nút "Generate Repayment Schedule" màu xanh để gửi yêu cầu tính toán và kết xuất bảng tính 12 kỳ trả nợ.';
           }
         } else {
           currentStep = 8;
           targetSelector = '#tour-loan-acc-schedule-table';
-          stepTitle = 'Bước 8 / 10: Rà soát bảng tính lịch trả nợ 12 kỳ (Hình 5)';
+          stepTitle = 'Bước 8 / 15: Rà soát bảng tính lịch trả nợ 12 kỳ (Hình 5)';
           stepSubtitle = 'Bảng tính 12 kỳ trả nợ đã được kết xuất chuẩn xác!';
           stepInstruction = 'Kiểm tra kỳ 1 (14/11/2026, dòng màu xanh): Gốc 788.487,89 VND, Lãi 100.000,00 VND, Phải trả 888.487,89 VND. Dòng tổng cộng: Gốc 10.000.000,00 VND, Lãi 661.854,64 VND, Tổng 10.661.854,64 VND. Nhấn nút "Next" trên form hoặc nút "Tiếp tục sang tab PREVIEW" bên dưới.';
         }
       } else if (hasPreview) {
         currentStep = 9;
         targetSelector = '#tour-loan-acc-submit-btn';
-        stepTitle = 'Bước 9 / 10: Rà soát Tab 5: PREVIEW & Nhấn Submit hồ sơ';
+        stepTitle = 'Bước 9 / 15: Rà soát Tab 5: PREVIEW & Nhấn Submit hồ sơ';
         stepSubtitle = 'Kiểm tra toàn bộ thông tin hồ sơ vay và chính thức nộp lên hệ thống.';
         stepInstruction = 'Rà soát thông tin chi tiết gói vay TKB Personal Loan của khách hàng Minh Quang Tran. Nhấn nút "Submit" màu xanh ở góc dưới để nộp hồ sơ vay vốn lên hệ thống Core Banking.';
       } else {
@@ -1845,10 +1886,66 @@ export default function PracticeSpotlightTour({
         stepSubtitle = 'Thực hiện khai báo theo các bước trên thanh tiến trình.';
         stepInstruction = 'Thực hiện khai báo theo các tab từ Details đến Preview.';
       }
+    } else if (currentPath === 'loan-detail') {
+      if (isLoanPending) {
+        const hasApproveOption = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-action-approve-btn'));
+        if (hasApproveOption) {
+          currentStep = 11;
+          targetSelector = '#tour-loan-action-approve-btn';
+          stepTitle = 'Bước 11 / 15: Chọn tác vụ Approve (Hình 2)';
+          stepSubtitle = 'Thực hiện phê duyệt hồ sơ vay vốn theo quy trình thẩm định.';
+          stepInstruction = 'Trong danh sách menu tác vụ xổ xuống, nhấp vào dòng "Approve" (có dấu tích) để mở biểu mẫu phê duyệt hồ sơ vay.';
+        } else {
+          currentStep = 11;
+          targetSelector = '#tour-loan-actions-menu-btn';
+          stepTitle = 'Bước 11 / 15: Mở Menu tác vụ hồ sơ vay (Hình 1 & Hình 2)';
+          stepSubtitle = 'Hồ sơ đang ở trạng thái Submitted and pending approval (ô vuông màu cam).';
+          stepInstruction = 'Nhấp vào nút menu hamburger ở góc trên bên phải thanh tiêu đề xanh của hồ sơ vay để mở danh sách thao tác.';
+        }
+      } else if (isLoanApproved) {
+        const hasDisburseOption = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-action-disburse-btn'));
+        if (hasDisburseOption) {
+          currentStep = 13;
+          targetSelector = '#tour-loan-action-disburse-btn';
+          stepTitle = 'Bước 13 / 15: Chọn tác vụ Disburse';
+          stepSubtitle = 'Tiến hành giải ngân khoản vay cho khách hàng Minh Quang Tran.';
+          stepInstruction = 'Trong danh sách menu tác vụ xổ xuống, nhấp vào dòng "Disburse" (có dấu tích xanh) để chuyển sang màn hình giải ngân.';
+        } else {
+          currentStep = 13;
+          targetSelector = '#tour-loan-actions-menu-btn';
+          stepTitle = 'Bước 13 / 15: Mở Menu tác vụ giải ngân (Hình 2)';
+          stepSubtitle = 'Hồ sơ đã được phê duyệt thành công (Approved, ô vuông xanh dương).';
+          stepInstruction = 'Nhấp vào nút menu hamburger ở góc trên bên phải thanh tiêu đề xanh để mở danh sách thao tác tiếp theo.';
+        }
+      } else if (isLoanActive) {
+        currentStep = 15;
+        targetSelector = '#tour-loan-summary-card';
+        stepTitle = 'Bước 15 / 15: Rà soát Hồ sơ khoản vay Active & Hoàn tất thực hành (Hình 5)';
+        stepSubtitle = 'Khoản vay đã được giải ngân thành công và chuyển sang trạng thái Active (ô vuông xanh lá)!';
+        stepInstruction = 'Đối soát các chỉ số: Account Overview (Current Balance: ₫10.661.854,64, Arrears By: ₫0.00), Performance History (Repayments: 12.00, Maturity Date: 14 October 2027), Loan Summary (Gốc: ₫10.000.000,00, Lãi: ₫661.854,64, Tổng: ₫10.661.854,64). Bút toán giải ngân Nợ TK 130101 / Có TK 110101 đã tự động hạch toán vào Sổ cái. Nhấn nút "Hoàn thành phần thực hành (Phân hệ 04 - Phần 2)" bên dưới để kết thúc bài học.';
+      } else {
+        currentStep = 10;
+        targetSelector = '#tour-loan-detail-banner';
+        stepTitle = 'Chi tiết hồ sơ vay vốn';
+        stepSubtitle = 'Hồ sơ vay vốn của khách hàng Minh Quang Tran.';
+        stepInstruction = 'Thực hiện các thao tác theo hướng dẫn.';
+      }
+    } else if (currentPath === 'approve-loan') {
+      currentStep = 12;
+      targetSelector = '#tour-loan-approve-submit-btn';
+      stepTitle = 'Bước 12 / 15: Rà soát & Phê duyệt khoản vay (Hình 3)';
+      stepSubtitle = 'Kiểm tra thông tin Approved On, Expected disbursement on, Approved Amount 10,000,000.00 VND.';
+      stepInstruction = 'Kiểm tra thông tin ngày phê duyệt (10/14/2026), ngày dự kiến giải ngân (10/14/2026), số tiền phê duyệt (10,000,000.00 VND). Nhấn nút "Submit" màu xanh để hoàn tất phê duyệt hồ sơ vay vốn.';
+    } else if (currentPath === 'disburse-loan') {
+      currentStep = 14;
+      targetSelector = '#tour-loan-disburse-submit-btn';
+      stepTitle = 'Bước 14 / 15: Thực hiện giải ngân khoản vay (Hình 4)';
+      stepSubtitle = 'Khai báo Disbursed On, Transaction Amount 10,000,000.00 VND, Payment Type Money Transfer.';
+      stepInstruction = 'Kiểm tra các thông tin giải ngân: Disbursed On (10/14/2026), Transaction Amount (10,000,000.00 VND), External Id (TKB-PL-TDU-001), Payment Type (Money Transfer), Note (TKB Personal Loan - Full Disbursement). Nhấn nút "Submit" màu xanh để thực hiện giải ngân và tự động hạch toán bút toán Sổ cái GL.';
     } else {
       currentStep = 1;
       targetSelector = '#tour-nav-clients';
-      stepTitle = 'Bước 1 / 10: Chuyển đến hồ sơ khách hàng Minh Quang Tran';
+      stepTitle = 'Bước 1 / 15: Chuyển đến hồ sơ khách hàng Minh Quang Tran';
       stepSubtitle = 'Mở thông tin chi tiết khách hàng Minh Quang Tran để tiếp nhận hồ sơ vay vốn.';
       stepInstruction = 'Bấm vào nút "Chuyển đến hồ sơ khách hàng Minh Quang Tran" bên dưới để bắt đầu luồng thực hành.';
     }
@@ -4153,7 +4250,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, box.left - tooltipWidth - 20)}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-client-new-recurring-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate' || targetSelector === '#tour-rd-actions-menu-btn' || targetSelector === '#tour-rd-action-approve' || targetSelector === '#tour-rd-action-activate' || targetSelector === '#tour-rd-action-deposit' || targetSelector === '#tour-rd-account-overview-balance' || targetSelector === '#tour-search-journal-tile' || targetSelector === '#tour-loan-products-tile' || targetSelector === '#tour-admin-products' || targetSelector === '#tour-client-new-loan-account-btn' || targetSelector === '#tour-loan-acc-open-console-btn' || targetSelector === '#tour-loan-acc-generate-schedule-btn') {
+      } else if (targetSelector === '#tour-savings-action-menu' || targetSelector === '#tour-savings-account-overview' || targetSelector === '#tour-client-actions-menu-btn' || targetSelector === '#tour-client-actions-dropdown' || targetSelector === '#tour-client-new-fixed-deposit-btn' || targetSelector === '#tour-client-new-recurring-deposit-btn' || targetSelector === '#tour-fd-actions-menu' || targetSelector === '#tour-fd-action-approve' || targetSelector === '#tour-fd-action-activate' || targetSelector === '#tour-rd-actions-menu-btn' || targetSelector === '#tour-rd-action-approve' || targetSelector === '#tour-rd-action-activate' || targetSelector === '#tour-rd-action-deposit' || targetSelector === '#tour-rd-account-overview-balance' || targetSelector === '#tour-search-journal-tile' || targetSelector === '#tour-loan-products-tile' || targetSelector === '#tour-admin-products' || targetSelector === '#tour-client-new-loan-account-btn' || targetSelector === '#tour-loan-acc-open-console-btn' || targetSelector === '#tour-loan-acc-generate-schedule-btn' || targetSelector === '#tour-loan-actions-menu-btn' || targetSelector === '#tour-loan-action-approve-btn' || targetSelector === '#tour-loan-action-disburse-btn' || targetSelector === '#tour-loan-acc-console-run-btn' || targetSelector === '#tour-loan-acc-console-close-btn') {
         tooltipStyle = {
           position: 'fixed',
           top: `${Math.max(60, box.top)}px`,
@@ -4167,7 +4264,7 @@ export default function PracticeSpotlightTour({
           left: `${Math.max(16, Math.min(box.left, windowWidth - tooltipWidth - 20))}px`,
           width: `${tooltipWidth}px`
         };
-      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs' || targetSelector === '#tour-rda-details-form' || targetSelector === '#tour-rda-terms-form' || targetSelector === '#tour-rda-settings-form' || targetSelector === '#tour-rda-chart-form' || targetSelector === '#tour-rda-charges-form' || targetSelector === '#tour-rda-preview-card' || targetSelector === '#tour-rd-account-detail-card' || targetSelector === '#tour-client-recurring-deposits-section' || targetSelector === '#tour-rd-approve-form' || targetSelector === '#tour-rd-deposit-form' || targetSelector === '#tour-journal-entry-rd-deposit' || targetSelector === '#tour-loan-details-form' || targetSelector === '#tour-loan-currency-form' || targetSelector === '#tour-loan-settings-form' || targetSelector === '#tour-loan-settings-part1' || targetSelector === '#tour-loan-settings-part2' || targetSelector === '#tour-loan-terms-form' || targetSelector === '#tour-loan-charges-form' || targetSelector === '#tour-loan-accounting-form' || targetSelector === '#tour-loan-preview-card' || targetSelector === '#tour-loan-product-row-loan' || targetSelector === '#tour-loan-acc-details-form' || targetSelector === '#tour-loan-acc-terms-form' || targetSelector === '#tour-loan-acc-charges-form' || targetSelector === '#tour-loan-acc-schedule-card' || targetSelector === '#tour-loan-acc-schedule-table' || targetSelector === '#tour-loan-acc-preview-card' || targetSelector === '#tour-client-loan-row-000000001' || targetSelector === '#tour-client-detail-loan-table') {
+      } else if (targetSelector === '#tour-deposit-savings-form' || targetSelector === '#tour-withdraw-savings-form' || targetSelector === '#tour-account-transfer-form' || targetSelector === '#tour-journal-transfer-entries' || targetSelector === '#tour-fd-details-form' || targetSelector === '#tour-fd-currency-form' || targetSelector === '#tour-fd-terms-form' || targetSelector === '#tour-fd-settings-form' || targetSelector === '#tour-fd-chart-form' || targetSelector === '#tour-fd-charges-form' || targetSelector === '#tour-fd-accounting-form' || targetSelector === '#tour-fd-preview-card' || targetSelector === '#tour-fd-slab-modal' || targetSelector === '#tour-fd-product-row-tkfd' || targetSelector === '#tour-fda-details-form' || targetSelector === '#tour-fda-terms-form' || targetSelector === '#tour-fda-settings-form' || targetSelector === '#tour-fda-chart-form' || targetSelector === '#tour-fda-charges-form' || targetSelector === '#tour-fda-preview-card' || targetSelector === '#tour-fd-account-detail-card' || targetSelector === '#tour-client-fixed-deposits-section' || targetSelector === '#tour-fd-approve-form' || targetSelector === '#tour-rd-details-form' || targetSelector === '#tour-rd-currency-form' || targetSelector === '#tour-rd-terms-form' || targetSelector === '#tour-rd-settings-form' || targetSelector === '#tour-rd-chart-form' || targetSelector === '#tour-rd-slabs-table' || targetSelector === '#tour-rd-slab-modal' || targetSelector === '#tour-rd-charges-form' || targetSelector === '#tour-rd-accounting-form' || targetSelector === '#tour-rd-preview-card' || targetSelector === '#tour-rd-product-row-tkgs' || targetSelector === '#tour-rda-details-form' || targetSelector === '#tour-rda-terms-form' || targetSelector === '#tour-rda-settings-form' || targetSelector === '#tour-rda-chart-form' || targetSelector === '#tour-rda-charges-form' || targetSelector === '#tour-rda-preview-card' || targetSelector === '#tour-rd-account-detail-card' || targetSelector === '#tour-client-recurring-deposits-section' || targetSelector === '#tour-rd-approve-form' || targetSelector === '#tour-rd-deposit-form' || targetSelector === '#tour-journal-entry-rd-deposit' || targetSelector === '#tour-loan-details-form' || targetSelector === '#tour-loan-currency-form' || targetSelector === '#tour-loan-settings-form' || targetSelector === '#tour-loan-settings-part1' || targetSelector === '#tour-loan-settings-part2' || targetSelector === '#tour-loan-terms-form' || targetSelector === '#tour-loan-charges-form' || targetSelector === '#tour-loan-accounting-form' || targetSelector === '#tour-loan-preview-card' || targetSelector === '#tour-loan-product-row-loan' || targetSelector === '#tour-loan-acc-details-form' || targetSelector === '#tour-loan-acc-terms-form' || targetSelector === '#tour-loan-acc-charges-form' || targetSelector === '#tour-loan-acc-schedule-card' || targetSelector === '#tour-loan-acc-schedule-table' || targetSelector === '#tour-loan-acc-preview-card' || targetSelector === '#tour-client-loan-row-000000001' || targetSelector === '#tour-client-loan-link-000000001' || targetSelector === '#tour-client-detail-loan-table' || targetSelector === '#tour-loan-summary-card' || targetSelector === '#tour-loan-detail-banner' || targetSelector === '#tour-loan-approve-card' || targetSelector === '#tour-loan-disburse-card') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -4204,7 +4301,7 @@ export default function PracticeSpotlightTour({
             width: `${tooltipWidth}px`
           };
         }
-      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn' || targetSelector === '#tour-withdraw-submit-btn' || targetSelector === '#tour-account-transfer-submit') {
+      } else if (targetSelector === '#tour-client-next-btn-step1' || targetSelector === '#tour-client-next-btn-step2' || targetSelector === '#tour-client-submit-btn' || targetSelector === '#tour-deposit-submit-btn' || targetSelector === '#tour-withdraw-submit-btn' || targetSelector === '#tour-account-transfer-submit' || targetSelector === '#tour-loan-acc-submit-btn' || targetSelector === '#tour-loan-approve-submit-btn' || targetSelector === '#tour-loan-disburse-submit-btn') {
         if (box.right + tooltipWidth + 24 <= windowWidth) {
           tooltipStyle = {
             position: 'fixed',
@@ -7292,11 +7389,11 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
-        {/* Module 04: Loans - Part 2 (Tiếp Nhận Hồ Sơ Vay Vốn & Sinh Lịch Trả Nợ) */}
+        {/* Module 04: Loans - Part 2 (Tiếp Nhận Hồ Sơ Vay Vốn, F12 Workaround, Phê Duyệt & Giải Ngân) */}
         {module === 'loan-part-2' && (
           <div className="space-y-2 mt-2">
-            {/* Step 1 & 2: Navigation to Client Details if not in client-detail or create-loan-account */}
-            {currentPath !== 'client-detail' && currentPath !== 'create-loan-account' && (
+            {/* Step navigation if outside the workflow */}
+            {currentPath !== 'client-detail' && currentPath !== 'create-loan-account' && currentPath !== 'loan-detail' && currentPath !== 'approve-loan' && currentPath !== 'disburse-loan' && (
               <button
                 type="button"
                 onClick={() => {
@@ -7313,19 +7410,21 @@ export default function PracticeSpotlightTour({
             {/* In client-detail */}
             {currentPath === 'client-detail' && (
               <div>
-                {(loans || []).some(l => l.externalId === 'TKB-PL-TDU-001') ? (
+                {(loans || []).some(l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') ? (
                   <div className="space-y-2">
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
-                      Hồ sơ vay vốn <strong>000000001 (TKB-PL-TDU-001)</strong> đã được tạo và hiển thị thành công tại bảng Loan Accounts của khách hàng Minh Quang Tran!
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-[2px] text-[11px] text-amber-800 leading-tight">
+                      Hồ sơ vay vốn <strong>000000001 (TKB-PL-TDU-001)</strong> đã được tạo thành công ở trạng thái Chờ duyệt (Pending Approval)!
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        if (onClose) onClose();
+                        const target = (loans || []).find(l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') || loans[0];
+                        if (onSelectLoan) onSelectLoan(target);
+                        if (navigate) navigate('loan-detail');
                       }}
-                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                     >
-                      Hoàn thành phần thực hành (Phân hệ 04 - Phần 2)
+                      Mở chi tiết hồ sơ vay 000000001 &rarr;
                     </button>
                   </div>
                 ) : (
@@ -7363,6 +7462,9 @@ export default function PracticeSpotlightTour({
               const hasCharges = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-acc-charges-form'));
               const hasSchedule = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-acc-schedule-card'));
               const hasPreview = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-acc-preview-card'));
+              const isConsoleModalInDOM = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-acc-console-modal'));
+              const isFixInstalled = loanAccFilledSteps.tkbFix || (typeof window !== 'undefined' && Boolean(window.__tkbLoanFixInstalled));
+              const isGenerated = loanAccFilledSteps.scheduleGenerated;
 
               if (hasDetails) {
                 return (
@@ -7439,8 +7541,40 @@ export default function PracticeSpotlightTour({
               }
 
               if (hasSchedule) {
-                const isFixInstalled = loanAccFilledSteps.tkbFix || (typeof window !== 'undefined' && Boolean(window.__tkbLoanFixInstalled));
-                const isGenerated = loanAccFilledSteps.scheduleGenerated;
+                if (isConsoleModalInDOM) {
+                  return (
+                    <div className="space-y-2 pt-1 border-t border-gray-100">
+                      {!isFixInstalled ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const runBtn = document.getElementById('tour-loan-acc-console-run-btn');
+                            if (runBtn) {
+                              runBtn.click();
+                            } else {
+                              window.dispatchEvent(new CustomEvent('practice-apply-tkb-fix'));
+                            }
+                            setLoanAccFilledSteps(prev => ({ ...prev, tkbFix: true }));
+                          }}
+                          className="w-full py-1.5 px-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Chạy lệnh F12 Workaround (Run Script) &rarr;
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const closeBtn = document.getElementById('tour-loan-acc-console-close-btn');
+                            if (closeBtn) closeBtn.click();
+                          }}
+                          className="w-full py-1.5 px-3 bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
+                        >
+                          Đóng cửa sổ F12 Console &rarr;
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
 
                 if (!isGenerated) {
                   return (
@@ -7537,6 +7671,134 @@ export default function PracticeSpotlightTour({
                   className="text-[10px] text-gray-500 hover:text-[#1072ba] underline cursor-pointer"
                 >
                   Điền nhanh toàn bộ &amp; sinh lịch trả nợ 12 kỳ
+                </button>
+              </div>
+            )}
+
+            {/* In loan-detail */}
+            {currentPath === 'loan-detail' && (() => {
+              const targetLoan = (loans || []).find(
+                l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
+              ) || selectedLoan;
+              const isLoanApproved = targetLoan && (
+                targetLoan.status === 'Approved' || 
+                (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('approved'))
+              );
+              const isLoanActive = targetLoan && (
+                targetLoan.status === 'Active' || 
+                (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('active')) ||
+                Boolean(targetLoan.disbursementDate && targetLoan.disbursementDate !== 'Not Available')
+              );
+              const isLoanPending = Boolean(targetLoan) && !isLoanApproved && !isLoanActive;
+
+              if (isLoanPending) {
+                const hasApproveOption = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-action-approve-btn'));
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {!hasApproveOption ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-open-loan-actions-menu'));
+                        }}
+                        className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      >
+                        Mở Menu tác vụ hồ sơ vay &rarr;
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigate) navigate('approve-loan');
+                        }}
+                        className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      >
+                        Phê duyệt hồ sơ vay (Approve) &rarr;
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+
+              if (isLoanApproved) {
+                const hasDisburseOption = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-action-disburse-btn'));
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    {!hasDisburseOption ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('practice-open-loan-actions-menu'));
+                        }}
+                        className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      >
+                        Mở Menu tác vụ hồ sơ vay &rarr;
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigate) navigate('disburse-loan');
+                        }}
+                        className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                      >
+                        Giải ngân khoản vay (Disburse) &rarr;
+                      </button>
+                    )}
+                  </div>
+                );
+              }
+
+              if (isLoanActive) {
+                return (
+                  <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                      Khoản vay <strong>000000001 (TKB-PL-TDU-001)</strong> đã giải ngân thành công và chuyển sang trạng thái Active!
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onClose) onClose();
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Hoàn thành phần thực hành (Phân hệ 04 - Phần 2)
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+
+            {/* In approve-loan */}
+            {currentPath === 'approve-loan' && (
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const submitBtn = document.getElementById('tour-loan-approve-submit-btn');
+                    if (submitBtn) submitBtn.click();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Xác nhận phê duyệt hồ sơ vay (Submit) &rarr;
+                </button>
+              </div>
+            )}
+
+            {/* In disburse-loan */}
+            {currentPath === 'disburse-loan' && (
+              <div className="space-y-2 pt-1 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const submitBtn = document.getElementById('tour-loan-disburse-submit-btn');
+                    if (submitBtn) submitBtn.click();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Xác nhận giải ngân khoản vay (Submit) &rarr;
                 </button>
               </div>
             )}

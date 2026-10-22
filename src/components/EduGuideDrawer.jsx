@@ -280,10 +280,15 @@ export default function EduGuideDrawer({
   };
 
   const calculateLoanPart2Progress = () => {
-    const hasLoan = (loans || []).some(
-      l => l.externalId === 'TKB-PL-TDU-001'
+    const loan = (loans || []).find(
+      l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
     );
-    return hasLoan ? 100 : 0;
+    if (!loan) return 0;
+    const isApproved = loan.status === 'Approved' || (typeof loan.status === 'string' && loan.status.toLowerCase().includes('approved'));
+    const isActive = loan.status === 'Active' || (typeof loan.status === 'string' && loan.status.toLowerCase().includes('active')) || Boolean(loan.disbursementDate && loan.disbursementDate !== 'Not Available');
+    if (isActive) return 100;
+    if (isApproved) return 75;
+    return 50;
   };
 
   const calculateLoanPart1Progress = () => {
@@ -3686,10 +3691,65 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">10</span>
-                  <span>Đối Soát Hồ Sơ Vay Trên Thông Tin Khách Hàng</span>
+                  <span>Mở Chi Tiết Hồ Sơ Vay Vốn (Loan Detail)</span>
                 </div>
                 <p className="text-gray-600 pl-6">
-                  Hệ thống chuyển về màn hình Client Details của khách hàng Minh Quang Tran. Tại bảng <strong>Loan Accounts</strong>, tài khoản vay số <strong>000000001</strong> (TKB-PL-TDU-001) đã xuất hiện với số tiền vay 10.000.000 VND.
+                  Tại bảng <strong>Loan Accounts</strong> trên hồ sơ khách hàng Minh Quang Tran, nhấp vào số tài khoản <strong>000000001</strong> (TKB Personal Loan) để mở trang chi tiết hồ sơ vay vốn đang ở trạng thái <em>Submitted and pending approval</em> (ô màu cam).
+                </p>
+              </div>
+
+              {/* Bước 11 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">11</span>
+                  <span>Mở Menu Tác Vụ Hồ Sơ &amp; Chọn Approve (Hình 1 &amp; Hình 2)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại thanh tiêu đề xanh của hồ sơ vay vốn, nhấp vào biểu tượng menu hamburger ở góc trên bên phải để mở danh sách thao tác, sau đó nhấp vào dòng <strong>Approve</strong> (có dấu tích xanh).
+                </p>
+              </div>
+
+              {/* Bước 12 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">12</span>
+                  <span>Phê Duyệt Hồ Sơ Vay Vốn (Approve Loan - Hình 3)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Rà soát các trường: Approved On (<strong>10/14/2026</strong>), Expected disbursement on (<strong>10/14/2026</strong>), Approved Amount (<strong>10,000,000.00 VND</strong>), Transaction Amount (<strong>10000000</strong>). Sau đó nhấn nút <strong>Submit</strong> để phê duyệt.
+                </p>
+              </div>
+
+              {/* Bước 13 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">13</span>
+                  <span>Mở Menu Tác Vụ &amp; Chọn Disburse (Giải Ngân)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Hồ sơ vay chuyển sang trạng thái <em>Approved</em> (ô màu xanh dương). Nhấp lại vào menu hamburger góc trên bên phải và chọn <strong>Disburse</strong> để mở màn hình giải ngân vốn vay.
+                </p>
+              </div>
+
+              {/* Bước 14 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">14</span>
+                  <span>Thực Hiện Giải Ngân Khoản Vay (Disburse Loan - Hình 4)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Khai báo Disbursed On (<strong>10/14/2026</strong>), Transaction Amount (<strong>10,000,000.00 VND</strong>), External Id (<strong>TKB-PL-TDU-001</strong>), Payment Type (<strong>Money Transfer</strong>), Note (<em>TKB Personal Loan - Full Disbursement</em>). Nhấn nút <strong>Submit</strong> để giải ngân và tự động hạch toán định khoản GL.
+                </p>
+              </div>
+
+              {/* Bước 15 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">15</span>
+                  <span>Rà Soát Khoản Vay Active, Bảng Loan Summary &amp; Sổ Cái GL (Hình 5)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Khoản vay chính thức chuyển sang trạng thái <em>Active</em> (ô vuông xanh lá). Đối soát các chỉ số: Account Overview (Current Balance: ₫10,661,854.64), Performance History (Maturity Date: 14 October 2027), bảng Loan Summary (Original Principal ₫10,000,000.00, Interest ₫661,854.64, Total Outstanding ₫10,661,854.64). Bút toán giải ngân Nợ TK 130101 / Có TK 110101 đã tự động hạch toán vào Sổ cái.
                 </p>
               </div>
             </div>
@@ -4479,7 +4539,7 @@ export default function EduGuideDrawer({
             isLoanPart2Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>Đã hoàn thành 100% Phân hệ 04 - Phần 2: Tiếp nhận hồ sơ vay vốn và sinh lịch trả nợ!</span>
+                  <span>Đã hoàn thành 100% Phân hệ 04 - Phần 2: Tiếp nhận, phê duyệt và giải ngân hồ sơ vay vốn!</span>
                 </div>
                 <button
                   type="button"
@@ -4504,7 +4564,7 @@ export default function EduGuideDrawer({
                 }}
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
-                Bắt Đầu Thực Hành Tiếp Nhận Hồ Sơ Vay Vốn
+                Bắt Đầu Thực Hành Tiếp Nhận &amp; Phê Duyệt Hồ Sơ Vay Vốn
               </button>
             )
           ) : activePartId === 'casa-part-5' ? (

@@ -556,10 +556,17 @@ export default function ClientDetailView({
                         className="hover:bg-gray-50"
                       >
                         <td className="py-3 px-3 font-normal text-gray-900 flex items-center space-x-1.5">
-                          <span className="w-2 h-2 bg-[#28a745] inline-block rounded-[1px]" />
+                          <span className={`w-2 h-2 inline-block rounded-[1px] ${
+                            l.status?.toLowerCase().includes('pending') || l.status?.toLowerCase().includes('submitted')
+                              ? 'bg-[#f59e0b]'
+                              : l.status?.toLowerCase().includes('approved')
+                              ? 'bg-[#1072ba]'
+                              : 'bg-[#28a745]'
+                          }`} />
                           <span 
+                            id={`tour-client-loan-link-${l.accountNo}`}
                             onClick={() => onSelectLoan && onSelectLoan(l)}
-                            className="text-gray-900 hover:text-[#1072ba] cursor-pointer"
+                            className="text-gray-900 hover:text-[#1072ba] cursor-pointer font-medium"
                           >
                             {l.accountNo}
                           </span>
