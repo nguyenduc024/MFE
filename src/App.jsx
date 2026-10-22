@@ -1843,7 +1843,7 @@ export default function App() {
             setSelectedSavings(seededSavings);
             setCurrentPath('clients');
           }
-          if (moduleId === 'loan-part-1') {
+          if (targetModule === 'loan-part-1') {
             setCurrentPath('home');
           }
           setPracticeActive(true);
