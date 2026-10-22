@@ -565,7 +565,7 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        Tạo sản phẩm cho vay TKB Personal Loan (Loan)
+                        Tạo sản phẩm cho vay TKB Personal Loan (TKPL)
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
