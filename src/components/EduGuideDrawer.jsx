@@ -44,7 +44,9 @@ export default function EduGuideDrawer({
   onResetRecurringDepositAccounts,
   hasCheckedRdJournal = false,
   loanProducts = [],
-  onResetLoanProducts
+  onResetLoanProducts,
+  loans = [],
+  onResetLoanAccounts
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -277,6 +279,13 @@ export default function EduGuideDrawer({
     return hasTransferred ? 100 : 0;
   };
 
+  const calculateLoanPart2Progress = () => {
+    const hasLoan = (loans || []).some(
+      l => (String(l.clientId) === '11' || l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') && l.principal
+    );
+    return hasLoan ? 100 : 0;
+  };
+
   const calculateLoanPart1Progress = () => {
     const hasProduct = (loanProducts || []).some(
       p => p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
@@ -308,6 +317,7 @@ export default function EduGuideDrawer({
   const savingPart3Progress = calculateSavingPart3Progress();
   const savingPart4Progress = calculateSavingPart4Progress();
   const loanPart1Progress = calculateLoanPart1Progress();
+  const loanPart2Progress = calculateLoanPart2Progress();
 
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
@@ -329,6 +339,7 @@ export default function EduGuideDrawer({
     activePartId === 'saving-part-3' ? savingPart3Progress :
     activePartId === 'saving-part-4' ? savingPart4Progress :
     activePartId === 'loan-part-1' ? loanPart1Progress :
+    activePartId === 'loan-part-2' ? loanPart2Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -350,6 +361,7 @@ export default function EduGuideDrawer({
   const isSavingPart3Complete = savingPart3Progress === 100;
   const isSavingPart4Complete = savingPart4Progress === 100;
   const isLoanPart1Complete = loanPart1Progress === 100;
+  const isLoanPart2Complete = loanPart2Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -549,7 +561,7 @@ export default function EduGuideDrawer({
 
               {EDU_MODULES.filter(m => m.moduleNumber === "04").map((item) => {
                 const isSelected = item.id === activePartId;
-                const itemProgress = loanPart1Progress;
+                const itemProgress = item.id === 'loan-part-1' ? loanPart1Progress : loanPart2Progress;
 
                 return (
                   <div
@@ -565,7 +577,7 @@ export default function EduGuideDrawer({
                     <div className="pr-2 truncate">
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
-                        Tạo sản phẩm cho vay TKB Personal Loan (TKPL)
+                        {item.id === 'loan-part-1' ? 'Tạo sản phẩm cho vay TKB Personal Loan (TKPL)' : 'Tiếp nhận hồ sơ vay vốn & sinh lịch trả nợ'}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -3494,6 +3506,196 @@ export default function EduGuideDrawer({
 
 
 
+        {/* Phân hệ 04 - Phần 2: Tiếp Nhận Hồ Sơ Vay Vốn & Sinh Lịch Trả Nợ */}
+        {activePartId === 'loan-part-2' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 04: Loans &bull; Phần 2
+              </span>
+              <h3 className="text-base font-bold text-gray-900 mt-0.5">
+                Tiếp Nhận Hồ Sơ Vay Vốn &amp; Workaround F12 Console Sinh Lịch Trả Nợ
+              </h3>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Hướng dẫn nghiệp vụ tiếp nhận hồ sơ vay vốn cá nhân trả góp <strong>TKB Personal Loan</strong> cho khách hàng <strong>Minh Quang Tran</strong> (CIF: <code>TKB-CIF-TDU-001</code>). Thực hiện tuần tự qua các tab: DETAILS, TERMS, CHARGES, REPAYMENT SCHEDULE, PREVIEW. Xử lý khắc phục lỗi Core Banking bằng đoạn mã F12 DevTools Console script để loại bỏ tham số không hỗ trợ <code>allowPartialPeriodInterestCalculation</code> và sinh bảng lịch trả nợ 12 kỳ hoàn chỉnh.
+              </p>
+            </div>
+
+            {/* Thông số cốt lõi hồ sơ */}
+            <div className="p-4 bg-sky-50/70 border border-sky-100 rounded-[2px] space-y-2 text-xs">
+              <div className="font-bold text-[#1072ba] uppercase text-[11px] tracking-wide">
+                Thông số hồ sơ vay vốn cá nhân chuẩn:
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-gray-700">
+                <div>&bull; Khách hàng: <strong className="font-medium text-gray-900">Minh Quang Tran</strong></div>
+                <div>&bull; CIF / Account: <strong className="font-mono text-gray-900">000000011</strong></div>
+                <div>&bull; Tên sản phẩm: <strong className="font-medium text-gray-900">TKB Personal Loan</strong></div>
+                <div>&bull; External ID: <strong className="font-mono text-gray-900">TKB-PL-TDU-001</strong></div>
+                <div>&bull; Cán bộ tín dụng: <strong>Mai, Son</strong></div>
+                <div>&bull; Ngày nộp / giải ngân: <strong className="font-mono text-gray-900">10/14/2026</strong></div>
+                <div>&bull; Số tiền vay (Principal): <strong className="font-mono text-emerald-700">10,000,000 VND</strong></div>
+                <div>&bull; Thời hạn vay (Loan Term): <strong className="font-mono text-gray-900">12 Months (12 kỳ)</strong></div>
+                <div>&bull; Ngày trả nợ kỳ 1: <strong className="font-mono text-gray-900">11/14/2026</strong></div>
+                <div>&bull; Lãi suất danh nghĩa: <strong className="font-mono text-emerald-700">12% / năm</strong></div>
+                <div>&bull; Phương thức: <strong>Declining Balance / Equal installments</strong></div>
+                <div>&bull; Tổng tiền phải trả: <strong className="font-mono text-emerald-700">10,661,854.64 VND</strong></div>
+              </div>
+            </div>
+
+            {/* Đoạn mã F12 Console Workaround */}
+            <div className="p-3.5 bg-slate-900 text-slate-100 rounded-[2px] space-y-2 text-xs font-mono">
+              <div className="flex items-center justify-between text-slate-300 font-sans text-[11px] pb-1 border-b border-slate-700">
+                <span className="font-bold text-[#8ab4f8]">F12 DevTools Console Workaround Script:</span>
+                <span className="text-[10px] text-amber-300">Bắt buộc chạy trước khi bấm Generate</span>
+              </div>
+              <div className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                Đoạn script can thiệp vào <code>XMLHttpRequest.prototype.send</code> và <code>window.fetch</code> để lọc bỏ thuộc tính <code>allowPartialPeriodInterestCalculation</code> bị backend Mifos X từ chối:
+              </div>
+              <pre className="text-[10px] text-emerald-400 bg-black/40 p-2.5 rounded overflow-x-auto leading-tight">
+{`(() => {
+  const clean = (body) => {
+    if (typeof body !== "string" || !body.includes("allowPartialPeriodInterest")) return body;
+    try {
+      const data = JSON.parse(body);
+      let changed = false;
+      for (const key of ["allowPartialPeriodInterestCalculation", "allowPartialPeriodInterestCalcualtion"]) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) { delete data[key]; changed = true; }
+      }
+      if (changed) { console.log("TKB FIX: Removed unsupported parameter"); return JSON.stringify(data); }
+    } catch (e) { console.error("TKB FIX: Invalid JSON", e); }
+    return body;
+  };
+  const originalSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function(body) { return originalSend.call(this, clean(body)); };
+  const originalFetch = window.fetch;
+  window.fetch = function(input, options) {
+    if (options && typeof options.body === "string") { options = {...options, body: clean(options.body)}; }
+    return originalFetch.call(this, input, options);
+  };
+  console.log("TKB FIX: Installed");
+})();`}
+              </pre>
+            </div>
+
+            {/* Trình tự các bước thực hành */}
+            <div className="space-y-3 text-xs">
+              <div className="font-bold text-gray-900 uppercase text-[11px] tracking-wide">
+                Trình tự các bước thực hiện:
+              </div>
+
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Mở Menu Tác Vụ Khách Hàng (Client Actions - Hình 1)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Tại màn hình chi tiết khách hàng <strong>Minh Quang Tran</strong> (CIF: <code>TKB-CIF-TDU-001</code>), nhấp vào biểu tượng menu hamburger ở góc trên bên phải thanh tiêu đề xanh để mở danh sách hành động.
+                </p>
+              </div>
+
+              {/* Bước 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Chọn Mục New Loan Account (Hình 1)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Trong menu con <strong>Applications</strong>, nhấp vào dòng <strong>New Loan Account</strong> (viền đỏ nổi bật) để mở biểu mẫu tạo hồ sơ vay vốn.
+                </p>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Khai Báo Tab 1: DETAILS (Thông Tin Hồ Sơ Vay - Hình 2)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Chọn Product Name: <strong>TKB Personal Loan</strong>, nhập External id: <strong>TKB-PL-TDU-001</strong>, Loan officer: <strong>Mai, Son</strong>, Submitted on: <strong>10/14/2026</strong>, Disbursement on: <strong>10/14/2026</strong>. Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Thiết Lập Tab 2: TERMS (Điều Khoản Vay &amp; Lãi Suất - Hình 3)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhập Principal: <strong>10,000,000 VND</strong>, Loan Term: <strong>12 Months</strong>, Number of repayments: <strong>12</strong>, First repayment on: <strong>11/14/2026</strong>, Nominal interest rate: <strong>12% Per year</strong>, Amortization: <strong>Equal installments</strong>, Interest Method: <strong>Declining Balance</strong>, giữ tích chọn <em>Calculate interest for exact days in partial period</em>. Sau đó nhấn <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Rà Soát Tab 3: CHARGES (Chi Phí Bổ Sung)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Sản phẩm không áp dụng phí bổ sung. Nhấn nút <strong>Next</strong> để chuyển sang tab REPAYMENT SCHEDULE.
+                </p>
+              </div>
+
+              {/* Bước 6 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">6</span>
+                  <span>Tab 4: REPAYMENT SCHEDULE &amp; Lỗi Core Banking 400 (Hình 4)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Bảng lịch trả nợ ban đầu trống. Nếu bấm &quot;Generate Repayment Schedule&quot; ngay, hệ thống sẽ báo lỗi 400 do tham số <code>allowPartialPeriodInterestCalculation</code> không được backend chấp nhận. Cần áp dụng workaround DevTools F12.
+                </p>
+              </div>
+
+              {/* Bước 7 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">7</span>
+                  <span>Chạy Script Workaround F12 Console (TKB FIX)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhấn phím F12 trên bàn phím (hoặc nhấn nút <strong>Mở Chrome DevTools Console</strong> trên màn hình), dán đoạn mã script TKB FIX vào tab Console và nhấn Run/Enter. Console hiển thị dòng thông báo <code>TKB FIX: Installed</code>.
+                </p>
+              </div>
+
+              {/* Bước 8 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">8</span>
+                  <span>Sinh Bảng Lịch Trả Nợ 12 Kỳ (Generate Schedule - Hình 5)</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Nhấn nút <strong>Generate Repayment Schedule</strong> màu xanh. Hệ thống kết xuất thành công bảng tính lịch trả nợ 12 kỳ với kỳ 1 ngày 14/11/2026 (chữ xanh nổi bật), tổng gốc 10.000.000 VND, tổng lãi 661.854,64 VND, tổng phải trả 10.661.854,64 VND. Sau đó bấm <strong>Next</strong>.
+                </p>
+              </div>
+
+              {/* Bước 9 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">9</span>
+                  <span>Rà Soát Tab 5: PREVIEW &amp; Nhấn Submit Hồ Sơ</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Rà soát tổng hợp hồ sơ vay trên tab Preview và nhấn nút <strong>Submit</strong> để lưu hồ sơ vào hệ thống Core Banking.
+                </p>
+              </div>
+
+              {/* Bước 10 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">10</span>
+                  <span>Đối Soát Hồ Sơ Vay Trên Thông Tin Khách Hàng</span>
+                </div>
+                <p className="text-gray-600 pl-6">
+                  Hệ thống chuyển về màn hình Client Details của khách hàng Minh Quang Tran. Tại bảng <strong>Loan Accounts</strong>, tài khoản vay số <strong>000000001</strong> (TKB-PL-TDU-001) đã xuất hiện với số tiền vay 10.000.000 VND.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Nút hành động ở chân bài học */}
         <div className="pt-2">
           {activePartId === 'gl-part-1' ? (
@@ -4271,6 +4473,38 @@ export default function EduGuideDrawer({
                 className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
               >
                 Bắt Đầu Thực Hành Tạo Sản Phẩm Cho Vay (TKPL)
+              </button>
+            )
+          ) : activePartId === 'loan-part-2' ? (
+            isLoanPart2Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành 100% Phân hệ 04 - Phần 2: Tiếp nhận hồ sơ vay vốn và sinh lịch trả nợ!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetLoanAccounts) onResetLoanAccounts();
+                    if (onStartPractice) {
+                      onStartPractice('loan-part-2');
+                    }
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Làm lại phần thực hành này
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onStartPractice) {
+                    onStartPractice('loan-part-2');
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Bắt Đầu Thực Hành Tiếp Nhận Hồ Sơ Vay Vốn
               </button>
             )
           ) : activePartId === 'casa-part-5' ? (

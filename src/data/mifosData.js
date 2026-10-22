@@ -2426,5 +2426,17 @@ export const EDU_MODULES = [
     objective: "Thiết lập sản phẩm tín dụng cho vay cá nhân trả góp TKB Personal Loan (mã viết tắt: TKPL, External ID: TKB-PRD-PL-001) theo đúng quy trình Admin -> Products -> Loan Products -> Create Loan Product. Cấu hình chi tiết các tab: DETAILS, CURRENCY, SETTINGS, TERMS, CHARGES, ACCOUNTING, PREVIEW trên hệ thống Core Banking Mifos X.",
     targetMenu: "admin-products",
     subPath: "loan-products"
+  },
+  {
+    id: "loan-part-2",
+    moduleNumber: "04",
+    moduleTitle: "Phân hệ 04: Loans",
+    partNumber: "2",
+    name: "Phần 2: Tiếp Nhận Hồ Sơ Vay Vốn & Sinh Lịch Trả Nợ (Loan Application & Repayment Schedule)",
+    shortLabel: "Phần 2: Tiếp nhận hồ sơ vay",
+    title: "Tiếp Nhận Hồ Sơ Vay Vốn & Xử Lý Workaround F12 Console Sinh Lịch Trả Nợ (TKB Personal Loan)",
+    objective: "Thực hiện nghiệp vụ tiếp nhận hồ sơ vay vốn cá nhân cho khách hàng Minh Quang Tran (CIF: TKB-CIF-TDU-001) với sản phẩm TKB Personal Loan, số tiền vay 10.000.000 VND, kỳ hạn 12 tháng, lãi suất 12%/năm theo dư nợ giảm dần. Mở DevTools F12 Console chạy đoạn script workaround loại bỏ tham số không hỗ trợ allowPartialPeriodInterestCalculation để sinh bảng lịch trả nợ 12 kỳ hoàn chỉnh và hoàn tất gửi hồ sơ vay vốn.",
+    targetMenu: "clients",
+    subPath: "create-loan-account"
   }
 ];

@@ -75,6 +75,15 @@ export default function ClientDetailView({
   const [menuOpen, setMenuOpen] = useState(false);
   const [appsSubmenuOpen, setAppsSubmenuOpen] = useState(true);
 
+  React.useEffect(() => {
+    const handleOpenMenu = () => {
+      setMenuOpen(true);
+      setAppsSubmenuOpen(true);
+    };
+    window.addEventListener('practice-open-client-actions-menu', handleOpenMenu);
+    return () => window.removeEventListener('practice-open-client-actions-menu', handleOpenMenu);
+  }, []);
+
   if (!client) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-12 text-center text-gray-500 font-sans">
@@ -309,11 +318,12 @@ export default function ClientDetailView({
                     className="w-56 border-l border-gray-200 py-1 bg-white"
                   >
                     <div 
+                      id="tour-client-new-loan-account-btn"
                       onClick={() => {
                         setMenuOpen(false);
                         if (onOpenNewLoanModal) onOpenNewLoanModal();
                       }}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700"
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 font-medium"
                     >
                       New Loan Account
                     </div>
@@ -511,7 +521,7 @@ export default function ClientDetailView({
           </div>
 
           {/* Section: Loan Accounts matching Image */}
-          <div className="space-y-2">
+          <div id="tour-client-detail-loan-table" className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-gray-800">
                 Loan Accounts
@@ -540,7 +550,11 @@ export default function ClientDetailView({
                 <tbody className="divide-y divide-gray-100">
                   {clientLoans.length > 0 ? (
                     clientLoans.map((l) => (
-                      <tr key={l.id} className="hover:bg-gray-50">
+                      <tr 
+                        key={l.id} 
+                        id={`tour-client-loan-row-${l.accountNo}`}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="py-3 px-3 font-normal text-gray-900 flex items-center space-x-1.5">
                           <span className="w-2 h-2 bg-[#28a745] inline-block rounded-[1px]" />
                           <span 
