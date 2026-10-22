@@ -106,9 +106,7 @@ export default function App() {
   const [recurringDepositProducts, setRecurringDepositProducts] = useState([]);
   const [clients, setClients] = useState(INITIAL_CLIENTS);
   const [tellers, setTellers] = useState(INITIAL_TELLERS);
-  const [loans, setLoans] = useState(() =>
-    INITIAL_LOANS.map(l => l.clientId === '11' ? { ...l, clientId: '12', clientName: 'Lan Ngoc Pham' } : l)
-  );
+  const [loans, setLoans] = useState(INITIAL_LOANS);
   const [savingsAccounts, setSavingsAccounts] = useState(() =>
     INITIAL_SAVINGS_ACCOUNTS.map(s => {
       if (s.id === '1') {
@@ -152,7 +150,7 @@ export default function App() {
   // Navigation & UI state
   const [currentPath, setCurrentPath] = useState('home');
   const [selectedClient, setSelectedClient] = useState(INITIAL_CLIENTS[10] || INITIAL_CLIENTS[0]); // Minh Quang Tran
-  const [selectedLoan, setSelectedLoan] = useState(INITIAL_LOANS[0] || null);
+  const [selectedLoan, setSelectedLoan] = useState(null);
   const [selectedSavings, setSelectedSavings] = useState(INITIAL_SAVINGS_ACCOUNTS[0] || null);
   const [selectedFixedDeposit, setSelectedFixedDeposit] = useState(null);
   const [selectedRecurringDeposit, setSelectedRecurringDeposit] = useState(null);

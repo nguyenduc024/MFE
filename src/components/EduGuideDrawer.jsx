@@ -281,7 +281,7 @@ export default function EduGuideDrawer({
 
   const calculateLoanPart2Progress = () => {
     const hasLoan = (loans || []).some(
-      l => (String(l.clientId) === '11' || l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') && l.principal
+      l => l.externalId === 'TKB-PL-TDU-001'
     );
     return hasLoan ? 100 : 0;
   };

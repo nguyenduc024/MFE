@@ -1744,7 +1744,7 @@ export default function PracticeSpotlightTour({
     }
   } else if (module === 'loan-part-2') {
     const hasLoanAccountCreated = (loans || []).some(
-      l => (String(l.clientId) === '11' || l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') && l.principal
+      l => l.externalId === 'TKB-PL-TDU-001'
     );
 
     if (currentPath === 'client-detail') {
@@ -7313,7 +7313,7 @@ export default function PracticeSpotlightTour({
             {/* In client-detail */}
             {currentPath === 'client-detail' && (
               <div>
-                {(loans || []).some(l => (String(l.clientId) === '11' || l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001') && l.principal) ? (
+                {(loans || []).some(l => l.externalId === 'TKB-PL-TDU-001') ? (
                   <div className="space-y-2">
                     <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
                       Hồ sơ vay vốn <strong>000000001 (TKB-PL-TDU-001)</strong> đã được tạo và hiển thị thành công tại bảng Loan Accounts của khách hàng Minh Quang Tran!

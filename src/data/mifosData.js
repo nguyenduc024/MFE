@@ -2092,30 +2092,7 @@ export const INITIAL_GL_CLOSURES = [
   }
 ];
 
-export const INITIAL_LOANS = [
-  {
-    id: "1",
-    accountNo: "000000001",
-    externalId: "TKB-LN-0001",
-    clientId: "11",
-    clientName: "Minh Quang Tran",
-    productId: "1",
-    productName: "TKB Personal Loan",
-    principal: 10000000,
-    annualInterestRate: 12.0,
-    termMonths: 12,
-    status: "Active (Đã giải ngân)",
-    disbursementDate: "2026-08-15",
-    totalRepaid: 888487.89,
-    outstandingBalance: 9773366.75,
-    schedule: [
-      { installment: 1, dueDate: "2026-09-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
-      { installment: 2, dueDate: "2026-10-15", principal: 833333, interest: 100000, total: 933333, status: "Paid" },
-      { installment: 3, dueDate: "2026-11-15", principal: 833333, interest: 100000, total: 933333, status: "Pending" },
-      { installment: 4, dueDate: "2026-12-15", principal: 833333, interest: 100000, total: 933333, status: "Pending" }
-    ]
-  }
-];
+export const INITIAL_LOANS = [];
 
 export const INITIAL_SAVINGS_ACCOUNTS = [
   {
