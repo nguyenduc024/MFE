@@ -675,6 +675,7 @@ export default function PracticeSpotlightTour({
 
   // Determine active step & target element
   let currentStep = 1;
+  let totalSteps = 6;
   let targetSelector = '#tour-nav-admin';
   let stepTitle = 'Bước 1 / 4: Mở menu Quản trị';
   let stepSubtitle = '';
@@ -1978,7 +1979,7 @@ export default function PracticeSpotlightTour({
       stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
       stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer", Comments "Interbank borrowing - VND 20M - 30 days - 6% p.a.". Bạn có thể bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên cạnh để điền nhanh, sau đó bấm nút "Submit" màu xanh để gửi bút toán.';
     } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
-      const isInterbankPresent = typeof document !== 'undefined' && Boolean(document.getElementById('tour-journal-entry-interbank'));
+      const isInterbankPresent = typeof window !== 'undefined' && (localStorage.getItem('tkb_treasury_interbank_done') === 'true' || Boolean(window.__tkbTreasuryInterbankDone));
       if (isInterbankPresent) {
         currentStep = 6;
         totalSteps = 6;
@@ -7935,8 +7936,56 @@ export default function PracticeSpotlightTour({
               </div>
             )}
 
-            {/* Step 3: In Journal Entries (accounting-journal) -> Show Cashflow & Liquidity Analysis */}
+            {/* Step 3: In Journal Entries (accounting-journal) -> Show Cashflow & Liquidity Analysis or Completion */}
             {(currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && (
+              (typeof window !== 'undefined' && (localStorage.getItem('tkb_treasury_interbank_done') === 'true' || Boolean(window.__tkbTreasuryInterbankDone))) ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-[2px] text-xs text-emerald-900 space-y-2">
+                    <div className="font-bold text-emerald-800 flex items-center justify-between">
+                      <span>Bút toán Vay liên ngân hàng (Entry 78 &amp; 79)</span>
+                      <span className="font-mono text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">Đã vào sổ</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 leading-snug">
+                      Đã ghi nhận <strong>Nợ TK 110201 Settlement Bank Account</strong> (+20.000.000 VND) và <strong>Có TK 220401 Interbank Borrowings</strong> (+20.000.000 VND) qua mã giao dịch <strong>a2fbdc3d0f2f</strong>.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigate) {
+                        navigate('accounting-view-transaction', {
+                          transaction: {
+                            id: 'a2fbdc3d0f2f',
+                            officeName: 'Takashimaya Bank (TKB) - HO',
+                            transactionDate: '14 October 2026',
+                            createdBy: 'mifos',
+                            submittedOn: '15 October 2026 00:00:00',
+                            entries: [
+                              { id: '78', type: 'ASSET', accountCode: '110201', accountName: 'Settlement Bank Account', debit: 'VND 20,000,000.00', credit: '' },
+                              { id: '79', type: 'LIABILITY', accountCode: '220401', accountName: 'Interbank Borrowings', debit: '', credit: 'VND 20,000,000.00' }
+                            ]
+                          }
+                        });
+                      }
+                    }}
+                    className="w-full py-2 px-3 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  >
+                    Xem chi tiết giao dịch a2fbdc3d0f2f (Hình 2)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('tkb_treasury_interbank_done', 'true');
+                      }
+                      if (onClose) onClose();
+                    }}
+                    className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  >
+                    Hoàn thành phần thực hành (Phân hệ 05: Treasury)
+                  </button>
+                </div>
+              ) : (
               <div className="space-y-3">
                 <div className="p-3 bg-white border border-gray-200 rounded-[2px] shadow-xs space-y-2.5">
                   <div className="font-bold text-gray-900 border-b border-gray-100 pb-1.5 flex items-center justify-between text-xs">
@@ -7994,6 +8043,7 @@ export default function PracticeSpotlightTour({
                   Lập Bút Toán Vay Vốn Liên Ngân Hàng 20M VND (Hình 1) &rarr;
                 </button>
               </div>
+              )
             )}
 
             {/* Step 5: In Create Journal Entry (accounting-create-journal) -> Autofill helper matching Hình 1 */}

@@ -352,8 +352,10 @@ export default function JournalEntriesView({
     return isNaN(d.getTime()) ? null : d;
   };
 
-  // Combine custom user-created entries with the full 71 database entries
+  // Combine custom user-created entries with the full database entries
   const allSourceEntries = useMemo(() => {
+    const isInterbankDone = typeof window !== 'undefined' && (localStorage.getItem('tkb_treasury_interbank_done') === 'true' || Boolean(window.__tkbTreasuryInterbankDone));
+    const baseEntries = isInterbankDone ? ALL_JOURNAL_ENTRIES : ALL_JOURNAL_ENTRIES.filter(e => e.id !== '78' && e.id !== '79' && e.txId !== 'a2fbdc3d0f2f' && !e.isTreasuryInterbankTarget);
     const customFlattened = (customJournalEntries || []).flatMap((rec) => {
       const rows = [];
       const isManualOpex = rec.referenceNumber === 'TKB-OPEX-202610-001' || String(rec.id).includes('OPEX') || rec.comments?.includes('OPEX');
@@ -403,7 +405,7 @@ export default function JournalEntriesView({
       return rows;
     });
 
-    return [...customFlattened, ...ALL_JOURNAL_ENTRIES];
+    return [...customFlattened, ...baseEntries];
   }, [customJournalEntries]);
 
   // Filter entries based on form filters

@@ -1956,6 +1956,10 @@ export default function App() {
             setCurrentPath('client-detail');
           }
           if (targetModule === 'treasury-part-1') {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('tkb_treasury_interbank_done');
+              delete window.__tkbTreasuryInterbankDone;
+            }
             setCurrentPath('home');
           }
           setPracticeActive(true);
