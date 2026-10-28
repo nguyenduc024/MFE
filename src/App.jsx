@@ -1120,6 +1120,8 @@ export default function App() {
             glAccounts={glAccounts}
             navigate={navigate}
             onAddJournalEntry={handleSaveJournalEntry}
+            isPracticeActive={practiceActive}
+            practiceModule={practiceModule}
           />
         )}
 

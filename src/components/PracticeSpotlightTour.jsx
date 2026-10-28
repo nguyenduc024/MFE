@@ -1973,8 +1973,7 @@ export default function PracticeSpotlightTour({
     } else if (currentPath === 'accounting-create-journal') {
       currentStep = 5;
       totalSteps = 6;
-      const submitBtn = typeof document !== 'undefined' && (document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn'));
-      targetSelector = submitBtn ? '#tour-manual-submit-btn' : '#tour-manual-journal-card';
+      targetSelector = '#tour-manual-journal-card';
       stepTitle = 'Bước 5 / 6: Nhập thông tin Vay vốn liên ngân hàng 20M VND (Hình 1)';
       stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
       stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer", Comments "Interbank borrowing - VND 20M - 30 days - 6% p.a.". Bạn có thể bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên cạnh để điền nhanh, sau đó bấm nút "Submit" màu xanh để gửi bút toán.';
@@ -4304,14 +4303,26 @@ export default function PracticeSpotlightTour({
   // Treasury placement rules: always place on side to never cover inputs or journal
   if (module === 'treasury-part-1') {
     if (currentPath === 'accounting-create-journal') {
-      tooltipStyle = {
-        position: 'fixed',
-        top: '70px',
-        right: '24px',
-        width: '380px',
-        maxHeight: 'calc(100vh - 90px)',
-        overflowY: 'auto'
-      };
+      if (windowWidth >= 1150) {
+        tooltipStyle = {
+          position: 'fixed',
+          top: '70px',
+          right: '24px',
+          width: '380px',
+          maxHeight: 'calc(100vh - 90px)',
+          overflowY: 'auto'
+        };
+      } else {
+        tooltipStyle = {
+          position: 'fixed',
+          bottom: '12px',
+          left: '16px',
+          right: '16px',
+          width: 'auto',
+          maxHeight: '38vh',
+          overflowY: 'auto'
+        };
+      }
     } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
       tooltipStyle = {
         position: 'fixed',
