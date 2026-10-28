@@ -418,14 +418,8 @@ export default function CreateJournalEntryView({
     }
   };
 
-  const isTourDocked = isPracticeActive && practiceModule === 'treasury-part-1';
-
   return (
-    <div className={`px-4 lg:px-6 py-6 select-none font-sans animate-in fade-in duration-150 transition-all ${
-      isTourDocked
-        ? 'max-w-3xl ml-4 lg:ml-8 mr-auto'
-        : 'max-w-6xl mx-auto'
-    }`}>
+    <div className="max-w-6xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
       {/* 1. Header: Create | Home / Accounting / Journal Entries / Create */}
       <div className="flex items-center space-x-2.5 mb-6">
         <h1 className="text-xl font-normal text-[#212529]">

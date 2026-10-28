@@ -673,6 +673,9 @@ export default function PracticeSpotlightTour({
   const isMappingFormOpen = Boolean(typeof document !== 'undefined' && document.getElementById('tour-mapping-create-card'));
   const isMappingFormFilled = Boolean(submitMappingBtn && !submitMappingBtn.disabled);
 
+  const submitJournalBtn = typeof document !== 'undefined' ? document.getElementById('tour-manual-submit-btn') : null;
+  const isTreasuryFormFilled = Boolean(submitJournalBtn && !submitJournalBtn.disabled);
+
   // Determine active step & target element
   let currentStep = 1;
   let totalSteps = 6;
@@ -1973,10 +1976,17 @@ export default function PracticeSpotlightTour({
     } else if (currentPath === 'accounting-create-journal') {
       currentStep = 5;
       totalSteps = 6;
-      targetSelector = '#tour-manual-journal-card';
-      stepTitle = 'Bước 5 / 6: Nhập thông tin Vay vốn liên ngân hàng 20M VND (Hình 1)';
-      stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
-      stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer", Comments "Interbank borrowing - VND 20M - 30 days - 6% p.a.". Bạn có thể bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên cạnh để điền nhanh, sau đó bấm nút "Submit" màu xanh để gửi bút toán.';
+      if (!isTreasuryFormFilled) {
+        targetSelector = '#tour-manual-journal-card';
+        stepTitle = 'Bước 5 / 6: Nhập thông tin Vay vốn liên ngân hàng 20M VND (Hình 1)';
+        stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
+        stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer". Bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên phải vùng sáng để điền dữ liệu mẫu.';
+      } else {
+        targetSelector = '#tour-manual-submit-btn';
+        stepTitle = 'Bước 5 / 6: Bấm nút Submit để gửi bút toán vào Sổ cái';
+        stepSubtitle = 'Dữ liệu Vay liên ngân hàng 20M VND đã được điền hoàn chỉnh!';
+        stepInstruction = 'Bút toán đã cân đối: Nợ TK 110201 (20.000.000 VND) = Có TK 220401 (20.000.000 VND). Nhấp trực tiếp vào nút "Submit" màu xanh trong vùng sáng (hoặc bấm nút "Xác nhận gửi bút toán (Submit)" bên phải) để ghi sổ và xem chi tiết giao dịch theo Hình 2!';
+      }
     } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
       const isInterbankPresent = typeof window !== 'undefined' && (localStorage.getItem('tkb_treasury_interbank_done') === 'true' || Boolean(window.__tkbTreasuryInterbankDone));
       if (isInterbankPresent) {
@@ -4303,23 +4313,37 @@ export default function PracticeSpotlightTour({
   // Treasury placement rules: always place on side to never cover inputs or journal
   if (module === 'treasury-part-1') {
     if (currentPath === 'accounting-create-journal') {
-      if (windowWidth >= 1150) {
+      const tooltipWidth = 360;
+      if (box && targetSelector === '#tour-manual-submit-btn') {
+        let tooltipLeft = box.right + 24;
+        if (tooltipLeft + tooltipWidth > windowWidth - 16) {
+          tooltipLeft = Math.max(16, windowWidth - tooltipWidth - 20);
+        }
+        const tooltipTop = Math.max(70, Math.min(box.top - 100, windowHeight - 420));
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${tooltipTop}px`,
+          left: `${tooltipLeft}px`,
+          width: `${tooltipWidth}px`,
+          maxHeight: 'calc(100vh - 90px)',
+          overflowY: 'auto'
+        };
+      } else if (box && box.right + tooltipWidth <= windowWidth - 16) {
         tooltipStyle = {
           position: 'fixed',
           top: '70px',
-          right: '24px',
-          width: '380px',
+          left: `${box.right + 20}px`,
+          width: `${tooltipWidth}px`,
           maxHeight: 'calc(100vh - 90px)',
           overflowY: 'auto'
         };
       } else {
         tooltipStyle = {
           position: 'fixed',
-          bottom: '12px',
-          left: '16px',
-          right: '16px',
-          width: 'auto',
-          maxHeight: '38vh',
+          top: '70px',
+          right: '20px',
+          width: `${tooltipWidth}px`,
+          maxHeight: 'calc(100vh - 90px)',
           overflowY: 'auto'
         };
       }
@@ -8060,55 +8084,65 @@ export default function PracticeSpotlightTour({
               )
             )}
 
-            {/* Step 5: In Create Journal Entry (accounting-create-journal) -> Autofill helper matching Hình 1 */}
+            {/* Step 5: In Create Journal Entry (accounting-create-journal) -> Autofill helper matching Hình 1 then Submit */}
             {currentPath === 'accounting-create-journal' && (
               <div className="space-y-3">
-                <div className="p-3 bg-white border border-gray-200 rounded-[2px] shadow-xs space-y-2 text-xs">
-                  <div className="font-bold text-gray-900 border-b border-gray-100 pb-1 text-[#1072ba]">
-                    Thông Số Nghiệp Vụ Vay Liên Ngân Hàng (Hình 1)
-                  </div>
-                  <div className="text-[11px] space-y-1 text-gray-700">
-                    <div className="flex justify-between"><span>Office:</span><strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong></div>
-                    <div className="flex justify-between"><span>Currency:</span><strong className="text-gray-900">Vietnamese Dong [VND]</strong></div>
-                    <div className="flex justify-between"><span>Nợ (Debit):</span><strong className="text-purple-900">(110201) Settlement Bank Account</strong></div>
-                    <div className="flex justify-between"><span>Số tiền Nợ:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
-                    <div className="flex justify-between"><span>Có (Credit):</span><strong className="text-purple-900">(220401) Interbank Borrowings</strong></div>
-                    <div className="flex justify-between"><span>Số tiền Có:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
-                    <div className="flex justify-between"><span>Reference:</span><strong className="font-mono text-gray-800">TKB-TRE-IB-001</strong></div>
-                    <div className="flex justify-between"><span>Date:</span><strong className="font-mono text-gray-800">10/14/2026</strong></div>
-                    <div className="flex justify-between"><span>Payment Type:</span><strong className="text-gray-800">Money Transfer</strong></div>
-                    <div className="text-[10px] text-gray-500 italic mt-0.5">Comments: Interbank borrowing - VND 20M - 30 days - 6% p.a.</div>
-                  </div>
-                </div>
+                {!isTreasuryFormFilled ? (
+                  <>
+                    <div className="p-3 bg-white border border-gray-200 rounded-[2px] shadow-xs space-y-2 text-xs">
+                      <div className="font-bold text-gray-900 border-b border-gray-100 pb-1 text-[#1072ba]">
+                        Thông Số Nghiệp Vụ Vay Liên Ngân Hàng (Hình 1)
+                      </div>
+                      <div className="text-[11px] space-y-1 text-gray-700">
+                        <div className="flex justify-between"><span>Office:</span><strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong></div>
+                        <div className="flex justify-between"><span>Currency:</span><strong className="text-gray-900">Vietnamese Dong [VND]</strong></div>
+                        <div className="flex justify-between"><span>Nợ (Debit):</span><strong className="text-purple-900">(110201) Settlement Bank Account</strong></div>
+                        <div className="flex justify-between"><span>Số tiền Nợ:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
+                        <div className="flex justify-between"><span>Có (Credit):</span><strong className="text-purple-900">(220401) Interbank Borrowings</strong></div>
+                        <div className="flex justify-between"><span>Số tiền Có:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
+                        <div className="flex justify-between"><span>Reference:</span><strong className="font-mono text-gray-800">TKB-TRE-IB-001</strong></div>
+                        <div className="flex justify-between"><span>Date:</span><strong className="font-mono text-gray-800">10/14/2026</strong></div>
+                        <div className="flex justify-between"><span>Payment Type:</span><strong className="text-gray-800">Money Transfer</strong></div>
+                        <div className="text-[10px] text-gray-500 italic mt-0.5">Comments: Interbank borrowing - VND 20M - 30 days - 6% p.a.</div>
+                      </div>
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('practice-autofill-interbank-borrowing'));
-                  }}
-                  className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-                >
-                  Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('practice-autofill-interbank-borrowing'));
+                      }}
+                      className="w-full py-2.5 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-[2px] text-xs text-emerald-900 space-y-1.5 leading-snug">
+                      <div className="font-bold text-emerald-800 flex items-center justify-between">
+                        <span>Đã điền xong dữ liệu mẫu (Hình 1)</span>
+                        <span className="font-mono text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">Cân đối 20M</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-800">
+                        Bút toán Vay liên ngân hàng đã cân bằng: Tổng Nợ 20.000.000 VND = Tổng Có 20.000.000 VND. Nhấp vào nút <strong>Submit</strong> màu xanh trong vùng sáng hoặc bấm nút bên dưới để gửi bút toán!
+                      </p>
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const submitBtn = document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn');
-                    if (submitBtn && !submitBtn.disabled) {
-                      submitBtn.click();
-                    } else {
-                      window.dispatchEvent(new CustomEvent('practice-autofill-interbank-borrowing'));
-                      setTimeout(() => {
-                        const btn = document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn');
-                        if (btn) btn.click();
-                      }, 100);
-                    }
-                  }}
-                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-                >
-                  Xác nhận gửi bút toán (Submit) &rarr;
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const submitBtn = document.getElementById('tour-manual-submit-btn');
+                        if (submitBtn) {
+                          submitBtn.click();
+                        }
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Xác nhận gửi bút toán (Submit) &rarr;
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
