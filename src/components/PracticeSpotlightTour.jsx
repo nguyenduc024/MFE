@@ -1966,7 +1966,7 @@ export default function PracticeSpotlightTour({
     if (currentPath === 'accounting-view-transaction') {
       currentStep = 6;
       totalSteps = 6;
-      targetSelector = '#tour-view-transaction-screen';
+      targetSelector = '#tour-view-transaction-table';
       stepTitle = 'Bước 6 / 6: Hạch toán Vay liên ngân hàng thành công (Mã: a2fbdc3d0f2f - Hình 2)';
       stepSubtitle = 'Giao dịch hạch toán Vay vốn liên ngân hàng 20.000.000 VND đã được ghi nhận vào Sổ cái.';
       stepInstruction = 'Đối soát 2 dòng hạch toán kép: Entry ID 78 (Nợ TK 110201 Settlement Bank Account: VND 20,000,000.00) và Entry ID 79 (Có TK 220401 Interbank Borrowings: VND 20,000,000.00) khớp 100% với Hình 2. Khối Treasury đã tái lập thanh khoản an toàn cho Takashimaya Bank! Nhấn nút "Hoàn thành phần thực hành (Phân hệ 05: Treasury)" bên dưới để kết thúc bài học.';
@@ -4325,9 +4325,11 @@ export default function PracticeSpotlightTour({
       } else if (currentPath === 'accounting-view-transaction') {
         tooltipStyle = {
           position: 'fixed',
-          top: '90px',
-          left: '24px',
-          width: '380px'
+          bottom: '24px',
+          right: '24px',
+          width: '390px',
+          maxHeight: 'calc(100vh - 100px)',
+          overflowY: 'auto'
         };
       } else if (box) {
         tooltipStyle = {

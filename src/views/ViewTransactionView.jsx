@@ -127,7 +127,7 @@ export default function ViewTransactionView({
 
       {/* 3. Bottom Card: Journal Entries Table */}
       <div className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
+        <table id="tour-view-transaction-table" className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-gray-200 text-gray-600 font-medium">
               <th className="py-3.5 px-6 font-medium">Entry ID</th>
