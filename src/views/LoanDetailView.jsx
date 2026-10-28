@@ -42,9 +42,10 @@ export default function LoanDetailView({
 
   const clientDisplayName = client?.displayName || client?.name || loan.clientName || 'Minh Quang Tran';
   const clientAccountNo = client?.accountNo || client?.id || '000000011';
-  const isPending = loan.status?.toLowerCase().includes('pending') || loan.status?.toLowerCase().includes('submitted');
-  const isApproved = loan.status?.toLowerCase().includes('approved') && !loan.status?.toLowerCase().includes('pending');
-  const isActive = loan.status?.toLowerCase().includes('active') || Boolean(loan.disbursementDate && loan.disbursementDate !== 'Not Available');
+  const statusStr = typeof loan.status === 'string' ? loan.status : (loan.status?.value || '');
+  const isPending = statusStr.toLowerCase().includes('pending') || statusStr.toLowerCase().includes('submitted');
+  const isApproved = statusStr.toLowerCase().includes('approved') && !isPending;
+  const isActive = statusStr.toLowerCase().includes('active');
 
   const subTabs = [
     { id: 'general', label: 'General' },

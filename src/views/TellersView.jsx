@@ -15,6 +15,9 @@ export default function TellersView({ tellers, onAllocateCash }) {
     if (selectedTeller && onAllocateCash) {
       onAllocateCash(selectedTeller.id, Number(allocateAmount));
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('practice-teller-cash-allocated', { detail: { amount: Number(allocateAmount) } }));
+    }
     setShowAllocateModal(false);
     alert(`Đã cấp thêm ${Number(allocateAmount).toLocaleString('vi-VN')} VND cho quầy ${selectedTeller?.name}!`);
   };
@@ -35,6 +38,7 @@ export default function TellersView({ tellers, onAllocateCash }) {
 
         <div className="flex items-center space-x-2">
           <button
+            id="tour-teller-header-allocate-btn"
             onClick={() => setShowAllocateModal(true)}
             className="mifos-btn-success px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 shadow-xs"
           >
@@ -70,7 +74,7 @@ export default function TellersView({ tellers, onAllocateCash }) {
 
       {/* Tellers List Table */}
       {activeTab === 'tellers' ? (
-        <div className="mifos-panel overflow-hidden">
+        <div id="tour-teller-table" className="mifos-panel overflow-hidden">
           <table className="w-full text-left mifos-table">
             <thead>
               <tr>
@@ -111,6 +115,7 @@ export default function TellersView({ tellers, onAllocateCash }) {
                         setSelectedTeller(t);
                         setShowAllocateModal(true);
                       }}
+                      id="tour-teller-row-allocate-btn"
                       className="text-xs text-sky-700 hover:text-sky-900 font-bold hover:underline"
                     >
                       Cấp quỹ
@@ -197,6 +202,7 @@ export default function TellersView({ tellers, onAllocateCash }) {
                   min="1000000"
                   step="500000"
                   required
+                  id="tour-teller-allocate-amount"
                   value={allocateAmount}
                   onChange={(e) => setAllocateAmount(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-emerald-600 font-mono text-sm font-bold text-emerald-800"
@@ -216,6 +222,7 @@ export default function TellersView({ tellers, onAllocateCash }) {
                 </button>
                 <button
                   type="submit"
+                  id="tour-teller-allocate-submit"
                   className="mifos-btn-success px-4 py-1.5 rounded font-bold shadow-xs"
                 >
                   Xác nhận cấp tiền

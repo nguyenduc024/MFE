@@ -31,6 +31,8 @@ export default function PracticeSpotlightTour({
   onSelectLoan,
   onApproveLoan,
   onDisburseLoan,
+  tellers = [],
+  onAllocateCash,
   savingsProducts = [],
   fixedDepositProducts = [],
   recurringDepositProducts = [],
@@ -424,6 +426,16 @@ export default function PracticeSpotlightTour({
     if (isActive && module === 'saving-part-4' && (currentPath === 'accounting-journal-entries' || currentPath === 'accounting-journal')) {
       const timer = setTimeout(() => {
         window.dispatchEvent(new CustomEvent('practice-filter-rd-deposit-journal'));
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive, module, currentPath]);
+
+  // Auto-filter treasury journal entries when navigating to journal in treasury-part-1
+  useEffect(() => {
+    if (isActive && module === 'treasury-part-1' && (currentPath === 'accounting-journal-entries' || currentPath === 'accounting-journal')) {
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('practice-filter-treasury-journal'));
       }, 50);
       return () => clearTimeout(timer);
     }
@@ -1762,16 +1774,16 @@ export default function PracticeSpotlightTour({
       l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
     ) || (selectedLoan?.externalId === 'TKB-PL-TDU-001' || selectedLoan?.accountNo === '000000001' ? selectedLoan : null);
     const hasLoanAccountCreated = Boolean(targetLoan);
-    const isLoanApproved = targetLoan && (
-      targetLoan.status === 'Approved' || 
-      (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('approved'))
+    const targetLoanStatus = typeof targetLoan?.status === 'string' ? targetLoan.status : (targetLoan?.status?.value || '');
+    const isLoanPending = hasLoanAccountCreated && (
+      targetLoanStatus.toLowerCase().includes('pending') || targetLoanStatus.toLowerCase().includes('submitted')
     );
-    const isLoanActive = targetLoan && (
-      targetLoan.status === 'Active' || 
-      (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('active')) ||
-      Boolean(targetLoan.disbursementDate && targetLoan.disbursementDate !== 'Not Available')
+    const isLoanApproved = hasLoanAccountCreated && (
+      targetLoanStatus.toLowerCase().includes('approved') && !isLoanPending
     );
-    const isLoanPending = hasLoanAccountCreated && !isLoanApproved && !isLoanActive;
+    const isLoanActive = hasLoanAccountCreated && (
+      targetLoanStatus.toLowerCase().includes('active')
+    );
 
     if (currentPath === 'client-detail') {
       if (hasLoanAccountCreated) {
@@ -1948,6 +1960,44 @@ export default function PracticeSpotlightTour({
       stepTitle = 'Bước 1 / 15: Chuyển đến hồ sơ khách hàng Minh Quang Tran';
       stepSubtitle = 'Mở thông tin chi tiết khách hàng Minh Quang Tran để tiếp nhận hồ sơ vay vốn.';
       stepInstruction = 'Bấm vào nút "Chuyển đến hồ sơ khách hàng Minh Quang Tran" bên dưới để bắt đầu luồng thực hành.';
+    }
+  } else if (module === 'treasury-part-1') {
+    const targetTeller = (tellers || []).find(t => String(t.id) === '1' || t.name?.includes('Thu Duc Teller 01'));
+    const isCashAllocated = Boolean(targetTeller && ((targetTeller.currentCashBalance || 0) > 50000000 || targetTeller.hasAllocated));
+
+    if (currentPath === 'admin-tellers') {
+      const isModalOpen = typeof document !== 'undefined' && Boolean(document.getElementById('tour-teller-allocate-amount'));
+      if (isModalOpen) {
+        currentStep = 3;
+        targetSelector = '#tour-teller-allocate-amount';
+        stepTitle = 'Bước 3 / 5: Nhập hạn mức cấp quỹ đầu ngày (10.000.000 VND)';
+        stepSubtitle = 'Hạn mức tiền mặt phục vụ giao dịch nộp/rút của khách hàng tại quầy.';
+        stepInstruction = 'Nhập số tiền "10000000" (10.000.000 VND) và nhấn nút "Xác nhận cấp tiền" màu xanh bên dưới form để điều chuyển từ Kho quỹ sang Quầy giao dịch.';
+      } else if (isCashAllocated) {
+        currentStep = 4;
+        targetSelector = '#tour-teller-table';
+        stepTitle = 'Bước 4 / 5: Cấp quỹ thành công - Chuyển sang đối soát Sổ cái GL';
+        stepSubtitle = 'Bàn thu ngân Thu Duc Teller 01 đã tiếp nhận đủ 10.000.000 VND tiền mặt đầu ngày.';
+        stepInstruction = 'Hệ thống đã tự động ghi nhận số dư tiền mặt tại quầy và sinh cặp bút toán định khoản kế toán kép. Nhấn nút "Đến Sổ Nhật ký chung (Journal Entries)" bên dưới để kiểm tra và đối soát cặp bút toán này.';
+      } else {
+        currentStep = 2;
+        targetSelector = '#tour-teller-row-allocate-btn';
+        stepTitle = 'Bước 2 / 5: Chọn bàn thu ngân & Cấp quỹ (Allocate Cash)';
+        stepSubtitle = 'Điều chuyển tiền mặt từ Kho tiền chi nhánh sang Quỹ quầy thu ngân.';
+        stepInstruction = 'Tại danh sách Tellers, tìm bàn thu ngân "Thu Duc Teller 01" (Phòng giao dịch Thủ Đức, Giao dịch viên Dang, Quan). Nhấp vào nút "Cấp quỹ" (Allocate Cash) ở cột Hành động.';
+      }
+    } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
+      currentStep = 5;
+      targetSelector = '#tour-journal-entry-treasury';
+      stepTitle = 'Bước 5 / 5: Đối soát cặp bút toán Ngân quỹ tự động (Entry ID 59 & 60)';
+      stepSubtitle = 'Bút toán điều chuyển tiền mặt từ Vault sang Teller với Transaction ID 65db3dd830c0e06.';
+      stepInstruction = 'Hệ thống đã tự động lọc ngày giao dịch 01/08/2026 - 31/10/2026 cho Phòng giao dịch Thủ Đức. Đối soát 2 dòng bút toán màu tím nổi bật: Entry 59 Nợ TK 110102 (Cash at Teller) 10.000.000 VND và Entry 60 Có TK 110101 (Cash at Vault) 10.000.000 VND. Nhấn nút "Hoàn thành phần thực hành (Phân hệ 05: Treasury)" bên dưới để kết thúc bài học!';
+    } else {
+      currentStep = 1;
+      targetSelector = '#sidebar-item-admin-tellers';
+      stepTitle = 'Bước 1 / 5: Mở Phân hệ Quản lý Ngân quỹ (Cash Management)';
+      stepSubtitle = 'Truy cập màn hình quản lý bàn thu ngân (Tellers) và nhân viên thu ngân (Cashiers).';
+      stepInstruction = 'Nhấp vào biểu tượng máy tính / ngân quỹ trên thanh Sidebar bên trái (hoặc bấm nút "Mở Cash Management" bên dưới) để truy cập danh sách Tellers.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -7680,16 +7730,16 @@ export default function PracticeSpotlightTour({
               const targetLoan = (loans || []).find(
                 l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
               ) || selectedLoan;
-              const isLoanApproved = targetLoan && (
-                targetLoan.status === 'Approved' || 
-                (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('approved'))
+              const targetLoanStatus = typeof targetLoan?.status === 'string' ? targetLoan.status : (targetLoan?.status?.value || '');
+              const isLoanPending = Boolean(targetLoan) && (
+                targetLoanStatus.toLowerCase().includes('pending') || targetLoanStatus.toLowerCase().includes('submitted')
               );
-              const isLoanActive = targetLoan && (
-                targetLoan.status === 'Active' || 
-                (typeof targetLoan.status === 'string' && targetLoan.status.toLowerCase().includes('active')) ||
-                Boolean(targetLoan.disbursementDate && targetLoan.disbursementDate !== 'Not Available')
+              const isLoanApproved = Boolean(targetLoan) && (
+                targetLoanStatus.toLowerCase().includes('approved') && !isLoanPending
               );
-              const isLoanPending = Boolean(targetLoan) && !isLoanApproved && !isLoanActive;
+              const isLoanActive = Boolean(targetLoan) && (
+                targetLoanStatus.toLowerCase().includes('active')
+              );
 
               if (isLoanPending) {
                 const hasApproveOption = typeof document !== 'undefined' && Boolean(document.getElementById('tour-loan-action-approve-btn'));
@@ -7799,6 +7849,102 @@ export default function PracticeSpotlightTour({
                   className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
                   Xác nhận giải ngân khoản vay (Submit) &rarr;
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Module 05: Treasury (Quản lý Ngân quỹ & Điều chuyển tiền mặt Vault - Teller) */}
+        {module === 'treasury-part-1' && (
+          <div className="space-y-2 mt-2">
+            {/* If outside Cash Management and outside Journal */}
+            {currentPath !== 'admin-tellers' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-journal-entries' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigate) navigate('admin-tellers');
+                }}
+                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+              >
+                Mở Cash Management (Tellers &amp; Quầy thu ngân) &rarr;
+              </button>
+            )}
+
+            {/* In Cash Management (admin-tellers) */}
+            {currentPath === 'admin-tellers' && (() => {
+              const targetTeller = (tellers || []).find(t => String(t.id) === '1' || t.name?.includes('Thu Duc Teller 01'));
+              const isAllocated = Boolean(targetTeller && ((targetTeller.currentCashBalance || 0) > 50000000 || targetTeller.hasAllocated));
+
+              if (isAllocated) {
+                return (
+                  <div className="space-y-2">
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
+                      Đã cấp quỹ <strong>10.000.000 VND</strong> thành công cho bàn thu ngân <strong>Thu Duc Teller 01</strong>!
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigate) navigate('accounting-journal');
+                        window.dispatchEvent(new CustomEvent('practice-filter-treasury-journal'));
+                      }}
+                      className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                    >
+                      Đến Sổ Nhật ký chung (Journal Entries) đối soát &rarr;
+                    </button>
+                  </div>
+                );
+              }
+
+              const isModalInDOM = typeof document !== 'undefined' && Boolean(document.getElementById('tour-teller-allocate-amount'));
+              if (isModalInDOM) {
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('tour-teller-allocate-amount');
+                      if (input) {
+                        input.value = '10000000';
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                      }
+                      const submitBtn = document.getElementById('tour-teller-allocate-submit');
+                      if (submitBtn) submitBtn.click();
+                    }}
+                    className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                  >
+                    Tự động điền 10.000.000 VND &amp; Xác nhận cấp tiền &rarr;
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const allocateBtn = document.getElementById('tour-teller-row-allocate-btn') || document.getElementById('tour-teller-header-allocate-btn');
+                    if (allocateBtn) allocateBtn.click();
+                  }}
+                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Mở cửa sổ Cấp quỹ bàn thu ngân Thu Duc Teller 01 &rarr;
+                </button>
+              );
+            })()}
+
+            {/* In Journal Entries (accounting-journal) */}
+            {(currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && (
+              <div className="space-y-2">
+                <div className="p-2.5 bg-purple-50 border border-purple-200 rounded-[2px] text-[11px] text-purple-900 leading-tight">
+                  Quan sát cặp bút toán đối ứng: <strong>Entry 59</strong> (Nợ TK 110102 Cash at Teller: 10.000.000 VND) và <strong>Entry 60</strong> (Có TK 110101 Cash at Vault: 10.000.000 VND) với Transaction ID <strong>65db3dd830c0e06</strong>.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Hoàn thành phần thực hành (Phân hệ 05: Treasury)
                 </button>
               </div>
             )}
@@ -8809,6 +8955,8 @@ export default function PracticeSpotlightTour({
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
               : (module === 'saving-part-1' && fixedDepositProducts.some(p => p.shortName === 'TKFD'))
               ? 'Nhấn nút "Hoàn thành phần thực hành" phía trên để kết thúc'
+              : (module === 'treasury-part-1' && (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries'))
+              ? 'Nhấn nút "Hoàn thành phần thực hành (Phân hệ 05: Treasury)" phía trên để kết thúc'
               : (module === 'casa-part-5' && currentStep === 7)
               ? 'Nhấn nút "Hoàn tất bài thực hành Chuyển khoản nội bộ" phía trên để kết thúc'
               : (module === 'casa-part-4' && currentStep === 5)

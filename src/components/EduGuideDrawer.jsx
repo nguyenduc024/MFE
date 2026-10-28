@@ -46,7 +46,10 @@ export default function EduGuideDrawer({
   loanProducts = [],
   onResetLoanProducts,
   loans = [],
-  onResetLoanAccounts
+  onResetLoanAccounts,
+  tellers = [],
+  onResetTellers,
+  hasCheckedTreasuryJournal = false
 }) {
   const [activePartId, setActivePartId] = useState('part-1');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -284,11 +287,14 @@ export default function EduGuideDrawer({
       l => l.externalId === 'TKB-PL-TDU-001' || l.accountNo === '000000001'
     );
     if (!loan) return 0;
-    const isApproved = loan.status === 'Approved' || (typeof loan.status === 'string' && loan.status.toLowerCase().includes('approved'));
-    const isActive = loan.status === 'Active' || (typeof loan.status === 'string' && loan.status.toLowerCase().includes('active')) || Boolean(loan.disbursementDate && loan.disbursementDate !== 'Not Available');
+    const statusStr = typeof loan.status === 'string' ? loan.status : (loan.status?.value || '');
+    const isPending = statusStr.toLowerCase().includes('pending') || statusStr.toLowerCase().includes('submitted');
+    const isApproved = statusStr.toLowerCase().includes('approved') && !isPending;
+    const isActive = statusStr.toLowerCase().includes('active');
     if (isActive) return 100;
     if (isApproved) return 75;
-    return 50;
+    if (isPending) return 50;
+    return 0;
   };
 
   const calculateLoanPart1Progress = () => {
@@ -3756,6 +3762,160 @@ export default function EduGuideDrawer({
           </div>
         )}
 
+        {/* Phân hệ 05: Treasury / Quản lý Ngân quỹ & Điều chuyển tiền mặt Kho - Quầy */}
+        {activePartId === 'treasury-part-1' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1072ba]">
+                Phân hệ 05: Treasury &bull; Phần 1
+              </span>
+              <h2 className="text-base font-bold text-gray-900 mt-0.5">
+                Quản Lý Ngân Quỹ &amp; Điều Chuyển Tiền Mặt Kho Quỹ - Quầy Giao Dịch (Vault to Teller Cash Allocation)
+              </h2>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Nghiệp vụ cốt lõi của phân hệ Quản lý Ngân quỹ (Treasury / Cash Management) trong hệ thống Core Banking Mifos X: Cấu hình bàn thu ngân, phân bổ nhân viên giao dịch (Cashier), thực hiện cấp hạn mức tiền mặt đầu ngày (Allocate Cash) từ Kho tiền chi nhánh sang Quỹ quầy giao dịch viên và đối soát cặp bút toán hạch toán tự động trong Sổ Nhật ký chung (Journal Entries).
+              </p>
+            </div>
+
+            {/* Mục tiêu đào tạo */}
+            <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-2">
+              <div className="font-semibold text-xs text-[#1072ba]">Mục tiêu thực hành:</div>
+              <ul className="text-xs text-gray-700 space-y-1.5 list-disc pl-4 leading-relaxed">
+                <li>Hiểu rõ cơ chế quản lý tiền mặt phân tầng trong ngân hàng: <strong>Kho quỹ (Vault - TK 110101)</strong> và <strong>Quầy giao dịch (Teller - TK 110102)</strong>.</li>
+                <li>Thực hiện phân bổ hạn mức tiền mặt đầu ngày (Cash Allocation) số tiền <strong>10.000.000 VND</strong> cho bàn thu ngân <strong>Thu Duc Teller 01</strong> tại Phòng Giao Dịch Thủ Đức.</li>
+                <li>Nắm vững quy tắc Dual Control (Kiểm soát kép): Kiểm soát viên / Thủ kho duyệt xuất tiền mặt từ Vault, Giao dịch viên tiếp nhận vào số dư quỹ quầy để bắt đầu phiên làm việc phục vụ nộp/rút tiền của khách hàng.</li>
+                <li>Tra cứu Sổ Nhật ký chung (Journal Entries), áp dụng bộ lọc ngày giao dịch phù hợp (tháng 08 - tháng 10/2026) và đối soát chuẩn xác cặp bút toán hạch toán kép tự động sinh: <strong>Entry ID 59</strong> (Nợ TK 110102) và <strong>Entry ID 60</strong> (Có TK 110101).</li>
+              </ul>
+            </div>
+
+            {/* Bảng thông số thực hành chi tiết */}
+            <div className="space-y-2">
+              <div className="font-semibold text-xs text-gray-800">
+                Bảng Thông Số Nghiệp Vụ Cấp Quỹ Ngân Quỹ:
+              </div>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+                      <th className="py-2 px-3 border-r border-gray-200 w-1/3">Tham số (Parameter)</th>
+                      <th className="py-2 px-3">Giá trị chuẩn bài tập thực hành</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700">
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Chi nhánh / PGD áp dụng</td>
+                      <td className="py-2 px-3 font-semibold text-gray-900">Thu Duc Transaction Office</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tên bàn thu ngân (Teller)</td>
+                      <td className="py-2 px-3 font-semibold text-[#1072ba]">Thu Duc Teller 01</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Giao dịch viên phụ trách (Cashier)</td>
+                      <td className="py-2 px-3 font-medium text-gray-800">Dang, Quan (Staff #1 / tkb.tre.teller01)</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Hạn mức tiền mặt cấp đầu ngày</td>
+                      <td className="py-2 px-3 font-mono font-bold text-emerald-700">10,000,000 VND</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Mã giao dịch hạch toán (Tx ID)</td>
+                      <td className="py-2 px-3 font-mono font-semibold text-purple-800">65db3dd830c0e06</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Ngày giao dịch hạch toán (Tx Date)</td>
+                      <td className="py-2 px-3 font-mono text-gray-800">06 August 2026 (Submitted on 13 October 2026)</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tài khoản Nợ (Debit Account)</td>
+                      <td className="py-2 px-3 text-purple-900 font-medium">110102 - Cash at Teller (+10.000.000 VND, Entry 59)</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tài khoản Có (Credit Account)</td>
+                      <td className="py-2 px-3 text-purple-900 font-medium">110101 - Cash at Vault (-10.000.000 VND, Entry 60)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Các bước thực hành chi tiết */}
+            <div className="space-y-3 text-xs">
+              <div className="font-semibold text-gray-800">Quy Trình Các Bước Thực Hành:</div>
+
+              {/* Bước 1 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span>Truy Cập Màn Hình Cash Management (Tellers &amp; Quầy Thu Ngân)</span>
+                </div>
+                <p className="text-gray-600 pl-6 leading-relaxed">
+                  Từ thanh công cụ Sidebar bên trái, nhấn vào biểu tượng <strong>Máy tính / Ngân quỹ</strong> (hoặc truy cập qua <em>Admin &rarr; Organization &rarr; Teller / Cashier Management</em>). Màn hình hiển thị danh sách các bàn thu ngân được cấu hình trong toàn hệ thống.
+                </p>
+              </div>
+
+              {/* Bước 2 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span>Chọn Bàn Thu Ngân &amp; Mở Cửa Sổ Cấp Quỹ (Allocate Cash)</span>
+                </div>
+                <p className="text-gray-600 pl-6 leading-relaxed">
+                  Tại dòng bàn thu ngân <strong>Thu Duc Teller 01</strong> (thuộc chi nhánh <em>Thu Duc Transaction Office</em>, phụ trách bởi nhân sự <em>Dang, Quan</em>), nhấn nút <strong>Cấp quỹ</strong> (hoặc nhấn nút <em>Allocate Cash</em> ở góc trên bên phải). Cửa sổ phân bổ tiền mặt đầu ngày sẽ xuất hiện.
+                </p>
+              </div>
+
+              {/* Bước 3 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Nhập Hạn Mức Tiền Mặt Cấp Quỹ Đầu Ngày (10.000.000 VND)</span>
+                </div>
+                <p className="text-gray-600 pl-6 leading-relaxed">
+                  Nhập giá trị số tiền cấp: <strong>10000000</strong> (10.000.000 VND). Nhấn <strong>Xác nhận cấp tiền</strong>. Hệ thống ghi nhận hạn mức tiền mặt tại quầy tăng thêm 10.000.000 VND và tự động sinh bút toán kế toán chuyển nguồn từ Kho tiền sang Quỹ quầy.
+                </p>
+              </div>
+
+              {/* Bước 4 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span>Chuyển Sang Màn Hình Search Journal Entries &amp; Lọc Khoảng Ngày</span>
+                </div>
+                <p className="text-gray-600 pl-6 leading-relaxed">
+                  Điều hướng đến <em>Accounting &rarr; Search Journal Entries</em> (hoặc nhấn nút phím tắt bên dưới). Đặt bộ lọc:
+                  <br />
+                  &bull; <strong>Transaction Date From:</strong> <span className="font-mono font-medium text-gray-800">08/01/2026</span> (hoặc để trống khi lọc tất cả).
+                  <br />
+                  &bull; <strong>Transaction Date To:</strong> <span className="font-mono font-medium text-gray-800">10/31/2026</span>.
+                  <br />
+                  &bull; <strong>Office Name:</strong> <span className="font-medium text-gray-800">Thu Duc Transaction Office</span> (hoặc All Offices).
+                  <br />
+                  Nhấn <strong>Apply Filter</strong>.
+                </p>
+              </div>
+
+              {/* Bước 5 */}
+              <div className="p-3 bg-purple-50/70 border border-purple-200 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-purple-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-purple-700 text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Đối Soát Cặp Bút Toán Kế Toán Ngân Quỹ Sinh Tự Động (Entry 59 &amp; 60)</span>
+                </div>
+                <div className="text-gray-700 pl-6 space-y-1.5 leading-relaxed">
+                  <p>Hệ thống Mifos X hiển thị cặp bút toán được đánh dấu nổi bật màu tím với mã giao dịch <strong>65db3dd830c0e06</strong>:</p>
+                  <div className="p-2 bg-white rounded border border-purple-100 font-mono text-[11px] space-y-1">
+                    <div className="text-purple-900 font-semibold">&bull; Entry ID 59: Nợ TK 110102 (Cash at Teller) - 10,000,000.00 VND</div>
+                    <div className="text-purple-900 font-semibold">&bull; Entry ID 60: Có TK 110101 (Cash at Vault) - 10,000,000.00 VND</div>
+                  </div>
+                  <p className="text-[11px] text-gray-600">
+                    Bút toán đã cân đối hoàn hảo (Tổng Nợ = Tổng Có = 10.000.000 VND), phản ánh chính xác sự dịch chuyển dòng tiền mặt vật lý trong kho tiền của chi nhánh.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Nút hành động ở chân bài học */}
         <div className="pt-2">
           {activePartId === 'gl-part-1' ? (
@@ -4566,6 +4726,62 @@ export default function EduGuideDrawer({
               >
                 Bắt Đầu Thực Hành Tiếp Nhận &amp; Phê Duyệt Hồ Sơ Vay Vốn
               </button>
+            )
+          ) : activePartId === 'treasury-part-1' ? (
+            isTreasuryPart1Complete ? (
+              <div className="space-y-2">
+                <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
+                  <span>Đã hoàn thành 100% Phân hệ 05: Treasury - Điều chuyển tiền mặt và đối soát Sổ cái!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting-journal');
+                    window.dispatchEvent(new CustomEvent('practice-filter-treasury-journal'));
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Xem lại bút toán đối soát Ngân quỹ (Journal Entries)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onResetTellers) onResetTellers();
+                    if (onStartPractice) {
+                      onStartPractice('treasury-part-1');
+                    }
+                  }}
+                  className="w-full py-1.5 px-4 bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Làm lại phần thực hành này
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onStartPractice) {
+                      onStartPractice('treasury-part-1');
+                    }
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Bắt Đầu Thực Hành Phân Hệ Treasury
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting-journal');
+                    window.dispatchEvent(new CustomEvent('practice-filter-treasury-journal'));
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Xem &amp; Đối Soát Bút Toán Ngân Quỹ (Journal Entries)
+                </button>
+              </div>
             )
           ) : activePartId === 'casa-part-5' ? (
             isCasaPart5Complete ? (

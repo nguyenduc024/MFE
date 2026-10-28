@@ -59,6 +59,7 @@ export default function Sidebar({
           return (
             <button
               key={idx}
+              id={`sidebar-item-${item.id}`}
               onClick={() => {
                 if (item.action) {
                   item.action();

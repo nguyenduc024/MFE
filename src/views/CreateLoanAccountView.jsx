@@ -586,7 +586,8 @@ export default function CreateLoanAccountView({
       amountPaid: 0,
       status: 'Submitted and pending approval',
       submittedDate: formData.submittedOnDate || '10/14/2026',
-      disbursementDate: formData.disbursementOnDate || '10/14/2026',
+      expectedDisbursementDate: formData.disbursementOnDate || '10/14/2026',
+      disbursementDate: null,
       schedule: SAMPLE_REPAYMENT_SCHEDULE
     };
 

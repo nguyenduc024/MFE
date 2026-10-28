@@ -1442,7 +1442,7 @@ export default function App() {
             onSubmitLoanAccount={(newAccount) => {
               setLoans(prev => [newAccount, ...prev.filter(l => l.accountNo !== newAccount.accountNo)]);
               setSelectedLoan(newAccount);
-              navigate('client-detail');
+              navigate('loan-detail');
             }}
           />
         )}
@@ -1955,8 +1955,13 @@ export default function App() {
             }
             setCurrentPath('client-detail');
           }
+          if (targetModule === 'treasury-part-1') {
+            setCurrentPath('admin-tellers');
+          }
           setPracticeActive(true);
         }}
+        tellers={tellers}
+        onResetTellers={() => setTellers(INITIAL_TELLERS)}
         loanProducts={loanProducts}
         loans={loans}
         selectedLoan={selectedLoan}
@@ -2076,6 +2081,8 @@ export default function App() {
         offices={offices}
         currencies={currencies}
         glAccounts={glAccounts}
+        tellers={tellers}
+        onAllocateCash={handleAllocateCash}
         loanProducts={loanProducts}
         loans={loans}
         selectedLoan={selectedLoan}

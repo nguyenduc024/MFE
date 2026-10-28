@@ -2415,5 +2415,17 @@ export const EDU_MODULES = [
     objective: "Thực hiện nghiệp vụ tiếp nhận hồ sơ vay vốn cá nhân cho khách hàng Minh Quang Tran (CIF: TKB-CIF-TDU-001) với sản phẩm TKB Personal Loan, số tiền vay 10.000.000 VND, kỳ hạn 12 tháng, lãi suất 12%/năm theo dư nợ giảm dần. Mở DevTools F12 Console chạy đoạn script workaround loại bỏ tham số không hỗ trợ allowPartialPeriodInterestCalculation để sinh bảng lịch trả nợ 12 kỳ hoàn chỉnh và hoàn tất gửi hồ sơ vay vốn.",
     targetMenu: "clients",
     subPath: "create-loan-account"
+  },
+  {
+    id: "treasury-part-1",
+    moduleNumber: "05",
+    moduleTitle: "Phân hệ 05: Treasury",
+    partNumber: "1",
+    name: "Phần 1: Quản Lý Ngân Quỹ & Điều Chuyển Tiền Mặt Kho - Quầy (Vault to Teller Cash Allocation)",
+    shortLabel: "Phần 1: Quản lý ngân quỹ & Điều chuyển tiền mặt",
+    title: "Quản Lý Ngân Quỹ & Điều Chuyển Tiền Mặt Kho Quỹ - Quầy Giao Dịch (Vault to Teller Cash Allocation)",
+    objective: "Thực hiện nghiệp vụ quản lý ngân quỹ (Cash Management) tại Phòng Giao Dịch Thủ Đức (Thu Duc Transaction Office). Khởi tạo và kích hoạt bàn thu ngân Thu Duc Teller 01, thực hiện điều chuyển/cấp tiền mặt đầu ngày 10.000.000 VND từ Kho tiền (TK 110101 Cash at Vault) sang Bàn thu ngân (TK 110102 Cash at Teller), và đối soát cặp bút toán tự động trên Sổ Nhật ký chung (Journal Entries: Entry ID 59 & 60).",
+    targetMenu: "admin-tellers",
+    subPath: "tellers"
   }
 ];

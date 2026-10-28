@@ -1,3 +1,4 @@
+import { ALL_JOURNAL_ENTRIES } from '../data/allJournalEntries';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Plus } from 'lucide-react';
 
@@ -257,6 +258,7 @@ export default function JournalEntriesView({
 
   // Filter trigger state
   const [isFiltered, setIsFiltered] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const officeRef = useRef(null);
   const glRef = useRef(null);
@@ -310,25 +312,48 @@ export default function JournalEntriesView({
       setIsFiltered(true);
     };
 
+    const handleFilterTreasury = () => {
+      setSelectedOffice('Thu Duc Transaction Office');
+      setTxDateFrom('08/01/2026');
+      setTxDateTo('10/31/2026');
+      setIsFiltered(true);
+      setCurrentPage(1);
+    };
+
     window.addEventListener('practice-filter-journal-dates', handleFilterDates);
     window.addEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
     window.addEventListener('practice-filter-transfer-journal', handleFilterTransfer);
     window.addEventListener('practice-filter-rd-deposit-journal', handleFilterRdDeposit);
+    window.addEventListener('practice-filter-treasury-journal', handleFilterTreasury);
     return () => {
       window.removeEventListener('practice-filter-journal-dates', handleFilterDates);
       window.removeEventListener('practice-filter-manual-journal-dates', handleFilterManualDates);
       window.removeEventListener('practice-filter-transfer-journal', handleFilterTransfer);
       window.removeEventListener('practice-filter-rd-deposit-journal', handleFilterRdDeposit);
+      window.removeEventListener('practice-filter-treasury-journal', handleFilterTreasury);
     };
   }, []);
 
-  // Computed displayed entries
-  const displayedEntries = useMemo(() => {
-    // Only display entries if submitted and filtered with valid date range
-    if (!isFiltered && (!txDateFrom || !txDateTo)) {
-      return [];
+    // Date parser helper
+  const parseDate = (str) => {
+    if (!str) return null;
+    const trimmed = String(str).trim();
+    const parts = trimmed.split(/[\/\-]/);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+      if (parseInt(parts[0], 10) > 12) {
+        return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      }
+      return new Date(parseInt(parts[2], 10), parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
     }
+    const d = new Date(trimmed);
+    return isNaN(d.getTime()) ? null : d;
+  };
 
+  // Combine custom user-created entries with the full 71 database entries
+  const allSourceEntries = useMemo(() => {
     const customFlattened = (customJournalEntries || []).flatMap((rec) => {
       const rows = [];
       const isManualOpex = rec.referenceNumber === 'TKB-OPEX-202610-001' || String(rec.id).includes('OPEX') || rec.comments?.includes('OPEX');
@@ -339,16 +364,19 @@ export default function JournalEntriesView({
           office: rec.office,
           txId: rec.referenceNumber || `TX-${rec.id}`,
           txDate: rec.txDate,
+          rawTxDate: rec.txDate,
           type: d.type || 'ASSET',
           createdBy: 'mifos',
           submittedDate: rec.submittedDate || rec.txDate,
+          rawSubmittedDate: rec.submittedDate || rec.txDate,
           glCode: d.glCode,
           glName: d.name,
           currency: rec.currency,
           debit: d.amount,
           credit: null,
           isManualTarget: isManualOpex,
-          isRdDepositTarget: isRdDeposit
+          isRdDepositTarget: isRdDeposit,
+          isManual: true
         });
       });
       (rec.credits || []).forEach((c, cIdx) => {
@@ -357,27 +385,89 @@ export default function JournalEntriesView({
           office: rec.office,
           txId: rec.referenceNumber || `TX-${rec.id}`,
           txDate: rec.txDate,
+          rawTxDate: rec.txDate,
           type: c.type || 'LIABILITY',
           createdBy: 'mifos',
           submittedDate: rec.submittedDate || rec.txDate,
+          rawSubmittedDate: rec.submittedDate || rec.txDate,
           glCode: c.glCode,
           glName: c.name,
           currency: rec.currency,
           debit: null,
           credit: c.amount,
           isManualTarget: isManualOpex,
-          isRdDepositTarget: isRdDeposit
+          isRdDepositTarget: isRdDeposit,
+          isManual: true
         });
       });
       return rows;
     });
 
-    return [
-      ...customFlattened,
-      ...OPENING_BALANCE_MIGRATION_ENTRIES,
-      ...SCREENSHOT_SAMPLE_JOURNAL_ENTRIES
-    ];
-  }, [isFiltered, txDateFrom, txDateTo, customJournalEntries]);
+    return [...customFlattened, ...ALL_JOURNAL_ENTRIES];
+  }, [customJournalEntries]);
+
+  // Filter entries based on form filters
+  const filteredEntries = useMemo(() => {
+    if (!isFiltered && (!txDateFrom || !txDateTo)) {
+      return [];
+    }
+
+    const fromDate = parseDate(txDateFrom);
+    const toDate = parseDate(txDateTo);
+    const subFromDate = parseDate(submittedDateFrom);
+    const subToDate = parseDate(submittedDateTo);
+
+    return allSourceEntries.filter((item) => {
+      if (selectedOffice && !item.office.toLowerCase().includes(selectedOffice.toLowerCase())) {
+        return false;
+      }
+      if (selectedGlAccount) {
+        const matchesGl = selectedGlAccount.includes(item.glCode) ||
+          item.glName.toLowerCase().includes(selectedGlAccount.toLowerCase());
+        if (!matchesGl) return false;
+      }
+      if (transactionId && !item.txId.toLowerCase().includes(transactionId.toLowerCase().trim())) {
+        return false;
+      }
+      if (filterType === 'Manual Entries' && !item.isManual) {
+        return false;
+      }
+      if (filterType === 'System Entries' && item.isManual) {
+        return false;
+      }
+      if (fromDate || toDate) {
+        const itemDate = parseDate(item.rawTxDate || item.txDate);
+        if (itemDate) {
+          if (fromDate && itemDate.getTime() < fromDate.getTime() - 86400000) {
+            return false;
+          }
+          if (toDate && itemDate.getTime() > toDate.getTime() + 86400000) {
+            return false;
+          }
+        }
+      }
+      if (subFromDate || subToDate) {
+        const itemSubDate = parseDate(item.rawSubmittedDate || item.submittedDate);
+        if (itemSubDate) {
+          if (subFromDate && itemSubDate.getTime() < subFromDate.getTime() - 86400000) {
+            return false;
+          }
+          if (subToDate && itemSubDate.getTime() > subToDate.getTime() + 86400000) {
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+  }, [allSourceEntries, isFiltered, txDateFrom, txDateTo, submittedDateFrom, submittedDateTo, selectedOffice, selectedGlAccount, transactionId, filterType]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / itemsPerPage));
+  const pagedEntries = useMemo(() => {
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    return filteredEntries.slice(startIdx, startIdx + itemsPerPage);
+  }, [filteredEntries, currentPage, itemsPerPage]);
+
+  const displayedEntries = pagedEntries;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
@@ -791,9 +881,38 @@ export default function JournalEntriesView({
                   </tbody>
                 )}
 
+                {/* Treasury Target Entries (Phân hệ 05: Treasury - Điều chuyển tiền mặt Vault -> Teller) */}
+                {displayedEntries.some(item => item.id === '59' || item.id === '60' || item.isTreasuryTarget) && (
+                  <tbody id="tour-journal-entry-treasury" className="border-b-2 border-purple-500">
+                    {displayedEntries.filter(item => item.id === '59' || item.id === '60' || item.isTreasuryTarget).map((item, index) => (
+                      <tr
+                        key={`treasury-${item.id}-${item.glCode}-${index}`}
+                        className="border-b border-purple-100 bg-purple-50/70 hover:bg-purple-100/60 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-mono text-[11px] font-semibold text-purple-900">{item.txId}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-semibold text-purple-700">{item.glCode}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glName}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
+
                 {/* Other standard screenshot journal entries */}
                 <tbody>
-                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68' && !item.isRdDepositTarget && item.txId !== 'RD4' && item.id !== '85' && item.id !== '86').map((item, index) => (
+                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68' && !item.isRdDepositTarget && item.txId !== 'RD4' && item.id !== '85' && item.id !== '86' && !item.isTreasuryTarget && item.id !== '59' && item.id !== '60').map((item, index) => (
                     <tr
                       key={`${item.id}-${item.glCode}-${index}`}
                       className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
@@ -856,39 +975,43 @@ export default function JournalEntriesView({
 
             {/* Range display */}
             <div>
-              {displayedEntries.length === 0 ? '0 – 0 of 0' : `1 – ${displayedEntries.length} of ${displayedEntries.length}`}
+              {filteredEntries.length === 0 ? '0 – 0 of 0' : `${(currentPage - 1) * itemsPerPage + 1} – ${Math.min(currentPage * itemsPerPage, filteredEntries.length)} of ${filteredEntries.length}`}
             </div>
 
             {/* Page navigation buttons */}
-            <div className="flex items-center space-x-2 text-gray-400">
+            <div className="flex items-center space-x-2 text-gray-500">
               <button
                 type="button"
-                disabled
-                className="p-1 cursor-not-allowed hover:text-gray-400"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className={`p-1 ${currentPage === 1 ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer hover:text-gray-700'}`}
                 title="First Page"
               >
                 <ChevronsLeft className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                disabled
-                className="p-1 cursor-not-allowed hover:text-gray-400"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={`p-1 ${currentPage === 1 ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer hover:text-gray-700'}`}
                 title="Previous Page"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                disabled
-                className="p-1 cursor-not-allowed hover:text-gray-400"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={`p-1 ${currentPage >= totalPages ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer hover:text-gray-700'}`}
                 title="Next Page"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                disabled
-                className="p-1 cursor-not-allowed hover:text-gray-400"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className={`p-1 ${currentPage >= totalPages ? 'cursor-not-allowed text-gray-300' : 'cursor-pointer hover:text-gray-700'}`}
                 title="Last Page"
               >
                 <ChevronsRight className="w-4 h-4" />
