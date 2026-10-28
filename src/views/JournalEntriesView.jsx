@@ -313,7 +313,7 @@ export default function JournalEntriesView({
     };
 
     const handleFilterTreasury = () => {
-      setSelectedOffice('Thu Duc Transaction Office');
+      setSelectedOffice('');
       setTxDateFrom('08/01/2026');
       setTxDateTo('10/31/2026');
       setIsFiltered(true);
@@ -498,6 +498,7 @@ export default function JournalEntriesView({
         </div>
         <button
           type="button"
+          id="tour-journal-add-btn"
           onClick={() => navigate && navigate('accounting-create-journal')}
           className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors"
         >
@@ -910,9 +911,59 @@ export default function JournalEntriesView({
                   </tbody>
                 )}
 
+                {/* Interbank Borrowing Target Entries (Phân hệ 05: Treasury - Vay vốn liên ngân hàng 20M VND) */}
+                {displayedEntries.some(item => item.id === '78' || item.id === '79' || item.txId === 'a2fbdc3d0f2f' || item.isTreasuryInterbankTarget) && (
+                  <tbody id="tour-journal-entry-interbank" className="border-b-2 border-emerald-500">
+                    {displayedEntries.filter(item => item.id === '78' || item.id === '79' || item.txId === 'a2fbdc3d0f2f' || item.isTreasuryInterbankTarget).map((item, index) => (
+                      <tr
+                        key={`interbank-${item.id}-${item.glCode}-${index}`}
+                        className="border-b border-emerald-100 bg-emerald-50/70 hover:bg-emerald-100/60 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.id}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.office}</td>
+                        <td 
+                          onClick={() => {
+                            if (navigate) {
+                              navigate('accounting-view-transaction', {
+                                transaction: {
+                                  id: 'a2fbdc3d0f2f',
+                                  officeName: 'Takashimaya Bank (TKB) - HO',
+                                  transactionDate: '14 October 2026',
+                                  createdBy: 'mifos',
+                                  submittedOn: '15 October 2026 00:00:00',
+                                  entries: [
+                                    { id: '78', type: 'ASSET', accountCode: '110201', accountName: 'Settlement Bank Account', debit: 'VND 20,000,000.00', credit: '' },
+                                    { id: '79', type: 'LIABILITY', accountCode: '220401', accountName: 'Interbank Borrowings', debit: '', credit: 'VND 20,000,000.00' }
+                                  ]
+                                }
+                              });
+                            }
+                          }}
+                          className="py-2.5 px-3 font-normal text-[#1072ba] hover:underline cursor-pointer font-mono text-[11px] font-semibold"
+                        >
+                          {item.txId}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.txDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800">{item.type}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.createdBy}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700 whitespace-nowrap">{item.submittedDate}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-semibold text-emerald-700">{item.glCode}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-800 font-medium">{item.glName}</td>
+                        <td className="py-2.5 px-3 font-normal text-gray-700">{item.currency}</td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.debit ? item.debit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                        <td className="py-2.5 px-3 font-normal text-right text-gray-900 font-mono font-semibold">
+                          {item.credit ? item.credit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
+
                 {/* Other standard screenshot journal entries */}
                 <tbody>
-                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68' && !item.isRdDepositTarget && item.txId !== 'RD4' && item.id !== '85' && item.id !== '86' && !item.isTreasuryTarget && item.id !== '59' && item.id !== '60').map((item, index) => (
+                  {displayedEntries.filter(item => !item.isTarget && !item.isManualTarget && item.txId !== 'TKB-OPEX-202610-001' && !item.isTransferTarget && item.txId !== 'S3' && item.txId !== 'S4' && item.id !== '65' && item.id !== '66' && item.id !== '67' && item.id !== '68' && !item.isRdDepositTarget && item.txId !== 'RD4' && item.id !== '85' && item.id !== '86' && !item.isTreasuryTarget && item.id !== '59' && item.id !== '60' && !item.isTreasuryInterbankTarget && item.id !== '78' && item.id !== '79' && item.txId !== 'a2fbdc3d0f2f').map((item, index) => (
                     <tr
                       key={`${item.id}-${item.glCode}-${index}`}
                       className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"

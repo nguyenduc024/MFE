@@ -1962,42 +1962,52 @@ export default function PracticeSpotlightTour({
       stepInstruction = 'Bấm vào nút "Chuyển đến hồ sơ khách hàng Minh Quang Tran" bên dưới để bắt đầu luồng thực hành.';
     }
   } else if (module === 'treasury-part-1') {
-    const targetTeller = (tellers || []).find(t => String(t.id) === '1' || t.name?.includes('Thu Duc Teller 01'));
-    const isCashAllocated = Boolean(targetTeller && ((targetTeller.currentCashBalance || 0) > 50000000 || targetTeller.hasAllocated));
-
-    if (currentPath === 'admin-tellers') {
-      const isModalOpen = typeof document !== 'undefined' && Boolean(document.getElementById('tour-teller-allocate-amount'));
-      if (isModalOpen) {
-        currentStep = 3;
-        targetSelector = '#tour-teller-allocate-amount';
-        stepTitle = 'Bước 3 / 5: Nhập hạn mức cấp quỹ đầu ngày (10.000.000 VND)';
-        stepSubtitle = 'Hạn mức tiền mặt phục vụ giao dịch nộp/rút của khách hàng tại quầy.';
-        stepInstruction = 'Nhập số tiền "10000000" (10.000.000 VND) và nhấn nút "Xác nhận cấp tiền" màu xanh bên dưới form để điều chuyển từ Kho quỹ sang Quầy giao dịch.';
-      } else if (isCashAllocated) {
-        currentStep = 4;
-        targetSelector = '#tour-teller-table';
-        stepTitle = 'Bước 4 / 5: Cấp quỹ thành công - Chuyển sang đối soát Sổ cái GL';
-        stepSubtitle = 'Bàn thu ngân Thu Duc Teller 01 đã tiếp nhận đủ 10.000.000 VND tiền mặt đầu ngày.';
-        stepInstruction = 'Hệ thống đã tự động ghi nhận số dư tiền mặt tại quầy và sinh cặp bút toán định khoản kế toán kép. Nhấn nút "Đến Sổ Nhật ký chung (Journal Entries)" bên dưới để kiểm tra và đối soát cặp bút toán này.';
-      } else {
-        currentStep = 2;
-        targetSelector = '#tour-teller-row-allocate-btn';
-        stepTitle = 'Bước 2 / 5: Chọn bàn thu ngân & Cấp quỹ (Allocate Cash)';
-        stepSubtitle = 'Điều chuyển tiền mặt từ Kho tiền chi nhánh sang Quỹ quầy thu ngân.';
-        stepInstruction = 'Tại danh sách Tellers, tìm bàn thu ngân "Thu Duc Teller 01" (Phòng giao dịch Thủ Đức, Giao dịch viên Dang, Quan). Nhấp vào nút "Cấp quỹ" (Allocate Cash) ở cột Hành động.';
-      }
-    } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
+    if (currentPath === 'accounting-view-transaction') {
+      currentStep = 6;
+      totalSteps = 6;
+      targetSelector = '#tour-view-transaction-screen';
+      stepTitle = 'Bước 6 / 6: Hạch toán Vay liên ngân hàng thành công (Mã: a2fbdc3d0f2f - Hình 2)';
+      stepSubtitle = 'Giao dịch hạch toán Vay vốn liên ngân hàng 20.000.000 VND đã được ghi nhận vào Sổ cái.';
+      stepInstruction = 'Đối soát 2 dòng hạch toán kép: Entry ID 78 (Nợ TK 110201 Settlement Bank Account: VND 20,000,000.00) và Entry ID 79 (Có TK 220401 Interbank Borrowings: VND 20,000,000.00) khớp 100% với Hình 2. Khối Treasury đã tái lập thanh khoản an toàn cho Takashimaya Bank! Nhấn nút "Hoàn thành phần thực hành (Phân hệ 05: Treasury)" bên dưới để kết thúc bài học.';
+    } else if (currentPath === 'accounting-create-journal') {
       currentStep = 5;
-      targetSelector = '#tour-journal-entry-treasury';
-      stepTitle = 'Bước 5 / 5: Đối soát cặp bút toán Ngân quỹ tự động (Entry ID 59 & 60)';
-      stepSubtitle = 'Bút toán điều chuyển tiền mặt từ Vault sang Teller với Transaction ID 65db3dd830c0e06.';
-      stepInstruction = 'Hệ thống đã tự động lọc ngày giao dịch 01/08/2026 - 31/10/2026 cho Phòng giao dịch Thủ Đức. Đối soát 2 dòng bút toán màu tím nổi bật: Entry 59 Nợ TK 110102 (Cash at Teller) 10.000.000 VND và Entry 60 Có TK 110101 (Cash at Vault) 10.000.000 VND. Nhấn nút "Hoàn thành phần thực hành (Phân hệ 05: Treasury)" bên dưới để kết thúc bài học!';
+      totalSteps = 6;
+      const submitBtn = typeof document !== 'undefined' && document.getElementById('tour-manual-journal-submit-btn');
+      targetSelector = submitBtn ? '#tour-manual-journal-submit-btn' : '#tour-manual-journal-form';
+      stepTitle = 'Bước 5 / 6: Nhập thông tin Vay vốn liên ngân hàng 20M VND (Hình 1)';
+      stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
+      stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer", Comments "Interbank borrowing - VND 20M - 30 days - 6% p.a.". Bạn có thể bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên cạnh để điền nhanh, sau đó bấm nút "Submit" màu xanh để gửi bút toán.';
+    } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
+      const isInterbankPresent = typeof document !== 'undefined' && Boolean(document.getElementById('tour-journal-entry-interbank'));
+      if (isInterbankPresent) {
+        currentStep = 6;
+        totalSteps = 6;
+        targetSelector = '#tour-journal-entry-interbank';
+        stepTitle = 'Bước 6 / 6: Đối soát bút toán Vay vốn liên ngân hàng trên Sổ Nhật ký';
+        stepSubtitle = 'Cặp bút toán Entry 78 & 79 đã xuất hiện trên Sổ Nhật ký chung.';
+        stepInstruction = 'Quan sát 2 dòng bút toán màu xanh lục nổi bật: Entry 78 Nợ TK 110201 (20.000.000 VND) và Entry 79 Có TK 220401 (20.000.000 VND) với Transaction ID a2fbdc3d0f2f. Nhấp vào mã giao dịch a2fbdc3d0f2f để xem chi tiết giao dịch theo Hình 2, hoặc nhấn "Hoàn thành phần thực hành" bên dưới.';
+      } else {
+        currentStep = 3;
+        totalSteps = 6;
+        targetSelector = '#tour-journal-add-btn';
+        stepTitle = 'Bước 3 / 6: Phân tích Dòng tiền & Chuyển sang Vay vốn liên ngân hàng';
+        stepSubtitle = 'Rà soát biến động dòng tiền vào / ra và giải quyết thâm hụt thanh khoản ròng.';
+        stepInstruction = 'Xem bảng phân tích dòng tiền trong popup bên cạnh: Dòng tiền thuần hoạt động trong kỳ đang bị âm (-12.6M VND), cần thực hiện nghiệp vụ Vay vốn trên thị trường liên ngân hàng 20.000.000 VND để bù đắp thanh khoản. Nhấn nút "+ Add Journal Entry" (hoặc bấm nút "Chuyển sang form Vay vốn liên ngân hàng" bên dưới) để tiếp tục.';
+      }
+    } else if (currentPath === 'accounting') {
+      currentStep = 2;
+      totalSteps = 6;
+      targetSelector = '#tour-search-journal-tile';
+      stepTitle = 'Bước 2 / 6: Tra cứu Sổ Nhật ký chung (Search Journal Entries)';
+      stepSubtitle = 'Mở sổ cái để xem các giao dịch phát sinh từ các phân hệ trước.';
+      stepInstruction = 'Nhấp chọn ô "Search Journal Entries" để truy cập bảng tra cứu toàn bộ các bút toán hạch toán của Ngân hàng TKB và thực hiện phân tích dòng tiền.';
     } else {
       currentStep = 1;
-      targetSelector = '#sidebar-item-admin-tellers';
-      stepTitle = 'Bước 1 / 5: Mở Phân hệ Quản lý Ngân quỹ (Cash Management)';
-      stepSubtitle = 'Truy cập màn hình quản lý bàn thu ngân (Tellers) và nhân viên thu ngân (Cashiers).';
-      stepInstruction = 'Nhấp vào biểu tượng máy tính / ngân quỹ trên thanh Sidebar bên trái (hoặc bấm nút "Mở Cash Management" bên dưới) để truy cập danh sách Tellers.';
+      totalSteps = 6;
+      targetSelector = '#tour-nav-accounting';
+      stepTitle = 'Bước 1 / 6: Truy cập phân hệ Kế toán (Accounting)';
+      stepSubtitle = 'Bắt đầu luồng thực hành Phân hệ 05: Treasury & Quản trị thanh khoản.';
+      stepInstruction = 'Nhấp chọn menu "Accounting" trên thanh điều hướng trên cùng (hoặc bấm nút "Đến trang Accounting" bên dưới) để bắt đầu quy trình phân tích dòng tiền và vay vốn liên ngân hàng.';
     }
   } else if (module === 'gl-part-9') {
     if (currentPath === 'accounting-view-transaction') {
@@ -4291,6 +4301,43 @@ export default function PracticeSpotlightTour({
   }
 
   if (box) {
+    // Treasury placement rules: always place on side to never cover inputs or journal
+    if (module === 'treasury-part-1') {
+      if (currentPath === 'accounting-create-journal') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: '70px',
+          right: '24px',
+          width: '380px',
+          maxHeight: 'calc(100vh - 90px)',
+          overflowY: 'auto'
+        };
+      } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: '80px',
+          right: '24px',
+          width: '420px',
+          maxHeight: 'calc(100vh - 100px)',
+          overflowY: 'auto'
+        };
+      } else if (currentPath === 'accounting-view-transaction') {
+        tooltipStyle = {
+          position: 'fixed',
+          top: '90px',
+          left: '24px',
+          width: '380px'
+        };
+      } else if (box) {
+        tooltipStyle = {
+          position: 'fixed',
+          top: `${box.bottom + 16}px`,
+          left: `${Math.max(16, Math.min(box.left, windowWidth - 360 - 20))}px`,
+          width: '360px'
+        };
+      }
+    }
+
     if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3' || module === 'saving-part-4' || module === 'loan-part-1' || module === 'loan-part-2') {
       const tooltipWidth = 340;
       if (targetSelector === '#tour-create-savings-product-btn' || targetSelector === '#tour-create-client-btn' || targetSelector === '#tour-create-fd-product-btn' || targetSelector === '#tour-create-rd-product-btn' || targetSelector === '#tour-create-loan-product-btn' || targetSelector === '#tour-rd-add-slab-btn') {
@@ -7855,101 +7902,188 @@ export default function PracticeSpotlightTour({
           </div>
         )}
 
-        {/* Module 05: Treasury (Quản lý Ngân quỹ & Điều chuyển tiền mặt Vault - Teller) */}
+        {/* Module 05: Treasury (Phân tích dòng tiền & Vay vốn liên ngân hàng 20M VND) */}
         {module === 'treasury-part-1' && (
-          <div className="space-y-2 mt-2">
-            {/* If outside Cash Management and outside Journal */}
-            {currentPath !== 'admin-tellers' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-journal-entries' && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (navigate) navigate('admin-tellers');
-                }}
-                className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-              >
-                Mở Cash Management (Tellers &amp; Quầy thu ngân) &rarr;
-              </button>
+          <div className="space-y-3 mt-2 text-xs">
+            {/* Step 1: Nav Accounting */}
+            {currentPath !== 'accounting' && currentPath !== 'accounting-journal' && currentPath !== 'accounting-journal-entries' && currentPath !== 'accounting-create-journal' && currentPath !== 'accounting-view-transaction' && (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting');
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Đến trang Kế toán (Accounting) &rarr;
+                </button>
+              </div>
             )}
 
-            {/* In Cash Management (admin-tellers) */}
-            {currentPath === 'admin-tellers' && (() => {
-              const targetTeller = (tellers || []).find(t => String(t.id) === '1' || t.name?.includes('Thu Duc Teller 01'));
-              const isAllocated = Boolean(targetTeller && ((targetTeller.currentCashBalance || 0) > 50000000 || targetTeller.hasAllocated));
-
-              if (isAllocated) {
-                return (
-                  <div className="space-y-2">
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[2px] text-[11px] text-emerald-800 leading-tight">
-                      Đã cấp quỹ <strong>10.000.000 VND</strong> thành công cho bàn thu ngân <strong>Thu Duc Teller 01</strong>!
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (navigate) navigate('accounting-journal');
-                        window.dispatchEvent(new CustomEvent('practice-filter-treasury-journal'));
-                      }}
-                      className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-                    >
-                      Đến Sổ Nhật ký chung (Journal Entries) đối soát &rarr;
-                    </button>
-                  </div>
-                );
-              }
-
-              const isModalInDOM = typeof document !== 'undefined' && Boolean(document.getElementById('tour-teller-allocate-amount'));
-              if (isModalInDOM) {
-                return (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const input = document.getElementById('tour-teller-allocate-amount');
-                      if (input) {
-                        input.value = '10000000';
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                      }
-                      const submitBtn = document.getElementById('tour-teller-allocate-submit');
-                      if (submitBtn) submitBtn.click();
-                    }}
-                    className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-                  >
-                    Tự động điền 10.000.000 VND &amp; Xác nhận cấp tiền &rarr;
-                  </button>
-                );
-              }
-
-              return (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const allocateBtn = document.getElementById('tour-teller-row-allocate-btn') || document.getElementById('tour-teller-header-allocate-btn');
-                    if (allocateBtn) allocateBtn.click();
-                  }}
-                  className="w-full py-2 px-3 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
-                >
-                  Mở cửa sổ Cấp quỹ bàn thu ngân Thu Duc Teller 01 &rarr;
-                </button>
-              );
-            })()}
-
-            {/* In Journal Entries (accounting-journal) */}
-            {(currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && (
+            {/* Step 2: In Accounting view */}
+            {currentPath === 'accounting' && (
               <div className="space-y-2">
-                <div className="p-2.5 bg-purple-50 border border-purple-200 rounded-[2px] text-[11px] text-purple-900 leading-tight">
-                  Quan sát cặp bút toán đối ứng: <strong>Entry 59</strong> (Nợ TK 110102 Cash at Teller: 10.000.000 VND) và <strong>Entry 60</strong> (Có TK 110101 Cash at Vault: 10.000.000 VND) với Transaction ID <strong>65db3dd830c0e06</strong>.
-                </div>
                 <button
                   type="button"
                   onClick={() => {
+                    if (navigate) navigate('accounting-journal');
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Mở Search Journal Entries &rarr;
+                </button>
+              </div>
+            )}
+
+            {/* Step 3: In Journal Entries (accounting-journal) -> Show Cashflow & Liquidity Analysis */}
+            {(currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') && (
+              <div className="space-y-3">
+                <div className="p-3 bg-white border border-gray-200 rounded-[2px] shadow-xs space-y-2.5">
+                  <div className="font-bold text-gray-900 border-b border-gray-100 pb-1.5 flex items-center justify-between text-xs">
+                    <span className="text-[#1072ba] uppercase tracking-wide">Báo Cáo Phân Tích Dòng Tiền &amp; Thanh Khoản TKB</span>
+                    <span className="text-[10px] font-mono font-medium text-gray-500">Tháng 10/2026</span>
+                  </div>
+
+                  {/* Cash Inflows summary */}
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide flex items-center justify-between">
+                      <span>1. Dòng tiền vào (Inflows)</span>
+                      <span className="font-mono text-emerald-700">+1,007,388,487.89</span>
+                    </div>
+                    <div className="text-[11px] text-gray-600 pl-2 space-y-0.5 border-l-2 border-emerald-300">
+                      <div className="flex justify-between"><span>&bull; Vốn điều lệ ban đầu:</span><span className="font-mono text-gray-800">+1,000,000,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Nộp tiền gửi CASA (Minh Tran):</span><span className="font-mono text-gray-800">+5,000,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Tiết kiệm có kỳ hạn FD:</span><span className="font-mono text-gray-800">+1,000,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Tiết kiệm gửi góp RD (Lan Pham):</span><span className="font-mono text-gray-800">+500,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Thu hồi nợ vay cá nhân kỳ 1:</span><span className="font-mono text-gray-800">+888,487.89</span></div>
+                    </div>
+                  </div>
+
+                  {/* Cash Outflows summary */}
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-bold text-rose-800 uppercase tracking-wide flex items-center justify-between">
+                      <span>2. Dòng tiền ra (Outflows)</span>
+                      <span className="font-mono text-rose-700">-19,000,000.00</span>
+                    </div>
+                    <div className="text-[11px] text-gray-600 pl-2 space-y-0.5 border-l-2 border-rose-300">
+                      <div className="flex justify-between"><span>&bull; Chi phí hoạt động OPEX (2M + 5M):</span><span className="font-mono text-gray-800">-7,000,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Rút tiền mặt CASA (Minh Tran):</span><span className="font-mono text-gray-800">-2,000,000</span></div>
+                      <div className="flex justify-between"><span>&bull; Giải ngân khoản vay cá nhân:</span><span className="font-mono text-gray-800">-10,000,000</span></div>
+                    </div>
+                  </div>
+
+                  {/* Net Deficit & Treasury Conclusion */}
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-[2px] text-[11px] text-amber-900 leading-snug space-y-1">
+                    <div className="flex items-center justify-between font-bold">
+                      <span>Biến động thuần hoạt động:</span>
+                      <span className="font-mono text-rose-700">-12,611,512.11 VND</span>
+                    </div>
+                    <p className="text-[10px] text-amber-800">
+                      <strong>Rút ra phân tích:</strong> Dòng tiền hoạt động kinh doanh phát sinh biến động âm lớn, tạo áp lực thiếu hụt thanh khoản nghiêm trọng tại <strong>TK 110201 Settlement Bank Account</strong>. Khối Treasury quyết định thực hiện nghiệp vụ <strong>Vay vốn trên thị trường Liên ngân hàng (Interbank Borrowing) 20.000.000 VND</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting-create-journal');
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Lập Bút Toán Vay Vốn Liên Ngân Hàng 20M VND (Hình 1) &rarr;
+                </button>
+              </div>
+            )}
+
+            {/* Step 5: In Create Journal Entry (accounting-create-journal) -> Autofill helper matching Hình 1 */}
+            {currentPath === 'accounting-create-journal' && (
+              <div className="space-y-3">
+                <div className="p-3 bg-white border border-gray-200 rounded-[2px] shadow-xs space-y-2 text-xs">
+                  <div className="font-bold text-gray-900 border-b border-gray-100 pb-1 text-[#1072ba]">
+                    Thông Số Nghiệp Vụ Vay Liên Ngân Hàng (Hình 1)
+                  </div>
+                  <div className="text-[11px] space-y-1 text-gray-700">
+                    <div className="flex justify-between"><span>Office:</span><strong className="text-gray-900">Takashimaya Bank (TKB) - HO</strong></div>
+                    <div className="flex justify-between"><span>Currency:</span><strong className="text-gray-900">Vietnamese Dong [VND]</strong></div>
+                    <div className="flex justify-between"><span>Nợ (Debit):</span><strong className="text-purple-900">(110201) Settlement Bank Account</strong></div>
+                    <div className="flex justify-between"><span>Số tiền Nợ:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
+                    <div className="flex justify-between"><span>Có (Credit):</span><strong className="text-purple-900">(220401) Interbank Borrowings</strong></div>
+                    <div className="flex justify-between"><span>Số tiền Có:</span><strong className="font-mono text-emerald-700">20,000,000 VND</strong></div>
+                    <div className="flex justify-between"><span>Reference:</span><strong className="font-mono text-gray-800">TKB-TRE-IB-001</strong></div>
+                    <div className="flex justify-between"><span>Date:</span><strong className="font-mono text-gray-800">10/14/2026</strong></div>
+                    <div className="flex justify-between"><span>Payment Type:</span><strong className="text-gray-800">Money Transfer</strong></div>
+                    <div className="text-[10px] text-gray-500 italic mt-0.5">Comments: Interbank borrowing - VND 20M - 30 days - 6% p.a.</div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('practice-autofill-interbank-borrowing'));
+                  }}
+                  className="w-full py-2 px-3 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const submitBtn = document.getElementById('tour-manual-journal-submit-btn');
+                    if (submitBtn) {
+                      submitBtn.click();
+                    }
+                  }}
+                  className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
+                >
+                  Xác nhận gửi bút toán (Submit) &rarr;
+                </button>
+              </div>
+            )}
+
+            {/* Step 6: In View Transaction (accounting-view-transaction) -> Celebration & Match Hình 2 */}
+            {currentPath === 'accounting-view-transaction' && (
+              <div className="space-y-3">
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-[2px] text-xs text-emerald-900 space-y-1.5 leading-snug">
+                  <div className="font-bold text-emerald-800 flex items-center justify-between">
+                    <span>Hạch toán thành công a2fbdc3d0f2f (Hình 2)</span>
+                    <span className="font-mono text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">100% Hoàn thành</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-800">
+                    Khoản vay liên ngân hàng <strong>20.000.000 VND</strong> đã được ghi tăng vào TK thanh toán 110201 và ghi nhận nợ phải trả TK 220401. Thanh khoản của Takashimaya Bank đã được bù đắp và cân đối an toàn!
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('tkb_treasury_interbank_done', 'true');
+                    }
                     if (onClose) onClose();
                   }}
                   className="w-full py-2.5 px-4 bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
                   Hoàn thành phần thực hành (Phân hệ 05: Treasury)
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) navigate('accounting-journal');
+                  }}
+                  className="w-full py-2 px-3 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Quay lại Sổ Nhật ký chung (Journal Entries)
+                </button>
               </div>
             )}
           </div>
         )}
+
+        {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
+        
 
         {/* Quick autofill suggestion popup card for Currency creation (GL Part 1) */}
         {module === 'gl-part-1' && currentStep === 4 && !hasVndDraft && (

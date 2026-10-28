@@ -1956,7 +1956,7 @@ export default function App() {
             setCurrentPath('client-detail');
           }
           if (targetModule === 'treasury-part-1') {
-            setCurrentPath('admin-tellers');
+            setCurrentPath('home');
           }
           setPracticeActive(true);
         }}

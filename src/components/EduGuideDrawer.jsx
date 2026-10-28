@@ -297,6 +297,15 @@ export default function EduGuideDrawer({
     return 0;
   };
 
+    const calculateTreasuryPart1Progress = () => {
+    const hasBorrowing = (customJournalEntries || []).some(
+      e => e.referenceNumber === 'TKB-TRE-IB-001' || e.transactionId === 'a2fbdc3d0f2f'
+    ) || (typeof window !== 'undefined' && localStorage.getItem('tkb_treasury_interbank_done') === 'true');
+    if (hasBorrowing) return 100;
+    if (hasCheckedTreasuryJournal) return 50;
+    return 0;
+  };
+
   const calculateLoanPart1Progress = () => {
     const hasProduct = (loanProducts || []).some(
       p => p.shortName === 'Loan' || p.shortName === 'TKPL' || p.externalId === 'TKB-PRD-PL-001' || p.name === 'TKB Personal Loan'
@@ -329,6 +338,7 @@ export default function EduGuideDrawer({
   const savingPart4Progress = calculateSavingPart4Progress();
   const loanPart1Progress = calculateLoanPart1Progress();
   const loanPart2Progress = calculateLoanPart2Progress();
+  const treasuryPart1Progress = calculateTreasuryPart1Progress();
 
   const currentProgress = 
     activePartId === 'gl-part-1' ? glPart1Progress :
@@ -351,6 +361,7 @@ export default function EduGuideDrawer({
     activePartId === 'saving-part-4' ? savingPart4Progress :
     activePartId === 'loan-part-1' ? loanPart1Progress :
     activePartId === 'loan-part-2' ? loanPart2Progress :
+    activePartId === 'treasury-part-1' ? treasuryPart1Progress :
     activePartId === 'part-1' ? part1Progress : part2Progress;
 
   const isGlPart1Complete = glPart1Progress === 100;
@@ -373,6 +384,7 @@ export default function EduGuideDrawer({
   const isSavingPart4Complete = savingPart4Progress === 100;
   const isLoanPart1Complete = loanPart1Progress === 100;
   const isLoanPart2Complete = loanPart2Progress === 100;
+  const isTreasuryPart1Complete = treasuryPart1Progress === 100;
   const isPart1Complete = part1Progress === 100;
   const isPart2Complete = part2Progress === 100;
 
@@ -589,6 +601,47 @@ export default function EduGuideDrawer({
                       <div className="text-xs truncate font-medium">{item.name}</div>
                       <div className="text-[10px] text-gray-500 mt-0.5 truncate">
                         {item.id === 'loan-part-1' ? 'Tạo sản phẩm cho vay TKB Personal Loan (TKPL)' : 'Tiếp nhận hồ sơ vay vốn & sinh lịch trả nợ'}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        itemProgress === 100 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : itemProgress > 0 
+                          ? 'bg-sky-100 text-[#1072ba]' 
+                          : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {itemProgress}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Phân hệ 05: Treasury */}
+              <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1072ba] bg-sky-50/70 border-t border-b border-sky-100 my-1">
+                Phân hệ 05: Treasury
+              </div>
+
+              {EDU_MODULES.filter(m => m.moduleNumber === "05").map((item) => {
+                const isSelected = item.id === activePartId;
+                const itemProgress = treasuryPart1Progress;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setActivePartId(item.id);
+                      setDropdownOpen(false);
+                    }}
+                    className={`px-3.5 py-2.5 flex items-center justify-between cursor-pointer transition-colors ${
+                      isSelected ? 'bg-sky-50 text-[#1072ba] font-semibold' : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <div className="pr-2 truncate">
+                      <div className="text-xs truncate font-medium">{item.name}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5 truncate">
+                        Phân tích dòng tiền & Vay vốn liên ngân hàng (20M VND)
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
@@ -3770,10 +3823,10 @@ export default function EduGuideDrawer({
                 Phân hệ 05: Treasury &bull; Phần 1
               </span>
               <h2 className="text-base font-bold text-gray-900 mt-0.5">
-                Quản Lý Ngân Quỹ &amp; Điều Chuyển Tiền Mặt Kho Quỹ - Quầy Giao Dịch (Vault to Teller Cash Allocation)
+                Phân Tích Dòng Tiền, Quản Trị Thanh Khoản &amp; Vay Vốn Liên Ngân Hàng (Cashflow &amp; Interbank Borrowing)
               </h2>
               <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                Nghiệp vụ cốt lõi của phân hệ Quản lý Ngân quỹ (Treasury / Cash Management) trong hệ thống Core Banking Mifos X: Cấu hình bàn thu ngân, phân bổ nhân viên giao dịch (Cashier), thực hiện cấp hạn mức tiền mặt đầu ngày (Allocate Cash) từ Kho tiền chi nhánh sang Quỹ quầy giao dịch viên và đối soát cặp bút toán hạch toán tự động trong Sổ Nhật ký chung (Journal Entries).
+                Nghiệp vụ cốt lõi của Khối Quản trị Ngân quỹ (Treasury) trong hệ thống Core Banking Mifos X: Theo dõi và cân đối thanh khoản ngân hàng, tra cứu Sổ Nhật ký chung (Search Journal Entries), phân tích cán cân dòng tiền vào - dòng tiền ra từ các phân hệ trước, nhận diện trạng thái biến động dòng tiền thuần đang bị âm tại TK 110201 Settlement Bank Account, và lập bút toán Vay vốn thị trường liên ngân hàng (Interbank Borrowing) số tiền 20.000.000 VND để bù đắp thanh khoản an toàn.
               </p>
             </div>
 
@@ -3781,65 +3834,194 @@ export default function EduGuideDrawer({
             <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-[2px] space-y-2">
               <div className="font-semibold text-xs text-[#1072ba]">Mục tiêu thực hành:</div>
               <ul className="text-xs text-gray-700 space-y-1.5 list-disc pl-4 leading-relaxed">
-                <li>Hiểu rõ cơ chế quản lý tiền mặt phân tầng trong ngân hàng: <strong>Kho quỹ (Vault - TK 110101)</strong> và <strong>Quầy giao dịch (Teller - TK 110102)</strong>.</li>
-                <li>Thực hiện phân bổ hạn mức tiền mặt đầu ngày (Cash Allocation) số tiền <strong>10.000.000 VND</strong> cho bàn thu ngân <strong>Thu Duc Teller 01</strong> tại Phòng Giao Dịch Thủ Đức.</li>
-                <li>Nắm vững quy tắc Dual Control (Kiểm soát kép): Kiểm soát viên / Thủ kho duyệt xuất tiền mặt từ Vault, Giao dịch viên tiếp nhận vào số dư quỹ quầy để bắt đầu phiên làm việc phục vụ nộp/rút tiền của khách hàng.</li>
-                <li>Tra cứu Sổ Nhật ký chung (Journal Entries), áp dụng bộ lọc ngày giao dịch phù hợp (tháng 08 - tháng 10/2026) và đối soát chuẩn xác cặp bút toán hạch toán kép tự động sinh: <strong>Entry ID 59</strong> (Nợ TK 110102) và <strong>Entry ID 60</strong> (Có TK 110101).</li>
+                <li>Tra cứu toàn diện Sổ Nhật ký chung (<strong>Accounting &gt; Search Journal Entries</strong>), lọc các giao dịch phát sinh từ tháng 08/2026 đến tháng 10/2026.</li>
+                <li><strong>Phân tích Dòng tiền vào (Inflows):</strong> Vốn điều lệ ban đầu (1.000.000.000 VND), Tiền gửi CASA (5.000.000 VND), Tiết kiệm FD (1.000.000 VND), Tiết kiệm gửi góp RD (500.000 VND), Thu hồi nợ vay cá nhân kỳ 1 (888.487,89 VND).</li>
+                <li><strong>Phân tích Dòng tiền ra (Outflows):</strong> Chi phí hoạt động văn phòng OPEX (7.000.000 VND), Rút tiền mặt từ tài khoản CASA (2.000.000 VND), Giải ngân hợp đồng vay vốn cá nhân (10.000.000 VND).</li>
+                <li>Nhận định áp lực thâm hụt thanh khoản ròng tại <strong>TK 110201 Settlement Bank Account</strong>, dẫn tới quyết định cấp thiết vay vốn trên thị trường liên ngân hàng.</li>
+                <li>Lập bút toán thủ công <strong>Vay vốn liên ngân hàng (Create Journal Entries)</strong> số tiền <strong>20.000.000 VND</strong>, kỳ hạn 30 ngày, lãi suất 6%/năm (chuẩn theo Hình 1).</li>
+                <li>Đối soát kết quả giao dịch hạch toán với mã giao dịch <strong>a2fbdc3d0f2f</strong> (Hình 2): <strong>Entry 78</strong> (Nợ TK 110201: 20.000.000 VND) và <strong>Entry 79</strong> (Có TK 220401: 20.000.000 VND).</li>
               </ul>
             </div>
 
-            {/* Bảng thông số thực hành chi tiết */}
+            {/* Bảng Phân Tích Dòng Tiền & Thanh Khoản TKB */}
             <div className="space-y-2">
               <div className="font-semibold text-xs text-gray-800">
-                Bảng Thông Số Nghiệp Vụ Cấp Quỹ Ngân Quỹ:
+                Bảng Báo Cáo Phân Tích Dòng Tiền &amp; Thanh Khoản (Cashflow &amp; Liquidity Analysis):
               </div>
-              <div className="border border-gray-200 rounded-[2px] overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-xs">
+                <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
-                      <th className="py-2 px-3 border-r border-gray-200 w-1/3">Tham số (Parameter)</th>
-                      <th className="py-2 px-3">Giá trị chuẩn bài tập thực hành</th>
+                      <th className="py-2 px-3 border-r border-gray-200">Khoản mục Dòng tiền</th>
+                      <th className="py-2 px-3 border-r border-gray-200">Đối tượng / Nghiệp vụ</th>
+                      <th className="py-2 px-3 text-right">Số tiền (VND)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700">
+                    <tr className="bg-emerald-50/40">
+                      <td colSpan="3" className="py-1 px-3 font-bold text-emerald-800 uppercase text-[10px] tracking-wide">
+                        1. Dòng Tiền Vào (Cash Inflows)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Vốn điều lệ đầu kỳ (Capital Migration)</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Hội sở TKB - TK 310101</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-emerald-700">+1,000,000,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Nộp tiền gửi thanh toán CASA</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Minh Quang Tran (TKCA #000000001)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-emerald-700">+5,000,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Mở tài khoản tiết kiệm có kỳ hạn FD</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Minh Quang Tran (TKFD #000000003)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-emerald-700">+1,000,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Mở &amp; gửi góp tiết kiệm mục tiêu RD</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Lan Ngoc Pham (TKGS #000000004)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-emerald-700">+500,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Thu hồi nợ vay cá nhân kỳ 1</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Minh Quang Tran (Gốc 788k + Lãi 100k)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-emerald-700">+888,487.89</td>
+                    </tr>
+
+                    <tr className="bg-rose-50/40">
+                      <td colSpan="3" className="py-1 px-3 font-bold text-rose-800 uppercase text-[10px] tracking-wide">
+                        2. Dòng Tiền Ra (Cash Outflows)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Chi phí hoạt động văn phòng (OPEX)</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Chi phí thuê nhà &amp; vận hành TKB HO</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-rose-700">-7,000,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Khách hàng rút tiền mặt CASA</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Minh Quang Tran (Rút tại quầy Thủ Đức)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-rose-700">-2,000,000</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Giải ngân hợp đồng vay vốn cá nhân</td>
+                      <td className="py-1.5 px-3 border-r border-gray-200">Minh Quang Tran (Hồ sơ #000000001)</td>
+                      <td className="py-1.5 px-3 text-right font-mono font-medium text-rose-700">-10,000,000</td>
+                    </tr>
+
+                    <tr className="bg-amber-50/70 font-semibold border-t-2 border-amber-300">
+                      <td colSpan="2" className="py-2 px-3 text-amber-900">
+                        Biến Động Dòng Tiền Ròng Hoạt Động Trong Kỳ (Net Cash Flow Deficit):
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono text-rose-800 font-bold">
+                        -12,611,512.11 VND
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-[2px] text-xs text-amber-900 leading-relaxed">
+                <strong>Kết luận Treasury:</strong> Dòng tiền hoạt động kinh doanh phát sinh trong kỳ đang có độ lệch âm lớn do giải ngân cho vay (10M VND) và chi trả chi phí vận hành (7M VND) vượt dòng tiền huy động ròng. Để đảm bảo hệ số thanh khoản an toàn và khả năng chi trả liên tục tại Tài khoản ngân hàng thanh toán (TK 110201 Settlement Bank Account), Treasury quyết định thực hiện nghiệp vụ <strong>Vay vốn thị trường liên ngân hàng (Interbank Borrowing) 20.000.000 VND</strong>.
+              </div>
+            </div>
+
+            {/* Bảng thông số nghiệp vụ Vay vốn liên ngân hàng (Hình 1) */}
+            <div className="space-y-2">
+              <div className="font-semibold text-xs text-gray-800">
+                Thông Số Nghiệp Vụ Vay Vốn Liên Ngân Hàng (Hình 1):
+              </div>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+                      <th className="py-2 px-3 border-r border-gray-200 w-1/3">Trường thông tin (Field)</th>
+                      <th className="py-2 px-3">Giá trị nhập theo Hình 1</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Chi nhánh / PGD áp dụng</td>
-                      <td className="py-2 px-3 font-semibold text-gray-900">Thu Duc Transaction Office</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Office</td>
+                      <td className="py-2 px-3 font-semibold text-gray-900">Takashimaya Bank (TKB) - HO</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tên bàn thu ngân (Teller)</td>
-                      <td className="py-2 px-3 font-semibold text-[#1072ba]">Thu Duc Teller 01</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Currency</td>
+                      <td className="py-2 px-3 font-semibold text-gray-900">Vietnamese Dong [VND]</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Giao dịch viên phụ trách (Cashier)</td>
-                      <td className="py-2 px-3 font-medium text-gray-800">Dang, Quan (Staff #1 / tkb.tre.teller01)</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Affected GL Entry (Debit)</td>
+                      <td className="py-2 px-3 text-purple-900 font-medium">(110201) Settlement Bank Account</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Hạn mức tiền mặt cấp đầu ngày</td>
-                      <td className="py-2 px-3 font-mono font-bold text-emerald-700">10,000,000 VND</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Debit Amount</td>
+                      <td className="py-2 px-3 font-mono font-bold text-emerald-700">20000000</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Mã giao dịch hạch toán (Tx ID)</td>
-                      <td className="py-2 px-3 font-mono font-semibold text-purple-800">65db3dd830c0e06</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Affected GL Entry (Credit)</td>
+                      <td className="py-2 px-3 text-purple-900 font-medium">(220401) Interbank Borrowings</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Ngày giao dịch hạch toán (Tx Date)</td>
-                      <td className="py-2 px-3 font-mono text-gray-800">06 August 2026 (Submitted on 13 October 2026)</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Credit Amount</td>
+                      <td className="py-2 px-3 font-mono font-bold text-emerald-700">20000000</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tài khoản Nợ (Debit Account)</td>
-                      <td className="py-2 px-3 text-purple-900 font-medium">110102 - Cash at Teller (+10.000.000 VND, Entry 59)</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Reference Number</td>
+                      <td className="py-2 px-3 font-mono font-semibold text-gray-900">TKB-TRE-IB-001</td>
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Tài khoản Có (Credit Account)</td>
-                      <td className="py-2 px-3 text-purple-900 font-medium">110101 - Cash at Vault (-10.000.000 VND, Entry 60)</td>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Transaction Date</td>
+                      <td className="py-2 px-3 font-mono text-gray-900">10/14/2026</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Payment Type</td>
+                      <td className="py-2 px-3 font-medium text-gray-900">Money Transfer</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 bg-gray-50/50 font-medium border-r border-gray-200">Comments</td>
+                      <td className="py-2 px-3 italic text-gray-800">Interbank borrowing - VND 20M - 30 days - 6% p.a.</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            {/* Các bước thực hành chi tiết */}
+            {/* Bảng kết quả giao dịch hạch toán (Hình 2) */}
+            <div className="space-y-2">
+              <div className="font-semibold text-xs text-gray-800">
+                Giao Diện Kết Quả Sau Khi Submit (Hình 2 - Mã a2fbdc3d0f2f):
+              </div>
+              <div className="border border-gray-200 rounded-[2px] overflow-hidden text-xs">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+                      <th className="py-2 px-3 border-r border-gray-200">Entry ID</th>
+                      <th className="py-2 px-3 border-r border-gray-200">Type</th>
+                      <th className="py-2 px-3 border-r border-gray-200">Account Code &amp; Name</th>
+                      <th className="py-2 px-3 text-right">Debit</th>
+                      <th className="py-2 px-3 text-right">Credit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700">
+                    <tr>
+                      <td className="py-2 px-3 font-mono font-bold border-r border-gray-200">78</td>
+                      <td className="py-2 px-3 border-r border-gray-200 font-semibold text-emerald-700">ASSET</td>
+                      <td className="py-2 px-3 border-r border-gray-200">110201 - Settlement Bank Account</td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-gray-900">VND 20,000,000.00</td>
+                      <td className="py-2 px-3 text-right font-mono text-gray-400">-</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 font-mono font-bold border-r border-gray-200">79</td>
+                      <td className="py-2 px-3 border-r border-gray-200 font-semibold text-purple-700">LIABILITY</td>
+                      <td className="py-2 px-3 border-r border-gray-200">220401 - Interbank Borrowings</td>
+                      <td className="py-2 px-3 text-right font-mono text-gray-400">-</td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-gray-900">VND 20,000,000.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Quy trình các bước thực hành */}
             <div className="space-y-3 text-xs">
               <div className="font-semibold text-gray-800">Quy Trình Các Bước Thực Hành:</div>
 
@@ -3847,10 +4029,10 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                  <span>Truy Cập Màn Hình Cash Management (Tellers &amp; Quầy Thu Ngân)</span>
+                  <span>Truy Cập Phân Hệ Kế Toán (Accounting)</span>
                 </div>
                 <p className="text-gray-600 pl-6 leading-relaxed">
-                  Từ thanh công cụ Sidebar bên trái, nhấn vào biểu tượng <strong>Máy tính / Ngân quỹ</strong> (hoặc truy cập qua <em>Admin &rarr; Organization &rarr; Teller / Cashier Management</em>). Màn hình hiển thị danh sách các bàn thu ngân được cấu hình trong toàn hệ thống.
+                  Từ thanh điều hướng trên cùng, nhấp chọn <strong>Accounting</strong> để mở danh mục các tính năng kế toán, sổ cái và nhật ký giao dịch.
                 </p>
               </div>
 
@@ -3858,21 +4040,21 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                  <span>Chọn Bàn Thu Ngân &amp; Mở Cửa Sổ Cấp Quỹ (Allocate Cash)</span>
+                  <span>Mở Sổ Nhật Ký Chung (Search Journal Entries)</span>
                 </div>
                 <p className="text-gray-600 pl-6 leading-relaxed">
-                  Tại dòng bàn thu ngân <strong>Thu Duc Teller 01</strong> (thuộc chi nhánh <em>Thu Duc Transaction Office</em>, phụ trách bởi nhân sự <em>Dang, Quan</em>), nhấn nút <strong>Cấp quỹ</strong> (hoặc nhấn nút <em>Allocate Cash</em> ở góc trên bên phải). Cửa sổ phân bổ tiền mặt đầu ngày sẽ xuất hiện.
+                  Chọn ô <strong>Search Journal Entries</strong> để xem toàn bộ danh sách các bút toán đã hạch toán từ các phân hệ trước.
                 </p>
               </div>
 
               {/* Bước 3 */}
-              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
-                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+              <div className="p-3 bg-sky-50/70 border border-sky-200 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-sky-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                  <span>Nhập Hạn Mức Tiền Mặt Cấp Quỹ Đầu Ngày (10.000.000 VND)</span>
+                  <span>Xem Báo Cáo Phân Tích Dòng Tiền &amp; Nhận Diện Thâm Hụt Thanh Khoản</span>
                 </div>
-                <p className="text-gray-600 pl-6 leading-relaxed">
-                  Nhập giá trị số tiền cấp: <strong>10000000</strong> (10.000.000 VND). Nhấn <strong>Xác nhận cấp tiền</strong>. Hệ thống ghi nhận hạn mức tiền mặt tại quầy tăng thêm 10.000.000 VND và tự động sinh bút toán kế toán chuyển nguồn từ Kho tiền sang Quỹ quầy.
+                <p className="text-gray-700 pl-6 leading-relaxed">
+                  Popup thông minh sẽ xuất hiện bên cạnh bảng nhật ký sổ cái, tự động tổng hợp toàn bộ Dòng tiền vào (1.007.388.487 VND), Dòng tiền ra (19.000.000 VND), và chỉ ra biến động thâm hụt ròng tại TK 110201. Nhấn nút chuyển tiếp sang lập bút toán vay vốn liên ngân hàng.
                 </p>
               </div>
 
@@ -3880,37 +4062,33 @@ export default function EduGuideDrawer({
               <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">4</span>
-                  <span>Chuyển Sang Màn Hình Search Journal Entries &amp; Lọc Khoảng Ngày</span>
+                  <span>Mở Form Tạo Bút Toán (Create Journal Entries)</span>
                 </div>
                 <p className="text-gray-600 pl-6 leading-relaxed">
-                  Điều hướng đến <em>Accounting &rarr; Search Journal Entries</em> (hoặc nhấn nút phím tắt bên dưới). Đặt bộ lọc:
-                  <br />
-                  &bull; <strong>Transaction Date From:</strong> <span className="font-mono font-medium text-gray-800">08/01/2026</span> (hoặc để trống khi lọc tất cả).
-                  <br />
-                  &bull; <strong>Transaction Date To:</strong> <span className="font-mono font-medium text-gray-800">10/31/2026</span>.
-                  <br />
-                  &bull; <strong>Office Name:</strong> <span className="font-medium text-gray-800">Thu Duc Transaction Office</span> (hoặc All Offices).
-                  <br />
-                  Nhấn <strong>Apply Filter</strong>.
+                  Bấm nút <strong>+ Add Journal Entry</strong> (hoặc truy cập qua <em>Accounting &gt; Create Journal Entries</em>).
                 </p>
               </div>
 
               {/* Bước 5 */}
+              <div className="p-3 bg-gray-50 border border-gray-200/80 rounded-[2px] space-y-1.5">
+                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#1072ba] text-white text-[10px] flex items-center justify-center font-bold">5</span>
+                  <span>Nhập Dữ Liệu Vay Vốn Liên Ngân Hàng (Hình 1)</span>
+                </div>
+                <p className="text-gray-600 pl-6 leading-relaxed">
+                  Nhập đầy đủ thông tin: Office <em>Takashimaya Bank (TKB) - HO</em>, Currency <em>VND</em>, Nợ TK <em>(110201) Settlement Bank Account</em>: <strong>20000000</strong>, Có TK <em>(220401) Interbank Borrowings</em>: <strong>20000000</strong>, Ref <em>TKB-TRE-IB-001</em>, Date <em>10/14/2026</em>, Payment <em>Money Transfer</em>, Comments <em>Interbank borrowing - VND 20M - 30 days - 6% p.a.</em> (Có nút tự động điền nhanh). Nhấn <strong>Submit</strong>.
+                </p>
+              </div>
+
+              {/* Bước 6 */}
               <div className="p-3 bg-purple-50/70 border border-purple-200 rounded-[2px] space-y-1.5">
                 <div className="font-semibold text-purple-900 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-purple-700 text-white text-[10px] flex items-center justify-center font-bold">5</span>
-                  <span>Đối Soát Cặp Bút Toán Kế Toán Ngân Quỹ Sinh Tự Động (Entry 59 &amp; 60)</span>
+                  <span className="w-5 h-5 rounded-full bg-purple-700 text-white text-[10px] flex items-center justify-center font-bold">6</span>
+                  <span>Đối Soát Giao Dịch Hạch Toán a2fbdc3d0f2f (Hình 2)</span>
                 </div>
-                <div className="text-gray-700 pl-6 space-y-1.5 leading-relaxed">
-                  <p>Hệ thống Mifos X hiển thị cặp bút toán được đánh dấu nổi bật màu tím với mã giao dịch <strong>65db3dd830c0e06</strong>:</p>
-                  <div className="p-2 bg-white rounded border border-purple-100 font-mono text-[11px] space-y-1">
-                    <div className="text-purple-900 font-semibold">&bull; Entry ID 59: Nợ TK 110102 (Cash at Teller) - 10,000,000.00 VND</div>
-                    <div className="text-purple-900 font-semibold">&bull; Entry ID 60: Có TK 110101 (Cash at Vault) - 10,000,000.00 VND</div>
-                  </div>
-                  <p className="text-[11px] text-gray-600">
-                    Bút toán đã cân đối hoàn hảo (Tổng Nợ = Tổng Có = 10.000.000 VND), phản ánh chính xác sự dịch chuyển dòng tiền mặt vật lý trong kho tiền của chi nhánh.
-                  </p>
-                </div>
+                <p className="text-gray-700 pl-6 leading-relaxed">
+                  Hệ thống tự động hiển thị màn hình chi tiết giao dịch <strong>a2fbdc3d0f2f</strong> với đầy đủ 2 dòng định khoản Entry 78 và Entry 79 khớp 100% Hình 2. Hoàn tất phân hệ Treasury!
+                </p>
               </div>
             </div>
           </div>
@@ -4731,8 +4909,32 @@ export default function EduGuideDrawer({
             isTreasuryPart1Complete ? (
               <div className="space-y-2">
                 <div className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-[2px] text-center shadow-xs">
-                  <span>Đã hoàn thành 100% Phân hệ 05: Treasury - Điều chuyển tiền mặt và đối soát Sổ cái!</span>
+                  <span>Đã hoàn thành 100% Phân hệ 05: Treasury - Phân tích dòng tiền &amp; Vay vốn liên ngân hàng 20M VND!</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigate) {
+                      navigate('accounting-view-transaction', {
+                        transaction: {
+                          id: 'a2fbdc3d0f2f',
+                          officeName: 'Takashimaya Bank (TKB) - HO',
+                          transactionDate: '14 October 2026',
+                          createdBy: 'mifos',
+                          submittedOn: '15 October 2026 00:00:00',
+                          entries: [
+                            { id: '78', type: 'ASSET', accountCode: '110201', accountName: 'Settlement Bank Account', debit: 'VND 20,000,000.00', credit: '' },
+                            { id: '79', type: 'LIABILITY', accountCode: '220401', accountName: 'Interbank Borrowings', debit: '', credit: 'VND 20,000,000.00' }
+                          ]
+                        }
+                      });
+                    }
+                    if (onClose) onClose();
+                  }}
+                  className="w-full py-2 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
+                >
+                  Xem kết quả giao dịch Vay liên ngân hàng a2fbdc3d0f2f (Hình 2)
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -4742,12 +4944,14 @@ export default function EduGuideDrawer({
                   }}
                   className="w-full py-2 px-4 bg-sky-50 border border-sky-200 text-[#1072ba] hover:bg-sky-100 text-xs font-medium rounded-[2px] cursor-pointer transition-colors text-center"
                 >
-                  Xem lại bút toán đối soát Ngân quỹ (Journal Entries)
+                  Xem lại Sổ Nhật ký chung &amp; Báo cáo dòng tiền
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (onResetTellers) onResetTellers();
+                    if (typeof window !== 'undefined') {
+                      localStorage.removeItem('tkb_treasury_interbank_done');
+                    }
                     if (onStartPractice) {
                       onStartPractice('treasury-part-1');
                     }
@@ -4768,7 +4972,7 @@ export default function EduGuideDrawer({
                   }}
                   className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-semibold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
                 >
-                  Bắt Đầu Thực Hành Phân Hệ Treasury
+                  Bắt Đầu Thực Hành Phân Hệ Treasury (Dòng tiền &amp; Vay liên ngân hàng)
                 </button>
                 <button
                   type="button"

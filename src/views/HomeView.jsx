@@ -37,12 +37,11 @@ export default function HomeView({
   };
 
   const coreModules = [
-    { num: "01", name: "Cơ Cấu Tổ Chức & Tiền Mặt", path: "admin-offices", icon: Building2, desc: "30 Chi nhánh (TKB) & Quầy Thủ Đức" },
-    { num: "02", name: "Người Dùng & Phân Quyền", path: "admin-users", icon: ShieldCheck, desc: "27 Users & 16 Roles Maker-Checker" },
-    { num: "03", name: "Kế Toán Sổ Cái (COA)", path: "accounting-coa", icon: BookOpen, desc: "70 Tài khoản GL & 75 bút toán" },
-    { num: "04", name: "Sản Phẩm Tín Dụng & Tiết Kiệm", path: "admin-loan-products", icon: Package, desc: "TKB Personal Loan & 3 gói tiền gửi" },
-    { num: "05", name: "Hồ Sơ Khách Hàng (CIF)", path: "clients", icon: Users, desc: "12 Khách hàng định danh" },
-    { num: "06", name: "Vận Hành Cho Vay & Thu Nợ", path: "clients", icon: ArrowRightLeft, desc: "Khoản vay #000000001 & Thu nợ" },
+    { num: "01", name: "Kế Toán Sổ Cái (COA & GL)", path: "accounting-coa", icon: BookOpen, desc: "70 Tài khoản GL & 75 bút toán" },
+    { num: "02", name: "Tiền Gửi Thanh Toán (CASA)", path: "clients", icon: Users, desc: "TKB Current Account & CIF Khách hàng" },
+    { num: "03", name: "Tiền Gửi Tiết Kiệm (FD & RD)", path: "admin-products", icon: Package, desc: "Fixed Deposit & Goal Savings gửi góp" },
+    { num: "04", name: "Tín Dụng & Cho Vay (Loans)", path: "admin-loan-products", icon: ArrowRightLeft, desc: "TKB Personal Loan, Thẩm định & Giải ngân" },
+    { num: "05", name: "Treasury & Quản Trị Thanh Khoản", path: "accounting-journal", icon: Building2, desc: "Dòng tiền & Vay vốn liên ngân hàng 20M" },
   ];
 
   return (
@@ -90,10 +89,10 @@ export default function HomeView({
           </div>
         </div>
 
-        {/* Quick Access to the 6 Core Modules of the Assignment */}
+        {/* Quick Access to the 5 Core Modules of the Assignment */}
         <div className="mt-8 space-y-3">
           <div className="flex items-center justify-between text-xs text-gray-500 font-medium px-1">
-            <span>6 Phân Hệ Thiết Lập Trong Bài Tập Core Banking (TKB)</span>
+            <span>5 Phân Hệ Nghiệp Vụ Cốt Lõi Core Banking (Takashimaya Bank)</span>
             <button
               onClick={toggleEduGuide}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] border border-[#1072ba] bg-sky-50 hover:bg-sky-100/70 text-[#1072ba] font-medium transition-colors cursor-pointer text-xs"
@@ -106,7 +105,7 @@ export default function HomeView({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2.5">
             {coreModules.map((m) => {
               const ModIcon = m.icon;
               return (

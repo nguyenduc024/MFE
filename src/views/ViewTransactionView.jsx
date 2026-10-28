@@ -33,9 +33,28 @@ export default function ViewTransactionView({
 
   const transactionId = tx.id || 'a2f68debe1a7';
 
+  const entries = tx.entries && tx.entries.length > 0 ? tx.entries : [
+    {
+      id: '78',
+      type: 'ASSET',
+      accountCode: '110201',
+      accountName: 'Settlement Bank Account',
+      debit: 'VND 20,000,000.00',
+      credit: ''
+    },
+    {
+      id: '79',
+      type: 'LIABILITY',
+      accountCode: '220401',
+      accountName: 'Interbank Borrowings',
+      debit: '',
+      credit: 'VND 20,000,000.00'
+    }
+  ];
+
   return (
     <div id="tour-view-transaction-screen" className="max-w-6xl mx-auto px-6 py-6 select-none font-sans animate-in fade-in duration-150">
-      {/* 1. Header & Breadcrumbs matching media_1792412162752_c0706601.png exactly */}
+      {/* 1. Header & Breadcrumbs matching media_1793171418381_c4552b01.png exactly */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         {/* Left: Title & Breadcrumbs */}
         <div className="flex items-center space-x-2.5">
@@ -93,7 +112,7 @@ export default function ViewTransactionView({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <span className="text-gray-600">Transaction Date</span>
-            <span className="font-normal text-gray-900">{tx.transactionDate || '12 October 2026'}</span>
+            <span className="font-normal text-gray-900">{tx.transactionDate || '14 October 2026'}</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <span className="text-gray-600">Created By</span>
@@ -101,7 +120,7 @@ export default function ViewTransactionView({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <span className="text-gray-600">Submitted on</span>
-            <span className="font-normal text-gray-900">{tx.submittedOn || '12 October 2026 00:00:00'}</span>
+            <span className="font-normal text-gray-900">{tx.submittedOn || '15 October 2026 00:00:00'}</span>
           </div>
         </div>
       </div>
@@ -120,31 +139,31 @@ export default function ViewTransactionView({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            <tr className="hover:bg-gray-50/60 transition-colors">
-              <td className="py-3.5 px-6 font-normal text-gray-800">57</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">LIABILITY</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">220301</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">Accrued Operating Expenses Payable</td>
-              <td className="py-3.5 px-6 text-right font-normal text-gray-800"></td>
-              <td className="py-3.5 px-6 text-right font-normal text-gray-800">VND 5,000,000.00</td>
-            </tr>
-            <tr className="bg-gray-50/50 hover:bg-gray-100/60 transition-colors">
-              <td className="py-3.5 px-6 font-normal text-gray-800">58</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">EXPENSE</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">530101</td>
-              <td className="py-3.5 px-6 font-normal text-gray-800">Operating Expense</td>
-              <td className="py-3.5 px-6 text-right font-normal text-gray-800">VND 5,000,000.00</td>
-              <td className="py-3.5 px-6 text-right font-normal text-gray-800"></td>
-            </tr>
+            {entries.map((entry, idx) => (
+              <tr 
+                key={entry.id || idx} 
+                className={`${idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'} hover:bg-gray-100/60 transition-colors`}
+              >
+                <td className="py-3.5 px-6 font-normal text-gray-800">{entry.id}</td>
+                <td className="py-3.5 px-6 font-normal text-gray-800">{entry.type}</td>
+                <td className="py-3.5 px-6 font-normal text-gray-800">{entry.accountCode}</td>
+                <td className="py-3.5 px-6 font-normal text-gray-800">{entry.accountName}</td>
+                <td className="py-3.5 px-6 text-right font-normal text-gray-800">{entry.debit}</td>
+                <td className="py-3.5 px-6 text-right font-normal text-gray-800">{entry.credit}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
-        {/* Centered Back Button (Disabled non-interactive as requested) */}
-        <div className="flex justify-center p-6 bg-white border-t border-gray-100 cursor-not-allowed">
+        {/* Centered Back Button */}
+        <div className="flex justify-center p-6 bg-white border-t border-gray-100">
           <button
             type="button"
-            disabled
-            className="bg-[#1072ba] text-white text-xs font-medium px-8 py-2 rounded-[3px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] cursor-not-allowed pointer-events-none opacity-80"
+            id="tour-view-transaction-back-btn"
+            onClick={() => {
+              if (navigate) navigate('accounting-journal');
+            }}
+            className="bg-[#1072ba] hover:bg-[#0e63a3] text-white text-xs font-medium px-8 py-2 rounded-[3px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] cursor-pointer transition-colors"
           >
             Back
           </button>

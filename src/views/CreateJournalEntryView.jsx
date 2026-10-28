@@ -28,7 +28,7 @@ export const FALLBACK_GL_ACCOUNTS = [
   { glCode: '210104', name: 'Recurring Deposits', type: 'LIABILITY' },
   { glCode: '210201', name: 'Savings Interest Payable', type: 'LIABILITY' },
   { glCode: '210202', name: 'Fixed Deposit Interest Payable', type: 'LIABILITY' },
-  { glCode: '220101', name: 'Interbank Borrowings', type: 'LIABILITY' },
+  { glCode: '220401', name: 'Interbank Borrowings', type: 'LIABILITY' },
   { glCode: '220201', name: 'Clearing Payable', type: 'LIABILITY' },
   { glCode: '220301', name: 'Accrued Operating Expenses Payable', type: 'LIABILITY' },
 
@@ -56,6 +56,7 @@ export const PAYMENT_TYPES = [
   'Cash',
   'Cheque',
   'Bank Transfer',
+  'Money Transfer',
   'Money Order',
   'Wire Transfer'
 ];
@@ -220,7 +221,24 @@ export default function CreateJournalEntryView({
       setTransactionDate('9/1/2026');
     };
 
+    const handleAutofillInterbank = () => {
+      const ho = officeList.find(o => o.id === '1' || o.name.includes('HO')) || officeList[0];
+      const vnd = currencyList.find(c => c.code === 'VND') || currencyList[0];
+      const settlementAcc = availableGlAccounts.find(a => a.glCode === '110201') || { glCode: '110201', name: 'Settlement Bank Account', type: 'ASSET' };
+      const borrowingAcc = availableGlAccounts.find(a => a.glCode === '220401' || a.glCode === '220101') || { glCode: '220401', name: 'Interbank Borrowings', type: 'LIABILITY' };
+
+      setSelectedOffice(ho);
+      setSelectedCurrency(vnd);
+      setDebitEntries([{ id: 1, glAccount: settlementAcc, amount: '20000000' }]);
+      setCreditEntries([{ id: 1, glAccount: borrowingAcc, amount: '20000000' }]);
+      setReferenceNumber('TKB-TRE-IB-001');
+      setTransactionDate('10/14/2026');
+      setPaymentType('Money Transfer');
+      setComments('Interbank borrowing - VND 20M - 30 days - 6% p.a.');
+    };
+
     window.addEventListener('practice-autofill-manual-journal', handleAutofillAll);
+    window.addEventListener('practice-autofill-interbank-borrowing', handleAutofillInterbank);
     window.addEventListener('practice-select-manual-office-ho', handleSelectHO);
     window.addEventListener('practice-select-manual-currency-vnd', handleSelectVND);
     window.addEventListener('practice-select-manual-debit-opex', handleSelectDebitOpex);
@@ -231,6 +249,7 @@ export default function CreateJournalEntryView({
 
     return () => {
       window.removeEventListener('practice-autofill-manual-journal', handleAutofillAll);
+      window.removeEventListener('practice-autofill-interbank-borrowing', handleAutofillInterbank);
       window.removeEventListener('practice-select-manual-office-ho', handleSelectHO);
       window.removeEventListener('practice-select-manual-currency-vnd', handleSelectVND);
       window.removeEventListener('practice-select-manual-debit-opex', handleSelectDebitOpex);
@@ -355,6 +374,41 @@ export default function CreateJournalEntryView({
 
     if (onAddJournalEntry) {
       onAddJournalEntry(newJournalRecord);
+    }
+
+    if (referenceNumber === 'TKB-TRE-IB-001' || (comments && comments.toLowerCase().includes('interbank'))) {
+      const interbankTx = {
+        id: 'a2fbdc3d0f2f',
+        officeName: selectedOffice?.name || 'Takashimaya Bank (TKB) - HO',
+        transactionDate: '14 October 2026',
+        createdBy: 'mifos',
+        submittedOn: '15 October 2026 00:00:00',
+        entries: [
+          {
+            id: '78',
+            type: 'ASSET',
+            accountCode: '110201',
+            accountName: 'Settlement Bank Account',
+            debit: 'VND 20,000,000.00',
+            credit: ''
+          },
+          {
+            id: '79',
+            type: 'LIABILITY',
+            accountCode: '220401',
+            accountName: 'Interbank Borrowings',
+            debit: '',
+            credit: 'VND 20,000,000.00'
+          }
+        ]
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tkb_treasury_interbank_done', 'true');
+      }
+      if (navigate) {
+        navigate('accounting-view-transaction', { transaction: interbankTx });
+      }
+      return;
     }
 
     if (navigate) {

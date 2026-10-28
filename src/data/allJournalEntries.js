@@ -1213,5 +1213,43 @@ export const ALL_JOURNAL_ENTRIES = [
     "debit": 888487.89,
     "credit": null,
     "description": ""
+  },
+  {
+    "id": "78",
+    "office": "Takashimaya Bank (TKB) - HO",
+    "txId": "a2fbdc3d0f2f",
+    "txDate": "14 October 2026",
+    "rawTxDate": "2026-10-14",
+    "type": "ASSET",
+    "createdBy": "mifos",
+    "submittedDate": "15 October 2026 00:00:00",
+    "rawSubmittedDate": "2026-10-15",
+    "glCode": "110201",
+    "glName": "Settlement Bank Account",
+    "currency": "VND",
+    "debit": 20000000,
+    "credit": null,
+    "description": "Interbank borrowing - VND 20M - 30 days - 6% p.a.",
+    "referenceNumber": "TKB-TRE-IB-001",
+    "isTreasuryInterbankTarget": true
+  },
+  {
+    "id": "79",
+    "office": "Takashimaya Bank (TKB) - HO",
+    "txId": "a2fbdc3d0f2f",
+    "txDate": "14 October 2026",
+    "rawTxDate": "2026-10-14",
+    "type": "LIABILITY",
+    "createdBy": "mifos",
+    "submittedDate": "15 October 2026 00:00:00",
+    "rawSubmittedDate": "2026-10-15",
+    "glCode": "220401",
+    "glName": "Interbank Borrowings",
+    "currency": "VND",
+    "debit": null,
+    "credit": 20000000,
+    "description": "Interbank borrowing - VND 20M - 30 days - 6% p.a.",
+    "referenceNumber": "TKB-TRE-IB-001",
+    "isTreasuryInterbankTarget": true
   }
 ];

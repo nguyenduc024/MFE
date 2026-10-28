@@ -2421,11 +2421,11 @@ export const EDU_MODULES = [
     moduleNumber: "05",
     moduleTitle: "Phân hệ 05: Treasury",
     partNumber: "1",
-    name: "Phần 1: Quản Lý Ngân Quỹ & Điều Chuyển Tiền Mặt Kho - Quầy (Vault to Teller Cash Allocation)",
-    shortLabel: "Phần 1: Quản lý ngân quỹ & Điều chuyển tiền mặt",
-    title: "Quản Lý Ngân Quỹ & Điều Chuyển Tiền Mặt Kho Quỹ - Quầy Giao Dịch (Vault to Teller Cash Allocation)",
-    objective: "Thực hiện nghiệp vụ quản lý ngân quỹ (Cash Management) tại Phòng Giao Dịch Thủ Đức (Thu Duc Transaction Office). Khởi tạo và kích hoạt bàn thu ngân Thu Duc Teller 01, thực hiện điều chuyển/cấp tiền mặt đầu ngày 10.000.000 VND từ Kho tiền (TK 110101 Cash at Vault) sang Bàn thu ngân (TK 110102 Cash at Teller), và đối soát cặp bút toán tự động trên Sổ Nhật ký chung (Journal Entries: Entry ID 59 & 60).",
-    targetMenu: "admin-tellers",
-    subPath: "tellers"
+    name: "Phần 1: Phân Tích Dòng Tiền & Vay Vốn Liên Ngân Hàng (Cashflow Analysis & Interbank Borrowing)",
+    shortLabel: "Phần 1: Dòng tiền & Vay liên ngân hàng",
+    title: "Phân Tích Dòng Tiền, Thanh Khoản & Vay Vốn Liên Ngân Hàng 20M VND (Interbank Borrowing)",
+    objective: "Thực hiện nghiệp vụ quản lý thanh khoản của Khối Ngân quỹ (Treasury) tại Hội sở Takashimaya Bank (TKB - HO): Tra cứu Sổ Nhật ký chung (Journal Entries), phân tích đối soát biến động dòng tiền vào (Inflows) và dòng tiền ra (Outflows), nhận diện áp lực thâm hụt thanh khoản ròng tại TK 110201 Settlement Bank Account, và lập bút toán Vay vốn thị trường Liên ngân hàng (Interbank Borrowing) số tiền 20.000.000 VND (30 ngày, lãi suất 6%/năm) để đảm bảo an toàn thanh khoản.",
+    targetMenu: "accounting",
+    subPath: "journal"
   }
 ];
