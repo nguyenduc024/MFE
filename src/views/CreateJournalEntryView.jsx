@@ -452,7 +452,7 @@ export default function CreateJournalEntryView({
 
       {/* 2. Main White Form Card matching Screenshot */}
       <div id="tour-manual-journal-card" className="bg-white rounded-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.24)] p-8 md:p-10">
-        <form onSubmit={handleSubmit} className="space-y-7">
+        <form id="tour-manual-journal-form" onSubmit={handleSubmit} className="space-y-7">
           
           {/* Row 1: Office * and Currency * */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7">

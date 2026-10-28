@@ -1973,8 +1973,8 @@ export default function PracticeSpotlightTour({
     } else if (currentPath === 'accounting-create-journal') {
       currentStep = 5;
       totalSteps = 6;
-      const submitBtn = typeof document !== 'undefined' && document.getElementById('tour-manual-journal-submit-btn');
-      targetSelector = submitBtn ? '#tour-manual-journal-submit-btn' : '#tour-manual-journal-form';
+      const submitBtn = typeof document !== 'undefined' && (document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn'));
+      targetSelector = submitBtn ? '#tour-manual-submit-btn' : '#tour-manual-journal-card';
       stepTitle = 'Bước 5 / 6: Nhập thông tin Vay vốn liên ngân hàng 20M VND (Hình 1)';
       stepSubtitle = 'Lập bút toán Vay vốn thị trường liên ngân hàng 30 ngày, lãi suất 6%/năm.';
       stepInstruction = 'Nhập thông tin theo Hình 1: Office "Takashimaya Bank (TKB) - HO", Currency "VND", Nợ TK (110201) Settlement Bank Account 20.000.000 VND, Có TK (220401) Interbank Borrowings 20.000.000 VND, Ref "TKB-TRE-IB-001", Date "10/14/2026", Payment "Money Transfer", Comments "Interbank borrowing - VND 20M - 30 days - 6% p.a.". Bạn có thể bấm nút "Tự động điền dữ liệu Vay liên ngân hàng (Hình 1)" ở popup bên cạnh để điền nhanh, sau đó bấm nút "Submit" màu xanh để gửi bút toán.';
@@ -4301,45 +4301,46 @@ export default function PracticeSpotlightTour({
     };
   }
 
-  if (box) {
-    // Treasury placement rules: always place on side to never cover inputs or journal
-    if (module === 'treasury-part-1') {
-      if (currentPath === 'accounting-create-journal') {
-        tooltipStyle = {
-          position: 'fixed',
-          top: '70px',
-          right: '24px',
-          width: '380px',
-          maxHeight: 'calc(100vh - 90px)',
-          overflowY: 'auto'
-        };
-      } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
-        tooltipStyle = {
-          position: 'fixed',
-          top: '80px',
-          right: '24px',
-          width: '420px',
-          maxHeight: 'calc(100vh - 100px)',
-          overflowY: 'auto'
-        };
-      } else if (currentPath === 'accounting-view-transaction') {
-        tooltipStyle = {
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '390px',
-          maxHeight: 'calc(100vh - 100px)',
-          overflowY: 'auto'
-        };
-      } else if (box) {
-        tooltipStyle = {
-          position: 'fixed',
-          top: `${box.bottom + 16}px`,
-          left: `${Math.max(16, Math.min(box.left, windowWidth - 360 - 20))}px`,
-          width: '360px'
-        };
-      }
+  // Treasury placement rules: always place on side to never cover inputs or journal
+  if (module === 'treasury-part-1') {
+    if (currentPath === 'accounting-create-journal') {
+      tooltipStyle = {
+        position: 'fixed',
+        top: '70px',
+        right: '24px',
+        width: '380px',
+        maxHeight: 'calc(100vh - 90px)',
+        overflowY: 'auto'
+      };
+    } else if (currentPath === 'accounting-journal' || currentPath === 'accounting-journal-entries') {
+      tooltipStyle = {
+        position: 'fixed',
+        top: '80px',
+        right: '24px',
+        width: '420px',
+        maxHeight: 'calc(100vh - 100px)',
+        overflowY: 'auto'
+      };
+    } else if (currentPath === 'accounting-view-transaction') {
+      tooltipStyle = {
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        width: '390px',
+        maxHeight: 'calc(100vh - 100px)',
+        overflowY: 'auto'
+      };
+    } else if (box) {
+      tooltipStyle = {
+        position: 'fixed',
+        top: `${box.bottom + 16}px`,
+        left: `${Math.max(16, Math.min(box.left, windowWidth - 360 - 20))}px`,
+        width: '360px'
+      };
     }
+  }
+
+  if (box) {
 
     if (module === 'casa-part-1' || module === 'casa-part-2' || module === 'casa-part-3' || module === 'casa-part-4' || module === 'casa-part-5' || module === 'saving-part-1' || module === 'saving-part-2' || module === 'saving-part-3' || module === 'saving-part-4' || module === 'loan-part-1' || module === 'loan-part-2') {
       const tooltipWidth = 340;
@@ -8082,9 +8083,15 @@ export default function PracticeSpotlightTour({
                 <button
                   type="button"
                   onClick={() => {
-                    const submitBtn = document.getElementById('tour-manual-journal-submit-btn');
-                    if (submitBtn) {
+                    const submitBtn = document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn');
+                    if (submitBtn && !submitBtn.disabled) {
                       submitBtn.click();
+                    } else {
+                      window.dispatchEvent(new CustomEvent('practice-autofill-interbank-borrowing'));
+                      setTimeout(() => {
+                        const btn = document.getElementById('tour-manual-submit-btn') || document.getElementById('tour-manual-journal-submit-btn');
+                        if (btn) btn.click();
+                      }, 100);
                     }
                   }}
                   className="w-full py-2.5 px-4 bg-[#1072ba] hover:bg-[#0e619e] text-white text-xs font-bold rounded-[2px] shadow-xs cursor-pointer transition-colors text-center"
